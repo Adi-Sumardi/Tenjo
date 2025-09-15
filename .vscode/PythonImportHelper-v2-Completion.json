@@ -384,14 +384,6 @@
         "documentation": {}
     },
     {
-        "label": "Config",
-        "importPath": "src.core.config",
-        "description": "src.core.config",
-        "isExtraImport": true,
-        "detail": "src.core.config",
-        "documentation": {}
-    },
-    {
         "label": "ScreenCapture",
         "importPath": "src.modules.screen_capture",
         "description": "src.modules.screen_capture",
@@ -445,14 +437,6 @@
         "description": "src.utils.stealth",
         "isExtraImport": true,
         "detail": "src.utils.stealth",
-        "documentation": {}
-    },
-    {
-        "label": "APIClient",
-        "importPath": "src.utils.api_client",
-        "description": "src.utils.api_client",
-        "isExtraImport": true,
-        "detail": "src.utils.api_client",
         "documentation": {}
     },
     {
