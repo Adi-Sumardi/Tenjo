@@ -267,6 +267,208 @@
 </div>
 @endif
 
+<!-- Enhanced Browser & URL Activity Summary -->
+@if(isset($enhancedBrowserStats) && $enhancedBrowserStats->count() > 0)
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">Enhanced Browser Activity Summary</h6>
+    </div>
+    <div class="card-body">
+        <!-- Daily Usage Overview -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h6 class="text-muted mb-3">Today's Usage Overview</h6>
+                <div class="row text-center">
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-primary mb-0">{{ gmdate('H:i:s', $dailyUsageSummary['total_browsing_time']) }}</h5>
+                            <small class="text-muted">Total Browsing</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-success mb-0">{{ $dailyUsageSummary['unique_browsers'] }}</h5>
+                            <small class="text-muted">Browsers Used</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-info mb-0">{{ $dailyUsageSummary['total_sessions'] }}</h5>
+                            <small class="text-muted">Browser Sessions</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-warning mb-0">{{ $dailyUsageSummary['unique_domains'] }}</h5>
+                            <small class="text-muted">Unique Domains</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-secondary mb-0">{{ $dailyUsageSummary['total_url_visits'] }}</h5>
+                            <small class="text-muted">URL Visits</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <h5 class="text-dark mb-0">{{ gmdate('H:i:s', $dailyUsageSummary['avg_session_time']) }}</h5>
+                        <small class="text-muted">Avg Session</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Browser Sessions Breakdown -->
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-muted mb-3">Browser Sessions</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Browser</th>
+                                <th>Sessions</th>
+                                <th>Total Time</th>
+                                <th>Avg Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($enhancedBrowserStats as $browser)
+                            <tr>
+                                <td>
+                                    @if($browser->browser_name == 'Chrome')
+                                        <i class="fab fa-chrome text-warning browser-icon"></i>
+                                    @elseif($browser->browser_name == 'Firefox')
+                                        <i class="fab fa-firefox text-danger browser-icon"></i>
+                                    @elseif($browser->browser_name == 'Safari')
+                                        <i class="fab fa-safari text-info browser-icon"></i>
+                                    @elseif($browser->browser_name == 'Edge')
+                                        <i class="fab fa-edge text-primary browser-icon"></i>
+                                    @else
+                                        <i class="fas fa-globe browser-icon"></i>
+                                    @endif
+                                    {{ $browser->browser_name }}
+                                </td>
+                                <td><span class="badge bg-info">{{ $browser->session_count }}</span></td>
+                                <td class="duration-info">{{ gmdate('H:i:s', $browser->total_time) }}</td>
+                                <td class="duration-info">{{ gmdate('H:i:s', $browser->avg_session_time) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Domains -->
+            <div class="col-md-6">
+                <h6 class="text-muted mb-3">Top Domains Visited</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Domain</th>
+                                <th>Visits</th>
+                                <th>Total Time</th>
+                                <th>Avg Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($enhancedUrlStats->take(8) as $domain)
+                            <tr>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 150px;">
+                                        <strong>{{ $domain->domain }}</strong>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-primary">{{ $domain->visit_count }}</span></td>
+                                <td class="duration-info">{{ gmdate('H:i:s', $domain->total_time) }}</td>
+                                <td class="duration-info">{{ gmdate('H:i:s', $domain->avg_time) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- Recent URL Activities -->
+@if(isset($recentUrlActivities) && $recentUrlActivities->count() > 0)
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">Recent URL Activities (Real-time Tracking)</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th width="10%">Time</th>
+                        <th width="15%">Browser</th>
+                        <th width="35%">URL</th>
+                        <th width="25%">Page Title</th>
+                        <th width="10%">Duration</th>
+                        <th width="5%">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentUrlActivities->take(15) as $activity)
+                    <tr>
+                        <td class="time-info">{{ $activity->visit_start->format('H:i:s') }}</td>
+                        <td>
+                            @php
+                                $browserSession = $activity->browserSession;
+                                $browserName = $browserSession ? $browserSession->browser_name : 'Unknown';
+                            @endphp
+                            @if($browserName == 'Chrome')
+                                <i class="fab fa-chrome text-warning browser-icon"></i>
+                            @elseif($browserName == 'Firefox')
+                                <i class="fab fa-firefox text-danger browser-icon"></i>
+                            @elseif($browserName == 'Safari')
+                                <i class="fab fa-safari text-info browser-icon"></i>
+                            @elseif($browserName == 'Edge')
+                                <i class="fab fa-edge text-primary browser-icon"></i>
+                            @else
+                                <i class="fas fa-globe browser-icon"></i>
+                            @endif
+                            <small>{{ $browserName }}</small>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 250px;">
+                                <a href="{{ $activity->url }}" target="_blank" class="text-decoration-none" title="{{ $activity->url }}">
+                                    {{ $activity->url }}
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 200px;" title="{{ $activity->page_title }}">
+                                {{ $activity->page_title ?: 'No title' }}
+                            </div>
+                        </td>
+                        <td class="duration-info">
+                            @if($activity->duration > 0)
+                                {{ gmdate('H:i:s', $activity->duration) }}
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($activity->is_active)
+                                <span class="badge bg-success">Active</span>
+                            @else
+                                <span class="badge bg-secondary">Closed</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Recent Browser Activity -->
 <div class="card">
     <div class="card-header">

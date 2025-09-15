@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\BrowserEventController;
 use App\Http\Controllers\Api\ProcessEventController;
 use App\Http\Controllers\Api\UrlEventController;
 use App\Http\Controllers\StreamController;
+use App\Http\Controllers\BrowserTrackingController;
 
 // Add CORS middleware for production
 Route::middleware([])->group(function () {
@@ -84,6 +85,20 @@ Route::prefix('url-events')->group(function () {
     Route::post('/', [UrlEventController::class, 'store']);
     Route::get('/', [UrlEventController::class, 'index']);
     Route::get('/{event}', [UrlEventController::class, 'show']);
+});
+
+// Enhanced Browser Tracking routes
+Route::prefix('browser-tracking')->group(function () {
+    Route::post('/', [BrowserTrackingController::class, 'storeBrowserTracking']);
+    Route::get('/{clientId}/summary', [BrowserTrackingController::class, 'getBrowserSummary']);
+});
+
+Route::prefix('browser-sessions')->group(function () {
+    Route::post('/', [BrowserTrackingController::class, 'storeBrowserSession']);
+});
+
+Route::prefix('url-activities')->group(function () {
+    Route::post('/', [BrowserTrackingController::class, 'storeUrlActivity']);
 });
 
 // System stats endpoint

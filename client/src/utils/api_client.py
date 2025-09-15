@@ -584,6 +584,18 @@ class APIClient:
         """Send URL access data"""
         return self.post('/api/url-events', url_data)
 
+    def send_browser_tracking(self, tracking_data):
+        """Send enhanced browser tracking data with sessions and URL activities"""
+        return self.post('/api/browser-tracking', tracking_data)
+
+    def send_browser_session(self, session_data):
+        """Send browser session data"""
+        return self.post('/api/browser-sessions', session_data)
+
+    def send_url_activity(self, activity_data):
+        """Send URL activity data with duration tracking"""
+        return self.post('/api/url-activities', activity_data)
+
     # Helper methods for easy testing
     def send_test_browser_event(self, client_id, event_type='page_visit', browser_name='Chrome', url='https://test.com', title='Test Page'):
         """Send test browser event with required fields"""

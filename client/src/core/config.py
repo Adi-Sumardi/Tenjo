@@ -6,9 +6,9 @@ import platform
 from datetime import datetime
 
 class Config:
-    # Server Configuration - PRODUCTION
-    # SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://103.129.149.67")  # Production server
-    SERVER_URL = "http://103.129.149.67"
+    # Server Configuration - DEVELOPMENT
+    # SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://127.0.0.1:8000")  # Development server
+    SERVER_URL = "http://127.0.0.1:8000"
     API_ENDPOINT = f"{SERVER_URL}/api"
     API_KEY = os.getenv('TENJO_API_KEY', "tenjo-api-key-2024")
 
@@ -50,7 +50,7 @@ class Config:
     SCREENSHOT_ENABLED = True
     BROWSER_MONITORING = True
     PROCESS_MONITORING = True
-    STEALTH_MODE = True
+    STEALTH_MODE = False  # Disabled for development/testing
     AUTO_START_VIDEO_STREAMING = True  # ENABLED for production
 
     # Paths

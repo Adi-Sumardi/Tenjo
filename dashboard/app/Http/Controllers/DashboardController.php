@@ -7,6 +7,8 @@ use App\Models\Screenshot;
 use App\Models\BrowserEvent;
 use App\Models\ProcessEvent;
 use App\Models\UrlEvent;
+use App\Models\BrowserSession;
+use App\Models\UrlActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
@@ -72,7 +74,63 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard.client-details', compact('client', 'browserStats', 'topUrls'));
+        // Enhanced Browser Tracking Data
+        $enhancedBrowserStats = BrowserSession::where('client_id', $clientId)
+            ->whereDate('session_start', today())
+            ->selectRaw('
+                browser_name,
+                COUNT(*) as session_count,
+                SUM(total_duration) as total_time,
+                AVG(total_duration) as avg_session_time,
+                MAX(session_start) as last_session
+            ')
+            ->groupBy('browser_name')
+            ->orderBy('total_time', 'desc')
+            ->get();
+
+        // Enhanced URL Activities
+        $enhancedUrlStats = UrlActivity::where('client_id', $clientId)
+            ->whereDate('visit_start', today())
+            ->selectRaw('
+                domain,
+                COUNT(*) as visit_count,
+                SUM(duration) as total_time,
+                AVG(duration) as avg_time
+            ')
+            ->groupBy('domain')
+            ->orderBy('total_time', 'desc')
+            ->limit(20)
+            ->get();
+
+        // Recent Enhanced URL Activities
+        $recentUrlActivities = UrlActivity::where('client_id', $clientId)
+            ->whereDate('visit_start', today())
+            ->orderBy('visit_start', 'desc')
+            ->limit(30)
+            ->get();
+
+        // Daily Usage Summary
+        $totalBrowsingTime = $enhancedBrowserStats->sum('total_time') ?: 0;
+        $avgSessionTime = $enhancedBrowserStats->avg('avg_session_time') ?: 0;
+
+        $dailyUsageSummary = [
+            'total_browsing_time' => $totalBrowsingTime,
+            'unique_browsers' => $enhancedBrowserStats->count(),
+            'total_sessions' => $enhancedBrowserStats->sum('session_count') ?: 0,
+            'unique_domains' => $enhancedUrlStats->count(),
+            'total_url_visits' => $recentUrlActivities->count(),
+            'avg_session_time' => $avgSessionTime
+        ];
+
+        return view('dashboard.client-details', compact(
+            'client',
+            'browserStats',
+            'topUrls',
+            'enhancedBrowserStats',
+            'enhancedUrlStats',
+            'recentUrlActivities',
+            'dailyUsageSummary'
+        ));
     }
 
     public function clientLive(string $clientId): View

@@ -1,2 +1,23 @@
 2025-09-15 19:24:04,725 - WARNING - API request failed with status 422
 2025-09-15 19:24:04,725 - ERROR - Failed to complete POST request to /api/clients/register after 1 attempts
+2025-09-15 21:07:50,324 - WARNING - API request failed with status 422
+2025-09-15 21:07:50,324 - ERROR - Failed to complete POST request to /api/clients/register after 1 attempts
+2025-09-15 21:07:50,438 - WARNING - API request failed with status 500
+2025-09-15 21:07:50,439 - ERROR - Failed to complete GET request to /api/stream/request/33ba500a-fdea-6619-b1e7-0ede2979bd73 after 1 attempts
+2025-09-15 21:07:51,072 - WARNING - API request failed with status 400
+2025-09-15 21:07:51,072 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-09-15 21:07:51,072 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-09-15 21:07:56,424 - WARNING - API request failed with status 400
+2025-09-15 21:07:56,425 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-09-15 21:07:56,425 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-09-15 21:08:01,791 - WARNING - API request failed with status 400
+2025-09-15 21:08:01,791 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-09-15 21:08:01,791 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-09-15 21:08:05,531 - WARNING - API request failed with status 500
+2025-09-15 21:08:05,531 - ERROR - Failed to complete GET request to /api/stream/request/33ba500a-fdea-6619-b1e7-0ede2979bd73 after 1 attempts
+2025-09-15 21:08:07,122 - WARNING - API request failed with status 400
+2025-09-15 21:08:07,123 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-09-15 21:08:07,123 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-09-15 21:08:12,466 - WARNING - API request failed with status 400
+2025-09-15 21:08:12,467 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-09-15 21:08:12,467 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
