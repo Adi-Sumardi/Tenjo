@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Tenjo Remote Installer for macOS/Linux
-# One-liner installer that downloads and installs from GitHub
+# One-liner installer that downloads and installs from GitHub with bulletproof Python handling
 
 # Usage: curl -sSL https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install.sh | bash
 
@@ -38,18 +38,19 @@ detect_os() {
 }
 
 # Main installer
+# Main installer
 main() {
     clear
     echo "======================================"
     echo "   TENJO EMPLOYEE MONITORING SYSTEM   "
     echo "        Remote Auto Installer         "
-    echo "           FIXED VERSION v2.0         "
+    echo "     BULLETPROOF VERSION v3.0         "
     echo "======================================"
     echo ""
     
     detect_os
     
-    print_status "Downloading installer from GitHub..."
+    print_status "Downloading bulletproof installer from GitHub..."
     
     # Create temp directory
     mkdir -p "$TEMP_DIR"
@@ -57,9 +58,11 @@ main() {
     
     # Download the appropriate installer
     if [[ "$OS" == "macos" ]]; then
-        curl -sSL "$RAW_URL/auto_install_macos.sh" -o installer.sh
+        curl -sSL "$RAW_URL/install_bulletproof.sh" -o installer.sh
+        print_status "Using bulletproof macOS installer with comprehensive Python detection"
     else
         curl -sSL "$RAW_URL/auto_install_linux.sh" -o installer.sh
+        print_status "Using Linux installer"
     fi
     
     # Make executable and run
