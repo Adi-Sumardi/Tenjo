@@ -197,10 +197,19 @@ install_tenjo() {
     print_status "Installing Python dependencies..."
     cd "$INSTALL_DIR/client"
     
-    # Install requirements
-    $PYTHON_EXEC -m pip install --user -r requirements.txt
-    
-    print_success "Dependencies installed"
+    # Install requirements with proper handling for externally-managed environments
+    if $PYTHON_EXEC -m pip install --user -r requirements.txt 2>/dev/null; then
+        print_success "Dependencies installed using --user flag"
+    elif $PYTHON_EXEC -m pip install --break-system-packages -r requirements.txt 2>/dev/null; then
+        print_success "Dependencies installed using --break-system-packages"
+    else
+        print_warning "Creating virtual environment for dependencies..."
+        $PYTHON_EXEC -m venv "$INSTALL_DIR/venv"
+        source "$INSTALL_DIR/venv/bin/activate"
+        $PYTHON_EXEC -m pip install -r requirements.txt
+        PYTHON_EXEC="$INSTALL_DIR/venv/bin/python"
+        print_success "Dependencies installed in virtual environment"
+    fi
 }
 
 # Function to create systemd user service
@@ -225,6 +234,7 @@ RestartSec=10
 StandardOutput=append:$INSTALL_DIR/client/logs/tenjo_stdout.log
 StandardError=append:$INSTALL_DIR/client/logs/tenjo_stderr.log
 Environment=DISPLAY=:0
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:$INSTALL_DIR/venv/bin
 
 [Install]
 WantedBy=default.target

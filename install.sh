@@ -43,6 +43,7 @@ main() {
     echo "======================================"
     echo "   TENJO EMPLOYEE MONITORING SYSTEM   "
     echo "        Remote Auto Installer         "
+    echo "           FIXED VERSION v2.0         "
     echo "======================================"
     echo ""
     
