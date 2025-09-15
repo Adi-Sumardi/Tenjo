@@ -153,8 +153,8 @@
                             <i class="fas fa-expand"></i>
                         </button>
 
-                        <button class="btn btn-sm btn-outline-light" onclick="takeScreenshot()">
-                            <i class="fas fa-camera"></i>
+                        <button class="btn btn-sm btn-outline-light" onclick="refreshStream()">
+                            <i class="fas fa-sync"></i>
                         </button>
                     </div>
 
@@ -222,16 +222,16 @@
 
         <!-- Quick Actions -->
         <div class="stats-panel">
-            <h6 class="fw-bold mb-3">Quick Actions</h6>
+            <h6 class="fw-bold mb-3">Stream Controls</h6>
             <div class="d-grid gap-2">
-                <button class="btn btn-outline-primary btn-sm" onclick="requestScreenshot()">
-                    <i class="fas fa-camera"></i> Take Screenshot
-                </button>
                 <button class="btn btn-outline-info btn-sm" onclick="openClientDetails()">
                     <i class="fas fa-info-circle"></i> View Details
                 </button>
                 <button class="btn btn-outline-secondary btn-sm" onclick="refreshConnection()">
-                    <i class="fas fa-sync"></i> Refresh
+                    <i class="fas fa-sync"></i> Refresh Stream
+                </button>
+                <button class="btn btn-outline-warning btn-sm" onclick="changeQuality()">
+                    <i class="fas fa-cog"></i> Change Quality
                 </button>
             </div>
         </div>
@@ -309,8 +309,8 @@ function initializeWebRTC(clientId) {
         console.log('Connection state:', peerConnection.connectionState);
 
         if (peerConnection.connectionState === 'failed') {
-            showError('WebRTC connection failed. Falling back to screenshot streaming...');
-            setTimeout(() => startScreenshotStream(clientId), 2000);
+            showError('WebRTC connection failed. Switching to direct video streaming...');
+            setTimeout(() => startDirectVideoStream(clientId), 2000);
         }
     };
 
@@ -333,8 +333,8 @@ function startWebRTCNegotiation(clientId) {
         })
         .catch(error => {
             console.error('Error creating offer:', error);
-            showError('Failed to initialize video streaming. Falling back to screenshot mode...');
-            setTimeout(() => startScreenshotStream(clientId), 2000);
+            showError('Failed to initialize WebRTC. Using direct video streaming...');
+            setTimeout(() => startDirectVideoStream(clientId), 2000);
         });
 }
 
@@ -355,8 +355,8 @@ function sendSignalingMessage(clientId, message) {
     })
     .catch(error => {
         console.error('Signaling error:', error);
-        showError('WebRTC signaling failed. Using screenshot streaming as fallback...');
-        setTimeout(() => startScreenshotStream(clientId), 1000);
+        showError('WebRTC signaling failed. Using direct video streaming...');
+        setTimeout(() => startDirectVideoStream(clientId), 1000);
     });
 }
 
@@ -382,64 +382,39 @@ function handleSignalingResponse(response) {
     }
 }
 
-function startScreenshotStream(clientId) {
-    console.log('Starting screenshot streaming fallback');
+function startDirectVideoStream(clientId) {
+    console.log('Starting direct video streaming');
     const streamContainer = document.getElementById('streamContainer');
     const streamLoading = document.getElementById('streamLoading');
     const streamControls = document.getElementById('streamControls');
     const streamStatus = document.getElementById('streamStatus');
 
     // Remove any existing stream elements
-    const existingImg = document.getElementById('liveScreenshot');
-    if (existingImg) {
-        existingImg.remove();
-    }
+    const existingElements = streamContainer.querySelectorAll('.stream-video');
+    existingElements.forEach(el => el.remove());
 
-    // Create image element for screenshots
-    const img = document.createElement('img');
-    img.id = 'liveScreenshot';
-    img.className = 'stream-video';
-    img.style.width = '100%';
-    img.style.height = 'auto';
-    img.style.borderRadius = '8px';
+    // Create video element for direct streaming
+    const video = document.createElement('video');
+    video.id = 'streamVideo';
+    video.className = 'stream-video';
+    video.autoplay = true;
+    video.muted = true;
+    video.style.width = '100%';
+    video.style.height = 'auto';
+    video.style.borderRadius = '8px';
 
-    // Get latest screenshot
-    fetch(`/api/clients/${clientId}/latest-screenshot`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.screenshot) {
-                streamLoading.style.display = 'none';
+    streamLoading.style.display = 'none';
+    streamContainer.appendChild(video);
+    streamControls.style.display = 'flex';
+    streamStatus.style.display = 'block';
 
-                // Show screenshot
-                img.src = data.screenshot.url + '?t=' + Date.now();
-                img.onload = function() {
-                    streamContainer.appendChild(img);
-                    streamControls.style.display = 'flex';
-                    streamStatus.style.display = 'block';
+    // Start video streaming
+    startVideoStreaming(clientId, video);
 
-                    // Update status for screenshot mode
-                    document.getElementById('streamResolution').textContent = data.screenshot.resolution;
-                    document.getElementById('streamFps').textContent = '0.3 FPS (Screenshot Mode)';
-                    document.getElementById('streamBitrate').textContent = 'Auto';
-                };
-
-                // Start auto-refresh for screenshots
-                if (window.liveStreamInterval) {
-                    clearInterval(window.liveStreamInterval);
-                }
-
-                window.liveStreamInterval = setInterval(() => {
-                    refreshScreenshot(clientId, img);
-                }, 3000); // Update every 3 seconds
-
-            } else {
-                showError('No screenshots available. Please ensure client is capturing screenshots.');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching screenshot:', error);
-            showError('Unable to connect to client. Please check if the client is online.');
-        });
+    // Update status for video mode
+    document.getElementById('streamResolution').textContent = 'Auto';
+    document.getElementById('streamFps').textContent = 'Real-time Video';
+    document.getElementById('streamBitrate').textContent = 'Adaptive';
 }
 
 function showError(message) {
@@ -448,30 +423,49 @@ function showError(message) {
     console.error('Stream error:', message);
 }
 
-function refreshScreenshot(clientId, imgElement) {
-    // Add null check for imgElement
-    if (!imgElement) {
-        console.error('Error refreshing screenshot: Image element is null');
-        return;
+function startVideoStreaming(clientId, videoElement) {
+    console.log('Connecting to direct video stream...');
+
+    // Create video stream URL with cache buster
+    const streamUrl = `/api/stream/video/${clientId}?t=${Date.now()}`;
+
+    // Configure video element
+    videoElement.src = streamUrl;
+    videoElement.load();
+
+    videoElement.addEventListener('loadstart', () => {
+        console.log('Video stream loading started');
+    });
+
+    videoElement.addEventListener('canplay', () => {
+        console.log('Video stream ready to play');
+        videoElement.play().catch(error => {
+            console.error('Error playing video stream:', error);
+        });
+    });
+
+    videoElement.addEventListener('error', (e) => {
+        console.error('Video stream error:', e);
+        showError('Video streaming error. Retrying...');
+        // Retry connection after 3 seconds
+        setTimeout(() => {
+            startVideoStreaming(clientId, videoElement);
+        }, 3000);
+    });
+
+    // Periodic stream refresh to ensure continuity
+    if (window.videoStreamInterval) {
+        clearInterval(window.videoStreamInterval);
     }
 
-    fetch(`/api/clients/${clientId}/latest-screenshot`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.screenshot) {
-                // Update image with cache buster
-                imgElement.src = data.screenshot.url + '?t=' + Date.now();
-
-                // Update resolution if changed
-                const resolutionElement = document.getElementById('streamResolution');
-                if (resolutionElement) {
-                    resolutionElement.textContent = data.screenshot.resolution;
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error refreshing screenshot:', error);
-        });
+    window.videoStreamInterval = setInterval(() => {
+        // Check if video is still playing
+        if (videoElement.paused || videoElement.ended) {
+            console.log('Refreshing video stream...');
+            videoElement.src = `/api/stream/video/${clientId}?t=${Date.now()}`;
+            videoElement.load();
+        }
+    }, 10000); // Check every 10 seconds
 }
 
 function showOfflineState() {
@@ -483,7 +477,6 @@ function togglePlayPause() {
     const btn = document.getElementById('playPauseBtn');
     const streamImage = document.getElementById('streamImage');
     const video = document.getElementById('streamVideo');
-    const img = document.getElementById('liveScreenshot');
 
     if (streamImage) {
         // Stealth stream mode - toggle stream request
@@ -500,27 +493,13 @@ function togglePlayPause() {
         }
 
     } else if (video && video.style.display !== 'none') {
-        // Video mode
+        // Video mode - toggle play/pause
         if (video.paused) {
             video.play();
             btn.innerHTML = '<i class="fas fa-pause"></i>';
         } else {
             video.pause();
             btn.innerHTML = '<i class="fas fa-play"></i>';
-        }
-
-    } else if (img) {
-        // Screenshot mode - toggle auto-refresh
-        if (window.liveStreamInterval) {
-            clearInterval(window.liveStreamInterval);
-            window.liveStreamInterval = null;
-            btn.innerHTML = '<i class="fas fa-play"></i>';
-        } else {
-            const clientId = '{{ $client->client_id }}';
-            window.liveStreamInterval = setInterval(() => {
-                refreshScreenshot(clientId, img);
-            }, 3000);
-            btn.innerHTML = '<i class="fas fa-pause"></i>';
         }
     }
 }
@@ -562,6 +541,12 @@ function disconnectStream() {
         window.streamEventSource = null;
     }
 
+    // Clear video streaming intervals
+    if (window.videoStreamInterval) {
+        clearInterval(window.videoStreamInterval);
+        window.videoStreamInterval = null;
+    }
+
     // Clear intervals
     if (window.liveStreamInterval) {
         clearInterval(window.liveStreamInterval);
@@ -577,7 +562,6 @@ function disconnectStream() {
     // Reset UI
     const streamVideo = document.getElementById('streamVideo');
     const streamImage = document.getElementById('streamImage');
-    const img = document.getElementById('liveScreenshot');
     const streamControls = document.getElementById('streamControls');
     const streamStatus = document.getElementById('streamStatus');
 
@@ -598,55 +582,17 @@ function handleStreamError(error) {
         errorMessage.textContent = `Stream error: ${error.message || 'Connection failed'}`;
     }
 
-    // Try fallback to screenshot mode
-    console.log('Falling back to screenshot mode...');
-    fallbackToScreenshots();
+    // Try fallback to direct video streaming
+    console.log('Falling back to direct video streaming...');
+    fallbackToDirectVideo();
 }
 
-function fallbackToScreenshots() {
+function fallbackToDirectVideo() {
     const clientId = '{{ $client->client_id }}';
-    const streamVideo = document.getElementById('streamVideo');
-    const streamLoading = document.getElementById('streamLoading');
-    const streamStatus = document.getElementById('streamStatus');
+    console.log('Falling back to direct video streaming...');
 
-    // Hide video elements
-    if (streamVideo) streamVideo.style.display = 'none';
-    if (streamLoading) streamLoading.style.display = 'block';
-
-    // Create fallback screenshot
-    if (!document.getElementById('liveScreenshot')) {
-        const img = document.createElement('img');
-        img.id = 'liveScreenshot';
-        img.className = 'img-fluid rounded shadow-sm';
-        img.style.maxHeight = '600px';
-        img.style.width = '100%';
-
-        const container = document.querySelector('.live-stream-container');
-        if (container) {
-            container.appendChild(img);
-        }
-    }
-
-    // Start screenshot refresh
-    const img = document.getElementById('liveScreenshot');
-
-    if (img) {
-        refreshScreenshot(clientId, img);
-
-        // Auto-refresh every 3 seconds
-        if (!window.liveStreamInterval) {
-            window.liveStreamInterval = setInterval(() => {
-                refreshScreenshot(clientId, img);
-            }, 3000);
-        }
-    } else {
-        console.warn('liveScreenshot element not found, screenshot refresh disabled');
-    }
-
-    if (streamStatus) {
-        streamStatus.style.display = 'block';
-        streamStatus.innerHTML = '<span class="badge bg-warning">Screenshot Mode</span>';
-    }
+    // Start direct video streaming
+    startDirectVideoStream(clientId);
 }
 
 // WebRTC compatibility check
@@ -964,52 +910,6 @@ function toggleFullscreen() {
     } else {
         document.exitFullscreen();
     }
-}
-
-function takeScreenshot() {
-    // Request screenshot from client
-    fetch('/api/clients/{{ $client->client_id }}/screenshot', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert('Screenshot requested successfully', 'success');
-        } else {
-            showAlert('Failed to request screenshot', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('Error requesting screenshot', 'error');
-    });
-}
-
-function requestScreenshot() {
-    // Send request to client to take a screenshot
-    fetch('/api/clients/{{ $client->client_id }}/screenshot', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Screenshot requested successfully!');
-        } else {
-            alert('Failed to request screenshot: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error requesting screenshot');
-    });
 }
 
 function openClientDetails() {

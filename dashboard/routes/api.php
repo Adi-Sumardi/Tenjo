@@ -47,23 +47,13 @@ Route::prefix('stream')->group(function () {
     // Client endpoints
     Route::get('/request/{clientId}', [StreamController::class, 'getStreamRequest']);
     Route::post('/chunk/{clientId}', [StreamController::class, 'uploadStreamChunk']);
-    
-    // Video streaming endpoints
-    Route::post('/video/{clientId}', [StreamController::class, 'uploadVideoChunk']);
-    Route::post('/screenshot/{clientId}', [StreamController::class, 'uploadScreenshotChunk']);
     Route::get('/status/{clientId}', [StreamController::class, 'getStreamStatus']);
 
     // Dashboard endpoints
     Route::post('/start/{clientId}', [StreamController::class, 'startStream']);
     Route::post('/stop/{clientId}', [StreamController::class, 'stopStream']);
-    Route::get('/events/{clientId}', [StreamController::class, 'streamEvents']);
     Route::get('/latest/{clientId}', [StreamController::class, 'getLatestChunk']);
-
-    // WebSocket support
-    Route::get('/websocket-url', function () {
-        $wsUrl = config('app.websocket_url', 'ws://103.129.149.67:6001');
-        return response()->json(['websocket_url' => $wsUrl]);
-    });
+    Route::get('/video/{clientId}', [StreamController::class, 'getVideoStream']);
 });
 
 // Screenshot routes
