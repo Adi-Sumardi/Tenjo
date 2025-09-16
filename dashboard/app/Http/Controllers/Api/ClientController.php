@@ -33,18 +33,27 @@ class ClientController extends Controller
             $existingClient = Client::where('client_id', $request->client_id)->first();
 
             if ($existingClient) {
-                $existingClient->updateLastSeen();
-
-                Log::info('Client registration - existing client', [
-                    'client_id' => $existingClient->client_id,
+                // Update existing client data including IP address
+                $existingClient->update([
                     'ip_address' => $request->ip_address,
+                    'hostname' => $request->hostname,
+                    'username' => $request->username,
+                    'os_info' => $request->os_info,
+                    'timezone' => $request->timezone ?? 'Asia/Jakarta',
+                    'last_seen' => now()
+                ]);
+
+                Log::info('Client registration - existing client updated', [
+                    'client_id' => $existingClient->client_id,
+                    'old_ip' => $existingClient->getOriginal('ip_address'),
+                    'new_ip' => $request->ip_address,
                     'hostname' => $request->hostname
                 ]);
 
                 return response()->json([
                     'success' => true,
                     'client_id' => $existingClient->client_id,
-                    'message' => 'Client already registered'
+                    'message' => 'Client already registered and updated'
                 ]);
             }
 

@@ -5,6 +5,30 @@ import socket
 import platform
 from datetime import datetime
 
+def get_local_ip():
+    """Get the best available local IP address"""
+    try:
+        # Method 1: Socket connection (most reliable)
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            if ip and ip != '127.0.0.1':
+                return ip
+    except Exception:
+        pass
+    
+    try:
+        # Method 2: Hostname resolution
+        hostname = socket.gethostname()
+        ip = socket.gethostbyname(hostname)
+        if ip != '127.0.0.1':
+            return ip
+    except Exception:
+        pass
+    
+    # Fallback
+    return '127.0.0.1'
+
 class Config:
     # Server Configuration - DEVELOPMENT
     # SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://127.0.0.1:8000")  # Development server
@@ -39,6 +63,7 @@ class Config:
     CLIENT_USER = os.getenv('USER', os.getenv('USERNAME', 'unknown'))
     HOSTNAME = socket.gethostname()
     PLATFORM = platform.system()
+    IP_ADDRESS = get_local_ip()  # Get real IP address
 
     # Monitoring Settings
     SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '60'))  # seconds
