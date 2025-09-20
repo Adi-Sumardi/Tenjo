@@ -141,18 +141,55 @@ echo [OK] Installation directory prepared
 REM Clone repository
 echo.
 echo [5/6] Downloading Tenjo from GitHub...
+
+REM Try normal clone first
 git clone "!GITHUB_REPO!" "!INSTALL_DIR!" >nul 2>&1
 if !errorlevel! neq 0 (
-    echo [ERROR] Failed to clone repository from GitHub
-    echo [INFO] Please check your internet connection and GitHub access
-    goto :error_exit
+    echo [WARNING] Standard clone failed, trying alternative methods...
+    
+    REM Try shallow clone
+    git clone --depth 1 "!GITHUB_REPO!" "!INSTALL_DIR!" >nul 2>&1
+    if !errorlevel! neq 0 (
+        echo [WARNING] Shallow clone failed, trying ZIP download...
+        
+        REM Try ZIP download
+        set "ZIP_URL=https://github.com/Adi-Sumardi/Tenjo/archive/refs/heads/master.zip"
+        set "ZIP_FILE=!TEMP_DIR!\tenjo-master.zip"
+        
+        powershell -Command "try { Invoke-WebRequest -Uri '!ZIP_URL!' -OutFile '!ZIP_FILE!' -UseBasicParsing; if (Test-Path '!ZIP_FILE!') { exit 0 } else { exit 1 } } catch { exit 1 }"
+        if !errorlevel! equ 0 (
+            echo [INFO] ZIP downloaded, extracting...
+            powershell -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('!ZIP_FILE!', '!TEMP_DIR!')"
+            
+            REM Move extracted folder
+            if exist "!TEMP_DIR!\Tenjo-master" (
+                move "!TEMP_DIR!\Tenjo-master" "!INSTALL_DIR!" >nul 2>&1
+                if !errorlevel! equ 0 (
+                    echo [OK] Downloaded via ZIP method
+                ) else (
+                    echo [ERROR] Failed to move extracted files
+                    goto :error_exit
+                )
+            ) else (
+                echo [ERROR] ZIP extraction failed
+                goto :error_exit
+            )
+        ) else (
+            echo [ERROR] All download methods failed
+            echo [INFO] Please check your internet connection and GitHub access
+            goto :error_exit
+        )
+    ) else (
+        echo [OK] Shallow clone successful
+    )
+) else (
+    echo [OK] Repository cloned successfully
 )
 
 if not exist "!INSTALL_DIR!\client" (
-    echo [ERROR] Repository cloned but client directory not found
+    echo [ERROR] Repository downloaded but client directory not found
     goto :error_exit
 )
-echo [OK] Repository downloaded successfully
 
 REM Install Python dependencies
 echo.

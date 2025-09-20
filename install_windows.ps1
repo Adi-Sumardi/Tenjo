@@ -196,16 +196,53 @@ try {
     Write-Host ""
     Write-Host "[5/6] Downloading Tenjo from GitHub..." -ForegroundColor Cyan
     
-    & git clone $GitHubRepo $InstallDir 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to clone repository from GitHub. Please check your internet connection and GitHub access."
+    try {
+        $gitOutput = & git clone $GitHubRepo $InstallDir 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[ERROR] Git clone failed with output:" -ForegroundColor Red
+            Write-Host $gitOutput -ForegroundColor Red
+            
+            # Try alternative methods
+            Write-Host "[INFO] Trying alternative download method..." -ForegroundColor Yellow
+            
+            # Method 1: Try with --depth 1 for faster clone
+            Remove-Item -Path $InstallDir -Recurse -Force -ErrorAction SilentlyContinue
+            $gitOutput = & git clone --depth 1 $GitHubRepo $InstallDir 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                # Method 2: Try downloading as ZIP
+                Write-Host "[INFO] Trying ZIP download method..." -ForegroundColor Yellow
+                $zipUrl = "https://github.com/Adi-Sumardi/Tenjo/archive/refs/heads/master.zip"
+                $zipFile = "$TempDir\tenjo-master.zip"
+                
+                if (Download-File -Url $zipUrl -OutputPath $zipFile -Description "Tenjo ZIP archive") {
+                    # Extract ZIP
+                    Add-Type -AssemblyName System.IO.Compression.FileSystem
+                    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFile, $TempDir)
+                    
+                    # Move extracted folder
+                    $extractedDir = "$TempDir\Tenjo-master"
+                    if (Test-Path $extractedDir) {
+                        Move-Item $extractedDir $InstallDir
+                        Write-Host "[OK] Downloaded via ZIP method" -ForegroundColor Green
+                    } else {
+                        throw "ZIP extraction failed"
+                    }
+                } else {
+                    throw "All download methods failed. Git output: $gitOutput"
+                }
+            } else {
+                Write-Host "[OK] Shallow clone successful" -ForegroundColor Green
+            }
+        } else {
+            Write-Host "[OK] Repository cloned successfully" -ForegroundColor Green
+        }
+    } catch {
+        throw "Failed to download repository: $($_.Exception.Message)"
     }
     
     if (-not (Test-Path "$InstallDir\client")) {
-        throw "Repository cloned but client directory not found"
+        throw "Repository downloaded but client directory not found"
     }
-    
-    Write-Host "[OK] Repository downloaded successfully" -ForegroundColor Green
     
     # Install Python dependencies
     Write-Host ""
