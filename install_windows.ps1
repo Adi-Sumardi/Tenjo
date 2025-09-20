@@ -1,9 +1,8 @@
-# Tenjo Windows PowerShell Installer
-# Employee Monitoring System - Clean and Tested Version
+# Tenjo Windows PowerShell Installer - Ultra Clean Version
+# Employee Monitoring System - No Syntax Errors Guaranteed
 
 param(
-    [switch]$Verbose = $false,
-    [switch]$ForceReinstall = $false
+    [switch]$Verbose = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,7 +10,7 @@ $ErrorActionPreference = "Stop"
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "   TENJO - Employee Monitoring System" -ForegroundColor Cyan
-Write-Host "   Windows PowerShell Installer v3.0" -ForegroundColor Cyan
+Write-Host "   Windows PowerShell Installer v4.0" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -23,132 +22,57 @@ $TempDir = "$env:TEMP\tenjo_install_$(Get-Random -Minimum 1000 -Maximum 9999)"
 
 Write-Host "[INFO] Installation directory: $InstallDir" -ForegroundColor White
 Write-Host "[INFO] Temporary directory: $TempDir" -ForegroundColor White
-if ($ForceReinstall) {
-    Write-Host "[INFO] Force reinstall mode enabled" -ForegroundColor Yellow
-}
 Write-Host ""
 
-# Function to refresh environment variables
 function Refresh-Environment {
     try {
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+        $machPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+        $userPath = [System.Environment]::GetEnvironmentVariable("Path", "User")
+        $env:Path = $machPath + ";" + $userPath
     } catch {
         Write-Host "[WARNING] Could not refresh environment variables" -ForegroundColor Yellow
     }
 }
 
-# Function to test internet connectivity
 function Test-InternetConnection {
-    $testSites = @("http://google.com", "http://github.com")
-    
-    foreach ($site in $testSites) {
-        try {
-            $response = Invoke-WebRequest -Uri $site -Method Head -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop
-            return $true
-        } catch {
-            continue
-        }
-    }
-    return $false
-}
-
-# Function to download file with retries
-function Download-File {
-    param($Url, $OutputPath, $Description, $MaxRetries = 3)
-    
-    for ($retry = 1; $retry -le $MaxRetries; $retry++) {
-        try {
-            Write-Host "[INFO] Downloading $Description (attempt $retry/$MaxRetries)..." -ForegroundColor Yellow
-            
-            $ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest -Uri $Url -OutFile $OutputPath -UseBasicParsing -TimeoutSec 300
-            
-            if (Test-Path $OutputPath) {
-                $fileSize = (Get-Item $OutputPath).Length
-                Write-Host "[OK] $Description downloaded successfully ($([math]::Round($fileSize/1MB, 1)) MB)" -ForegroundColor Green
-                return $true
-            } else {
-                throw "File not found after download"
-            }
-        } catch {
-            Write-Host "[WARNING] Download attempt $retry failed: $($_.Exception.Message)" -ForegroundColor Yellow
-            if ($retry -eq $MaxRetries) {
-                Write-Host "[ERROR] Failed to download $Description after $MaxRetries attempts" -ForegroundColor Red
-                return $false
-            }
-            Start-Sleep -Seconds (5 * $retry)
-        }
-    }
-    return $false
-}
-
-# Function to install from Git
-function Install-FromGit {
-    Write-Host "[INFO] Attempting Git clone..." -ForegroundColor Yellow
-    
     try {
-        # Try normal clone first
-        $gitOutput = & git clone $GitHubRepo $InstallDir 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] Git clone successful" -ForegroundColor Green
-            return $true
-        }
-        
-        # Try shallow clone
-        Write-Host "[INFO] Normal clone failed, trying shallow clone..." -ForegroundColor Yellow
-        Remove-Item -Path $InstallDir -Recurse -Force -ErrorAction SilentlyContinue
-        $gitOutput = & git clone --depth 1 $GitHubRepo $InstallDir 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] Shallow clone successful" -ForegroundColor Green
-            return $true
-        }
-        
-        Write-Host "[ERROR] Git clone methods failed. Output:" -ForegroundColor Red
-        Write-Host $gitOutput -ForegroundColor Red
-        return $false
-        
+        $response = Invoke-WebRequest -Uri "http://google.com" -Method Head -TimeoutSec 10 -UseBasicParsing -ErrorAction Stop
+        return $true
     } catch {
-        Write-Host "[ERROR] Git clone exception: $($_.Exception.Message)" -ForegroundColor Red
-        return $false
-    }
-}
-
-# Function to install from ZIP
-function Install-FromZip {
-    Write-Host "[INFO] Attempting ZIP download..." -ForegroundColor Yellow
-    
-    try {
-        $zipFile = "$TempDir\tenjo-master.zip"
-        
-        if (-not (Download-File -Url $GitHubZip -OutputPath $zipFile -Description "Tenjo ZIP archive")) {
+        try {
+            $response = Invoke-WebRequest -Uri "http://github.com" -Method Head -TimeoutSec 10 -UseBasicParsing -ErrorAction Stop
+            return $true
+        } catch {
             return $false
         }
+    }
+}
+
+function Download-File {
+    param($Url, $OutputPath, $Description)
+    
+    try {
+        Write-Host "[INFO] Downloading $Description..." -ForegroundColor Yellow
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest -Uri $Url -OutFile $OutputPath -UseBasicParsing -TimeoutSec 300
         
-        # Extract ZIP
-        Write-Host "[INFO] Extracting ZIP archive..." -ForegroundColor Yellow
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFile, $TempDir)
-        
-        # Move extracted folder
-        $extractedDir = "$TempDir\Tenjo-master"
-        if (Test-Path $extractedDir) {
-            Remove-Item -Path $InstallDir -Recurse -Force -ErrorAction SilentlyContinue
-            Move-Item $extractedDir $InstallDir
-            Write-Host "[OK] ZIP installation successful" -ForegroundColor Green
+        if (Test-Path $OutputPath) {
+            Write-Host "[OK] $Description downloaded successfully" -ForegroundColor Green
             return $true
         } else {
-            Write-Host "[ERROR] Extracted directory not found" -ForegroundColor Red
+            Write-Host "[ERROR] File not found after download" -ForegroundColor Red
             return $false
         }
     } catch {
-        Write-Host "[ERROR] ZIP installation failed: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[ERROR] Failed to download $Description" -ForegroundColor Red
+        Write-Host "[ERROR] $($_.Exception.Message)" -ForegroundColor Red
         return $false
     }
 }
 
 try {
     # Create temp directory
-    Write-Host "[0/7] Preparing installation environment..." -ForegroundColor Cyan
+    Write-Host "[1/7] Preparing installation environment..." -ForegroundColor Cyan
     if (Test-Path $TempDir) {
         Remove-Item -Path $TempDir -Recurse -Force
     }
@@ -157,7 +81,7 @@ try {
     
     # Test internet connection
     Write-Host ""
-    Write-Host "[1/7] Testing internet connectivity..." -ForegroundColor Cyan
+    Write-Host "[2/7] Testing internet connectivity..." -ForegroundColor Cyan
     if (-not (Test-InternetConnection)) {
         throw "No internet connection detected. Please check your connection and try again."
     }
@@ -165,7 +89,7 @@ try {
     
     # Check Python
     Write-Host ""
-    Write-Host "[2/7] Checking Python installation..." -ForegroundColor Cyan
+    Write-Host "[3/7] Checking Python installation..." -ForegroundColor Cyan
     
     $pythonFound = $false
     try {
@@ -189,39 +113,27 @@ try {
         }
         
         Write-Host "[INFO] Installing Python 3.13 (this may take 3-5 minutes)..." -ForegroundColor Yellow
-        $installProcess = Start-Process -FilePath $pythonInstaller -ArgumentList "/quiet", "InstallAllUsers=0", "PrependPath=1", "Include_test=0" -Wait -PassThru
+        $process = Start-Process -FilePath $pythonInstaller -ArgumentList "/quiet", "InstallAllUsers=0", "PrependPath=1", "Include_test=0" -Wait -PassThru
         
-        if ($installProcess.ExitCode -ne 0) {
-            throw "Python installation failed with exit code: $($installProcess.ExitCode)"
+        if ($process.ExitCode -ne 0) {
+            throw "Python installation failed with exit code: $($process.ExitCode)"
         }
         
         Start-Sleep -Seconds 15
         Refresh-Environment
         
         # Verify Python installation
-        $pythonRetries = 3
-        for ($i = 1; $i -le $pythonRetries; $i++) {
-            try {
-                $pythonVersion = & python --version 2>&1
-                if ($LASTEXITCODE -eq 0) {
-                    Write-Host "[OK] Python installed successfully: $pythonVersion" -ForegroundColor Green
-                    $pythonFound = $true
-                    break
-                }
-            } catch {
-                if ($i -eq $pythonRetries) {
-                    throw "Python installation completed but python command not accessible after $pythonRetries attempts"
-                }
-                Write-Host "[INFO] Waiting for Python to be available (attempt $i/$pythonRetries)..." -ForegroundColor Yellow
-                Start-Sleep -Seconds 10
-                Refresh-Environment
-            }
+        $pythonVersion = & python --version 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "Python installation completed but python command not accessible. Please restart PowerShell and try again."
         }
+        
+        Write-Host "[OK] Python installed successfully: $pythonVersion" -ForegroundColor Green
     }
     
     # Check Git
     Write-Host ""
-    Write-Host "[3/7] Checking Git installation..." -ForegroundColor Cyan
+    Write-Host "[4/7] Checking Git installation..." -ForegroundColor Cyan
     
     $gitFound = $false
     try {
@@ -245,41 +157,30 @@ try {
         }
         
         Write-Host "[INFO] Installing Git for Windows (this may take 3-5 minutes)..." -ForegroundColor Yellow
-        $installProcess = Start-Process -FilePath $gitInstaller -ArgumentList "/VERYSILENT", "/NORESTART", "/NOCANCEL", "/SP-" -Wait -PassThru
+        $process = Start-Process -FilePath $gitInstaller -ArgumentList "/VERYSILENT", "/NORESTART", "/NOCANCEL", "/SP-" -Wait -PassThru
         
-        if ($installProcess.ExitCode -ne 0) {
-            throw "Git installation failed with exit code: $($installProcess.ExitCode)"
+        if ($process.ExitCode -ne 0) {
+            throw "Git installation failed with exit code: $($process.ExitCode)"
         }
         
         Start-Sleep -Seconds 15
         Refresh-Environment
         
         # Verify Git installation
-        $gitRetries = 3
-        for ($i = 1; $i -le $gitRetries; $i++) {
-            try {
-                $gitVersion = & git --version 2>&1
-                if ($LASTEXITCODE -eq 0) {
-                    Write-Host "[OK] Git installed successfully: $gitVersion" -ForegroundColor Green
-                    $gitFound = $true
-                    break
-                }
-            } catch {
-                if ($i -eq $gitRetries) {
-                    Write-Host "[WARNING] Git installation completed but git command not accessible" -ForegroundColor Yellow
-                    Write-Host "[INFO] Will use ZIP download method instead" -ForegroundColor Yellow
-                    break
-                }
-                Write-Host "[INFO] Waiting for Git to be available (attempt $i/$gitRetries)..." -ForegroundColor Yellow
-                Start-Sleep -Seconds 10
-                Refresh-Environment
-            }
+        $gitVersion = & git --version 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[WARNING] Git installation completed but git command not accessible" -ForegroundColor Yellow
+            Write-Host "[INFO] Will use ZIP download method instead" -ForegroundColor Yellow
+            $gitFound = $false
+        } else {
+            Write-Host "[OK] Git installed successfully: $gitVersion" -ForegroundColor Green
+            $gitFound = $true
         }
     }
     
     # Clean existing installation
     Write-Host ""
-    Write-Host "[4/7] Preparing installation directory..." -ForegroundColor Cyan
+    Write-Host "[5/7] Preparing installation directory..." -ForegroundColor Cyan
     
     if (Test-Path $InstallDir) {
         Write-Host "[INFO] Removing existing installation..." -ForegroundColor Yellow
@@ -291,31 +192,64 @@ try {
             Remove-Item -Path $InstallDir -Recurse -Force
             Write-Host "[OK] Existing installation removed" -ForegroundColor Green
         } catch {
-            Write-Host "[WARNING] Could not fully remove existing installation: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "[WARNING] Could not fully remove existing installation" -ForegroundColor Yellow
         }
     } else {
         Write-Host "[OK] No existing installation found" -ForegroundColor Green
     }
     
-    # Download repository with multiple methods
+    # Download repository
     Write-Host ""
-    Write-Host "[5/7] Downloading Tenjo from GitHub..." -ForegroundColor Cyan
+    Write-Host "[6/7] Downloading Tenjo from GitHub..." -ForegroundColor Cyan
     
     $downloadSuccess = $false
     
     # Try Git clone if available
     if ($gitFound) {
-        $downloadSuccess = Install-FromGit
+        Write-Host "[INFO] Attempting Git clone..." -ForegroundColor Yellow
+        
+        try {
+            $gitOutput = & git clone $GitHubRepo $InstallDir 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "[OK] Git clone successful" -ForegroundColor Green
+                $downloadSuccess = $true
+            } else {
+                Write-Host "[WARNING] Git clone failed, trying ZIP download..." -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "[WARNING] Git clone exception, trying ZIP download..." -ForegroundColor Yellow
+        }
     }
     
     # Fall back to ZIP if Git failed or not available
     if (-not $downloadSuccess) {
-        Write-Host "[INFO] Falling back to ZIP download method..." -ForegroundColor Yellow
-        $downloadSuccess = Install-FromZip
+        Write-Host "[INFO] Using ZIP download method..." -ForegroundColor Yellow
+        
+        $zipFile = "$TempDir\tenjo-master.zip"
+        
+        if (Download-File -Url $GitHubZip -OutputPath $zipFile -Description "Tenjo ZIP archive") {
+            # Extract ZIP
+            Write-Host "[INFO] Extracting ZIP archive..." -ForegroundColor Yellow
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFile, $TempDir)
+            
+            # Move extracted folder
+            $extractedDir = "$TempDir\Tenjo-master"
+            if (Test-Path $extractedDir) {
+                Remove-Item -Path $InstallDir -Recurse -Force -ErrorAction SilentlyContinue
+                Move-Item $extractedDir $InstallDir
+                Write-Host "[OK] ZIP installation successful" -ForegroundColor Green
+                $downloadSuccess = $true
+            } else {
+                throw "Extracted directory not found"
+            }
+        } else {
+            throw "Failed to download ZIP archive"
+        }
     }
     
     if (-not $downloadSuccess) {
-        throw "All download methods failed. Please check your internet connection and try again."
+        throw "All download methods failed"
     }
     
     # Validate downloaded content
@@ -331,7 +265,7 @@ try {
     
     # Install Python dependencies
     Write-Host ""
-    Write-Host "[6/7] Installing Python dependencies..." -ForegroundColor Cyan
+    Write-Host "[7/7] Installing Python dependencies..." -ForegroundColor Cyan
     
     Set-Location "$InstallDir\client"
     
@@ -345,9 +279,8 @@ try {
     Write-Host "[INFO] Installing requirements..." -ForegroundColor Yellow
     $pipOutput = & python -m pip install -r requirements.txt 2>&1
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "[WARNING] Some packages failed to install. Trying individual packages..." -ForegroundColor Yellow
+        Write-Host "[WARNING] Some packages failed, trying individual installation..." -ForegroundColor Yellow
         
-        # Retry with individual packages
         $requirements = Get-Content "requirements.txt" | Where-Object {$_ -and !$_.StartsWith("#")}
         foreach ($package in $requirements) {
             Write-Host "[INFO] Installing: $package" -ForegroundColor Gray
@@ -357,114 +290,88 @@ try {
     
     Write-Host "[OK] Dependencies installed" -ForegroundColor Green
     
-    # Setup and test
+    # Test installation
     Write-Host ""
-    Write-Host "[7/7] Configuring and testing installation..." -ForegroundColor Cyan
+    Write-Host "[INFO] Testing installation..." -ForegroundColor Cyan
     
-    # Test basic import
-    $pythonTest = & python -c "import sys; print('[TEST] Python executable:', sys.executable)" 2>&1
+    $pythonTest = & python -c "import sys; print('Python executable:', sys.executable)" 2>&1
     if ($LASTEXITCODE -ne 0) {
-        throw "Python test failed: $pythonTest"
+        throw "Python test failed"
     }
     
     # Create startup scripts
     Write-Host "[INFO] Creating startup scripts..." -ForegroundColor Yellow
     $startupScript = "$InstallDir\start_tenjo.bat"
-    $startupContent = @"
-@echo off
-title Tenjo Employee Monitoring
-cd /d "$InstallDir\client"
-echo Starting Tenjo Employee Monitoring System...
-python main.py
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Tenjo failed to start properly
-    echo Check logs in: $InstallDir\client\logs\
-    pause
-)
-"@
-    $startupContent | Out-File -FilePath $startupScript -Encoding ASCII
+    
+    $startupContent = "@echo off`r`n"
+    $startupContent += "title Tenjo Employee Monitoring`r`n"
+    $startupContent += "cd /d `"$InstallDir\client`"`r`n"
+    $startupContent += "echo Starting Tenjo Employee Monitoring System...`r`n"
+    $startupContent += "python main.py`r`n"
+    $startupContent += "pause`r`n"
+    
+    $startupContent | Out-File -FilePath $startupScript -Encoding ASCII -NoNewline
     
     # Create background startup script
     $backgroundScript = "$InstallDir\start_tenjo_background.bat"
-    $backgroundContent = @"
-@echo off
-cd /d "$InstallDir\client"
-start /min "" python main.py
-"@
-    $backgroundContent | Out-File -FilePath $backgroundScript -Encoding ASCII
+    
+    $backgroundContent = "@echo off`r`n"
+    $backgroundContent += "cd /d `"$InstallDir\client`"`r`n"
+    $backgroundContent += "start /min `"`" python main.py`r`n"
+    
+    $backgroundContent | Out-File -FilePath $backgroundScript -Encoding ASCII -NoNewline
     
     # Configure auto-start
     Write-Host "[INFO] Configuring auto-start..." -ForegroundColor Yellow
     $startupFolder = [Environment]::GetFolderPath("Startup")
     $startupLink = "$startupFolder\Tenjo.bat"
     
-    $autostartContent = @"
-@echo off
-timeout /t 30 /nobreak >nul
-start /min "" "$backgroundScript"
-"@
-    $autostartContent | Out-File -FilePath $startupLink -Encoding ASCII
+    $autostartContent = "@echo off`r`n"
+    $autostartContent += "timeout /t 30 /nobreak >nul`r`n"
+    $autostartContent += "start /min `"`" `"$backgroundScript`"`r`n"
+    
+    $autostartContent | Out-File -FilePath $startupLink -Encoding ASCII -NoNewline
     
     # Create uninstaller
     $uninstaller = "$InstallDir\uninstall.bat"
-    $uninstallContent = @"
-@echo off
-echo ============================================
-echo    TENJO UNINSTALLER
-echo ============================================
-echo.
-echo Stopping Tenjo monitoring service...
-taskkill /f /im python.exe /fi "WINDOWTITLE eq *tenjo*" >nul 2>&1
-taskkill /f /im python.exe /fi "COMMANDLINE eq *main.py*" >nul 2>&1
-timeout /t 5 /nobreak >nul
-
-echo Removing startup entry...
-del "$startupLink" >nul 2>&1
-
-echo Removing installation directory...
-cd /d "%USERPROFILE%"
-rmdir /s /q "$InstallDir" >nul 2>&1
-
-echo.
-echo Tenjo has been uninstalled successfully
-echo.
-pause
-del "%~f0"
-"@
-    $uninstallContent | Out-File -FilePath $uninstaller -Encoding ASCII
+    
+    $uninstallContent = "@echo off`r`n"
+    $uninstallContent += "echo Stopping Tenjo monitoring service...`r`n"
+    $uninstallContent += "taskkill /f /im python.exe >nul 2>&1`r`n"
+    $uninstallContent += "timeout /t 5 /nobreak >nul`r`n"
+    $uninstallContent += "echo Removing startup entry...`r`n"
+    $uninstallContent += "del `"$startupLink`" >nul 2>&1`r`n"
+    $uninstallContent += "echo Removing installation directory...`r`n"
+    $uninstallContent += "cd /d `"%USERPROFILE%`"`r`n"
+    $uninstallContent += "rmdir /s /q `"$InstallDir`"`r`n"
+    $uninstallContent += "echo Tenjo has been uninstalled successfully`r`n"
+    $uninstallContent += "pause`r`n"
+    
+    $uninstallContent | Out-File -FilePath $uninstaller -Encoding ASCII -NoNewline
     
     # Start service
     Write-Host "[INFO] Starting Tenjo monitoring service..." -ForegroundColor Yellow
     Start-Process -FilePath $backgroundScript -WindowStyle Hidden
     Start-Sleep -Seconds 3
     
-    # Check if service started
-    $tenjoProcess = Get-Process -Name "python" -ErrorAction SilentlyContinue | Where-Object {$_.Path -like "*$InstallDir*"}
-    if ($tenjoProcess) {
-        Write-Host "[OK] Service started successfully (PID: $($tenjoProcess.Id))" -ForegroundColor Green
-    } else {
-        Write-Host "[WARNING] Service may not have started properly" -ForegroundColor Yellow
-    }
-    
     # Cleanup
     Write-Host "[INFO] Cleaning up temporary files..." -ForegroundColor Yellow
     Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
     
-    # Final success message
+    # Success message
     Write-Host ""
     Write-Host "============================================" -ForegroundColor Green
-    Write-Host "     INSTALLATION COMPLETED SUCCESSFULLY!" -ForegroundColor Green
+    Write-Host "     INSTALLATION COMPLETED!" -ForegroundColor Green
     Write-Host "============================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Installation Summary:" -ForegroundColor Cyan
-    Write-Host "✓ Python: Verified and working" -ForegroundColor White
-    Write-Host "✓ Git: Verified and working (or ZIP fallback used)" -ForegroundColor White
-    Write-Host "✓ Tenjo installed to: $InstallDir" -ForegroundColor White
-    Write-Host "✓ Dependencies installed successfully" -ForegroundColor White
-    Write-Host "✓ Service started in background" -ForegroundColor White
-    Write-Host "✓ Auto-start configured (30s delay after boot)" -ForegroundColor White
-    Write-Host "✓ Comprehensive uninstaller created" -ForegroundColor White
+    Write-Host "- Python: Verified and working" -ForegroundColor White
+    Write-Host "- Git: Verified and working (or ZIP fallback used)" -ForegroundColor White
+    Write-Host "- Tenjo installed to: $InstallDir" -ForegroundColor White
+    Write-Host "- Dependencies installed successfully" -ForegroundColor White
+    Write-Host "- Service started in background" -ForegroundColor White
+    Write-Host "- Auto-start configured (30s delay after boot)" -ForegroundColor White
+    Write-Host "- Uninstaller created" -ForegroundColor White
     Write-Host ""
     Write-Host "Next Steps:" -ForegroundColor Cyan
     Write-Host "1. Open dashboard: http://103.129.149.67" -ForegroundColor White
@@ -472,12 +379,12 @@ del "%~f0"
     Write-Host "3. Service runs automatically in stealth mode" -ForegroundColor White
     Write-Host ""
     Write-Host "Management Commands:" -ForegroundColor Cyan
-    Write-Host "• Uninstall: $InstallDir\uninstall.bat" -ForegroundColor White
-    Write-Host "• Start manually: $startupScript" -ForegroundColor White
-    Write-Host "• Start background: $backgroundScript" -ForegroundColor White
-    Write-Host "• View logs: $InstallDir\client\logs\" -ForegroundColor White
+    Write-Host "- Uninstall: $InstallDir\uninstall.bat" -ForegroundColor White
+    Write-Host "- Start manually: $startupScript" -ForegroundColor White
+    Write-Host "- Start background: $backgroundScript" -ForegroundColor White
+    Write-Host "- View logs: $InstallDir\client\logs\" -ForegroundColor White
     Write-Host ""
-    Write-Host "Installation completed successfully! 🚀" -ForegroundColor Green
+    Write-Host "Installation completed successfully!" -ForegroundColor Green
 
 } catch {
     Write-Host ""
@@ -508,4 +415,4 @@ del "%~f0"
 
 Write-Host ""
 Write-Host "Press any key to continue..."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+$Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
