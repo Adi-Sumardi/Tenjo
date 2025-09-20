@@ -66,11 +66,16 @@ chmod +x install_macos_production.sh
 
 ### Windows Installation
 ```cmd
-# Download installer
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows_production.bat' -OutFile 'install_tenjo.bat'"
+# Download installer langsung
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows.bat' -OutFile 'install_tenjo.bat'"
 
 # Jalankan installer
 install_tenjo.bat
+```
+
+**Atau satu baris command:**
+```cmd
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows.bat' -OutFile 'install.bat' && install.bat"
 ```
 
 ### Linux Installation
