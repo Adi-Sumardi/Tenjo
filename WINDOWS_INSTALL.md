@@ -1,11 +1,16 @@
 # 🪟 Tenjo Windows Installer
 
-## ⚡ Quick Install (One Command)
+## ⚡ Quick Install (Choose One Method)
 
-Buka **Command Prompt** atau **PowerShell** dan jalankan:
-
+### Method 1: PowerShell Installer (Recommended)
 ```powershell
-# PowerShell (Recommended)
+# Open PowerShell as Administrator and run:
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows.ps1' -OutFile 'install.ps1'; Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; .\install.ps1
+```
+
+### Method 2: Batch File Installer
+```powershell
+# PowerShell
 Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows.bat' -OutFile 'install.bat'; .\install.bat
 ```
 
@@ -17,15 +22,13 @@ install.bat
 
 ## 📋 Manual Install
 
-### 1. Download Installer
-```powershell
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows.bat' -OutFile 'install_tenjo.bat'
-```
+### Option A: PowerShell Script
+1. Download: `install_windows.ps1`
+2. Right-click → "Run with PowerShell"
 
-### 2. Run Installer
-```cmd
-install_tenjo.bat
-```
+### Option B: Batch File
+1. Download: `install_windows.bat`  
+2. Double-click to run
 
 ## 🔧 Requirements
 
@@ -34,23 +37,27 @@ install_tenjo.bat
 - **PowerShell 5.0+** (built-in on Windows 10/11)
 
 ### 🎯 Auto-Installed by Installer:
-- **Python 3.13+** - Will be downloaded and installed automatically
-- **Git for Windows** - Will be downloaded and installed automatically
+- **Python 3.13+** - Downloaded and installed automatically if needed
+- **Git for Windows** - Downloaded and installed automatically if needed
 
-*Note: Manual installation of Python and Git is no longer required!*
+*Note: Both installers handle all dependencies automatically!*
 
 ## 📍 Installation Details
 
-### What the installer does:
-1. ✅ Auto-installs Python 3.13+ if not found
-2. ✅ Auto-installs Git for Windows if not found
-3. ✅ Downloads Tenjo from GitHub
-4. ✅ Installs Python dependencies
-5. ✅ Tests installation
-6. ✅ Sets up auto-start on Windows boot
-7. ✅ Starts monitoring service in background
-8. ✅ Creates uninstaller
-9. ✅ Cleans up temporary files
+### What Both Installers Do:
+1. ✅ **Check System** - Detect existing Python/Git installations
+2. ✅ **Auto-Download** - Download Python 3.13 + Git if missing
+3. ✅ **Silent Install** - Install dependencies without user interaction
+4. ✅ **GitHub Clone** - Download Tenjo repository
+5. ✅ **Dependencies** - Install Python packages via pip
+6. ✅ **Configuration** - Setup auto-start and stealth mode
+7. ✅ **Testing** - Verify installation works
+8. ✅ **Service Start** - Launch monitoring in background
+9. ✅ **Cleanup** - Remove temporary files
+
+### Key Differences:
+- **PowerShell (.ps1)**: Better error handling, more robust
+- **Batch (.bat)**: Traditional Windows installer, wider compatibility
 
 ### Installation Location:
 - **Files**: `%USERPROFILE%\.tenjo\`
