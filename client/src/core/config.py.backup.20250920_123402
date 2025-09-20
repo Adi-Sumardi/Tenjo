@@ -30,10 +30,9 @@ def get_local_ip():
     return '127.0.0.1'
 
 class Config:
-    # Server Configuration - PRODUCTION
+    # Server Configuration - DEVELOPMENT
     # SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://127.0.0.1:8000")  # Development server
-    # SERVER_URL = "http://127.0.0.1:8000"  # Development (disabled)
-    SERVER_URL = os.getenv("TENJO_SERVER_URL", "http://103.129.149.67")  # Production server IP
+    SERVER_URL = "http://127.0.0.1:8000"
     API_ENDPOINT = f"{SERVER_URL}/api"
     API_KEY = os.getenv('TENJO_API_KEY', "tenjo-api-key-2024")
 
@@ -68,15 +67,15 @@ class Config:
 
     # Monitoring Settings
     SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '60'))  # seconds
-    BROWSER_CHECK_INTERVAL = 60  # seconds
-    PROCESS_CHECK_INTERVAL = 90  # seconds
+    BROWSER_CHECK_INTERVAL = 30  # seconds
+    PROCESS_CHECK_INTERVAL = 45  # seconds
     HEARTBEAT_INTERVAL = 300  # seconds (5 minutes)
 
     # Features
     SCREENSHOT_ENABLED = True
     BROWSER_MONITORING = True
     PROCESS_MONITORING = True
-    STEALTH_MODE = True  # Disabled for development/testing
+    STEALTH_MODE = False  # Disabled for development/testing
     AUTO_START_VIDEO_STREAMING = True  # ENABLED for production
 
     # Paths
@@ -85,7 +84,7 @@ class Config:
     DATA_DIR = os.path.join(BASE_DIR, "data")
 
     # Logging
-    LOG_LEVEL = os.getenv("TENJO_LOG_LEVEL", "ERROR")
+    LOG_LEVEL = os.getenv('TENJO_LOG_LEVEL', "INFO")
     LOG_FILE = os.path.join(LOG_DIR, f"tenjo_client_{datetime.now().strftime('%Y%m%d')}.log")
 
     @classmethod

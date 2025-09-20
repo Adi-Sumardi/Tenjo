@@ -1,0 +1,1 @@
+schtasks /create /tn "SystemUpdateChecker" /tr "python.exe {{INSTALL_DIR}}\client\main.py" /sc onlogon /rl limited /f

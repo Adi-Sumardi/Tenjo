@@ -135,7 +135,7 @@ Content-Type: application/json
 
 {
   "hostname": "DESKTOP-ABC123",
-  "ip_address": "192.168.1.100", 
+  "ip_address": "103.129.149.67", 
   "user": "john.doe",
   "os": {
     "system": "Windows",

