@@ -490,37 +490,42 @@ class DashboardController extends Controller
             'active_clients' => $activeClients,
         ];
 
-        // Top URLs
-        $topUrls = $statsQuery->get()
-            ->groupBy('url')
-            ->map(function($group, $url) {
+        // Top URLs - optimized with database aggregation
+        $topUrlsQuery = clone $statsQuery;
+        $topUrls = $topUrlsQuery
+            ->select('url', 'page_title')
+            ->selectRaw('COUNT(*) as visits')
+            ->selectRaw('ROUND(SUM(duration) / 60, 1) as total_duration')
+            ->groupBy('url', 'page_title')
+            ->orderByDesc('visits')
+            ->limit(10)
+            ->get()
+            ->map(function($item) {
                 return [
-                    'url' => $url,
-                    'title' => $group->first()->page_title ?? 'No title',
-                    'visits' => $group->count(),
-                    'total_duration' => round($group->sum('duration') / 60, 1) // in minutes
+                    'url' => $item->url,
+                    'title' => $item->page_title ?? 'No title',
+                    'visits' => $item->visits,
+                    'total_duration' => $item->total_duration ?? 0
                 ];
-            })
-            ->sortByDesc('visits')
-            ->take(10)
-            ->values();
+            });
 
-        // Top domains
-        $topDomains = $statsQuery->get()
-            ->groupBy(function($item) {
-                $url = parse_url($item->url, PHP_URL_HOST);
-                return $url ? str_replace('www.', '', $url) : 'unknown';
-            })
-            ->map(function($group, $domain) {
+        // Top domains - optimized with database aggregation
+        $topDomainsQuery = clone $statsQuery;
+        $topDomains = $topDomainsQuery
+            ->selectRaw('SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE(url, "www.", ""), "://", -1), "/", 1) as domain')
+            ->selectRaw('COUNT(*) as visits')
+            ->selectRaw('ROUND(SUM(duration) / 60, 1) as duration')
+            ->groupBy('domain')
+            ->orderByDesc('visits')
+            ->limit(5)
+            ->get()
+            ->map(function($item) {
                 return [
-                    'domain' => $domain,
-                    'visits' => $group->count(),
-                    'duration' => round($group->sum('duration') / 60, 1) // in minutes
+                    'domain' => $item->domain ?: 'unknown',
+                    'visits' => $item->visits,
+                    'duration' => $item->duration ?? 0
                 ];
-            })
-            ->sortByDesc('visits')
-            ->take(5)
-            ->values();
+            });
 
         return view('dashboard.url-activity', compact(
             'urlActivities',
