@@ -667,17 +667,17 @@ class DashboardController extends Controller
 
         // Get all clients with their statistics
         $clients = Client::get()->map(function($client) use ($from, $to) {
-            // Screenshot statistics
-            $screenshots = Screenshot::where('client_id', $client->client_id)
+            // Screenshot statistics - use integer id for basic tracking
+            $screenshots = Screenshot::where('client_id', $client->id)
                 ->whereBetween('captured_at', [$from, $to])
                 ->count();
 
-            // Browser session statistics using enhanced tracking
+            // Browser session statistics using enhanced tracking - use UUID client_id
             $browserSessions = BrowserSession::where('client_id', $client->client_id)
                 ->whereBetween('created_at', [$from, $to])
                 ->count();
 
-            // URL activity statistics using enhanced tracking
+            // URL activity statistics using enhanced tracking - use UUID client_id
             $urlActivities = UrlActivity::where('client_id', $client->client_id)
                 ->whereBetween('visit_start', [$from, $to])
                 ->count();
