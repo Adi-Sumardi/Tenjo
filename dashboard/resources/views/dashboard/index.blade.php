@@ -3,6 +3,9 @@
 @section('title', 'Dashboard - Tenjo')
 
 @section('styles')
+<!-- SweetAlert2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css" rel="stylesheet">
+
 <style>
 .stats-card {
     border: none;
@@ -171,13 +174,36 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <h6 class="mb-0 text-dark">{{ $client->hostname }}</h6>
-                                <span class="badge status-badge {{ $client->isOnline() ? 'bg-success' : 'bg-secondary' }}">
-                                    {{ $client->isOnline() ? 'Online' : 'Offline' }}
-                                </span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge status-badge {{ $client->isOnline() ? 'bg-success' : 'bg-secondary' }}">
+                                        {{ $client->isOnline() ? 'Online' : 'Offline' }}
+                                    </span>
+                                    <!-- Three Dots Dropdown Menu -->
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle border-0" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false"
+                                                style="padding: 2px 6px;">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="editClientUsername('{{ $client->client_id }}', '{{ $client->getDisplayUsername() }}')">
+                                                    <i class="fas fa-edit text-primary me-2"></i>Edit Username
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="deleteClient('{{ $client->client_id }}', '{{ $client->hostname }}')">
+                                                    <i class="fas fa-trash-alt text-danger me-2"></i>Delete Client
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="client-info-item">
-                                <i class="fas fa-user"></i> {{ $client->username }}
+                                <i class="fas fa-user"></i> {{ $client->getDisplayUsername() }}
                             </div>
 
                             <div class="client-info-item">
@@ -312,12 +338,209 @@
         }
     }
 
-    // Auto-refresh page every 30 seconds
-    setTimeout(function() {
-        window.location.reload();
-    }, 30000);
+    // Edit Username Function with SweetAlert
+    function editClientUsername(clientId, currentUsername) {
+        Swal.fire({
+            title: 'Edit Username',
+            input: 'text',
+            inputLabel: 'Custom Username',
+            inputValue: currentUsername,
+            inputPlaceholder: 'Enter new username',
+            showCancelButton: true,
+            confirmButtonText: 'Save Changes',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#007bff',
+            cancelButtonColor: '#6c757d',
+            inputValidator: (value) => {
+                if (!value || value.trim().length === 0) {
+                    return 'Please enter a valid username';
+                }
+                if (value.trim().length < 2) {
+                    return 'Username must be at least 2 characters';
+                }
+                if (value.trim().length > 50) {
+                    return 'Username must be less than 50 characters';
+                }
+                return null;
+            },
+            preConfirm: (username) => {
+                return updateClientUsername(clientId, username.trim())
+                    .then(response => {
+                        if (!response.success) {
+                            Swal.showValidationMessage(response.message || 'Failed to update username');
+                            return false;
+                        }
+                        return response;
+                    })
+                    .catch(error => {
+                        console.error('Update username error:', error);
+                        Swal.showValidationMessage('Network error occurred');
+                        return false;
+                    });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                // Update UI
+                const usernameElement = document.querySelector(`[data-client-id="${clientId}"] .client-info-item i.fa-user`).parentElement;
+                usernameElement.innerHTML = `<i class="fas fa-user"></i> ${result.value.data.display_username}`;
 
-    // Update last seen times every 10 seconds with AJAX
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Username Updated!',
+                    text: 'Username has been updated successfully.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        });
+    }
+
+    // Delete Client Function with SweetAlert
+    function deleteClient(clientId, hostname) {
+        Swal.fire({
+            title: 'Delete Client?',
+            text: `Are you sure you want to delete "${hostname}"?`,
+            icon: 'warning',
+            html: `
+                <p>Are you sure you want to delete <strong>"${hostname}"</strong>?</p>
+                <div class="alert alert-warning text-start mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>This action will permanently remove:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>All screenshots</li>
+                        <li>All activity logs</li>
+                        <li>All monitoring data</li>
+                    </ul>
+                </div>
+                <p class="text-muted mt-2"><strong>This action cannot be undone!</strong></p>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Delete Client',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+            preConfirm: () => {
+                return deleteClientRequest(clientId)
+                    .then(response => {
+                        if (!response.success) {
+                            Swal.showValidationMessage(response.message || 'Failed to delete client');
+                            return false;
+                        }
+                        return response;
+                    })
+                    .catch(error => {
+                        console.error('Delete client error:', error);
+                        Swal.showValidationMessage('Network error occurred');
+                        return false;
+                    });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                // Remove client card from DOM
+                const clientCard = document.querySelector(`[data-client-id="${clientId}"]`).closest('.col-md-6');
+                clientCard.style.transition = 'all 0.3s ease';
+                clientCard.style.opacity = '0';
+                clientCard.style.transform = 'scale(0.8)';
+
+                setTimeout(() => {
+                    clientCard.remove();
+
+                    // Check if no clients left
+                    const remainingClients = document.querySelectorAll('.client-card').length;
+                    if (remainingClients === 0) {
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }, 300);
+
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Client Deleted!',
+                    text: `"${hostname}" has been deleted successfully.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        });
+    }
+
+    // Helper function to update client username via API
+    async function updateClientUsername(clientId, username) {
+        try {
+            const response = await fetch(`/api/clients/${clientId}/username`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ username: username })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+
+    // Helper function to delete client via API
+    async function deleteClientRequest(clientId) {
+        try {
+            const response = await fetch(`/api/clients/${clientId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+
+    // Global error handler for network issues
+    function handleNetworkError(error) {
+        console.error('Network Error:', error);
+
+        let errorMessage = 'An unexpected error occurred';
+
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            errorMessage = 'Network connection failed. Please check your internet connection.';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: errorMessage,
+            confirmButtonColor: '#dc3545'
+        });
+    }
+
+    // Update last seen times every 10 seconds with improved error handling
     setInterval(function() {
         fetch('/api/clients/status', {
             method: 'GET',
@@ -326,7 +549,12 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             // Update client status indicators
             data.forEach(client => {
@@ -342,10 +570,13 @@
                 }
             });
         })
-        .catch(error => console.log('Status update error:', error));
+        .catch(error => {
+            console.log('Status update error:', error);
+            // Don't show alert for background status updates to avoid spam
+        });
     }, 10000);
 
-    // Handle image loading errors
+    // Handle image loading errors with improved feedback
     document.addEventListener('DOMContentLoaded', function() {
         const screenshots = document.querySelectorAll('.screenshot-thumbnail');
         screenshots.forEach(img => {
@@ -362,6 +593,21 @@
                 console.log('Successfully loaded screenshot:', this.src);
             });
         });
+
+        // Initialize tooltips if any
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     });
+
+    // Auto-refresh page every 5 minutes to keep data fresh
+    setTimeout(function() {
+        console.log('Auto-refreshing page for fresh data...');
+        window.location.reload();
+    }, 300000); // 5 minutes
 </script>
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.all.min.js"></script>
 @endsection

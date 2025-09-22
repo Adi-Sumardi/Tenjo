@@ -13,6 +13,8 @@ Route::get('/history-activity', [DashboardController::class, 'historyActivity'])
 Route::get('/screenshots', [DashboardController::class, 'screenshots'])->name('screenshots');
 Route::get('/browser-activity', [DashboardController::class, 'browserActivity'])->name('browser.activity');
 Route::get('/url-activity', [DashboardController::class, 'urlActivity'])->name('url.activity');
+Route::get('/client-summary', [DashboardController::class, 'clientSummary'])->name('dashboard.client-summary');
 
 // Export
+Route::get('/activities/export', [DashboardController::class, 'exportActivities'])->name('activities.export');
 Route::get('/export-report', [DashboardController::class, 'exportReport'])->name('export.report');

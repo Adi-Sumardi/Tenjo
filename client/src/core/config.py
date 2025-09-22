@@ -30,9 +30,9 @@ def get_local_ip():
     return '127.0.0.1'
 
 class Config:
-    # Server Configuration - PRODUCTION
-    # SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://127.0.0.1:8000")  # Development server
-    # SERVER_URL = "http://127.0.0.1:8000"  # Development (disabled)
+    # Server Configuration - PRODUCTION MODE
+    # SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://127.0.0.1:8000")  # Development server (COMMENTED)
+    # SERVER_URL = "http://127.0.0.1:8000"  # Development (local) (COMMENTED)
     SERVER_URL = os.getenv("TENJO_SERVER_URL", "http://103.129.149.67")  # Production server IP
     API_ENDPOINT = f"{SERVER_URL}/api"
     API_KEY = os.getenv('TENJO_API_KEY', "tenjo-api-key-2024")

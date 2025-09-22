@@ -29,6 +29,10 @@ Route::prefix('clients')->group(function () {
     Route::get('/{clientId}/latest-screenshot', [ClientController::class, 'getLatestScreenshot']);
     Route::put('/{clientId}/status', [ClientController::class, 'updateStatus']);
 
+    // Client management routes
+    Route::put('/{clientId}/username', [ClientController::class, 'updateUsername']);
+    Route::delete('/{clientId}', [ClientController::class, 'deleteClient']);
+
     // Add status endpoint for dashboard
     Route::get('/status', function () {
         $clients = \App\Models\Client::all()->map(function($client) {

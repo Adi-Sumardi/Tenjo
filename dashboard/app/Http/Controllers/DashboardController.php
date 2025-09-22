@@ -9,10 +9,13 @@ use App\Models\ProcessEvent;
 use App\Models\UrlEvent;
 use App\Models\BrowserSession;
 use App\Models\UrlActivity;
+use App\Exports\ClientSummaryExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DashboardController extends Controller
 {
@@ -58,14 +61,23 @@ class DashboardController extends Controller
             ])
             ->firstOrFail();
 
-        // Browser usage statistics
+        // Browser usage statistics (fallback to enhanced data if basic events are empty)
         $browserStats = BrowserEvent::where('client_id', $client->id)
             ->whereDate('created_at', today())
             ->selectRaw('browser_name, SUM(duration) as total_duration, COUNT(*) as sessions')
             ->groupBy('browser_name')
             ->get();
 
-        // Top URLs accessed today
+        // If no basic browser events, use enhanced browser data
+        if ($browserStats->isEmpty()) {
+            $browserStats = BrowserSession::where('client_id', $clientId)
+                ->whereDate('session_start', today())
+                ->selectRaw('browser_name, SUM(total_duration) as total_duration, COUNT(*) as sessions')
+                ->groupBy('browser_name')
+                ->get();
+        }
+
+        // Top URLs accessed today (fallback to enhanced data if basic events are empty)
         $topUrls = UrlEvent::where('client_id', $client->id)
             ->whereDate('created_at', today())
             ->selectRaw('url, SUM(duration) as total_duration, COUNT(*) as visits')
@@ -73,6 +85,17 @@ class DashboardController extends Controller
             ->orderBy('total_duration', 'desc')
             ->limit(10)
             ->get();
+
+        // If no basic URL events, use enhanced URL data
+        if ($topUrls->isEmpty()) {
+            $topUrls = UrlActivity::where('client_id', $clientId)
+                ->whereDate('visit_start', today())
+                ->selectRaw('url, SUM(duration) as total_duration, COUNT(*) as visits')
+                ->groupBy('url')
+                ->orderBy('total_duration', 'desc')
+                ->limit(10)
+                ->get();
+        }
 
         // Enhanced Browser Tracking Data
         $enhancedBrowserStats = BrowserSession::where('client_id', $clientId)
@@ -144,42 +167,61 @@ class DashboardController extends Controller
     {
         // Apply filters
         $from = $request->get('from', today()->subDays(7)->toDateString());
-        $to = $request->get('to', today()->addDay()->toDateString()); // Include today
+        $to = $request->get('to', today()->toDateString()); // Fixed: don't add extra day
 
-        $query = Client::with([
-            'browserEvents' => function($q) use ($from, $to) {
-                $q->whereBetween('created_at', [$from, $to])
-                  ->orderBy('created_at', 'desc')
-                  ->limit(10);
-            },
-            'processEvents' => function($q) use ($from, $to) {
-                $q->whereBetween('created_at', [$from, $to])
-                  ->orderBy('created_at', 'desc')
-                  ->limit(10);
-            },
-            'urlEvents' => function($q) use ($from, $to) {
-                $q->whereBetween('created_at', [$from, $to])
-                  ->orderBy('created_at', 'desc')
-                  ->limit(10);
-            }
-        ]);
+        // Get all clients for dropdown
+        $allClients = Client::orderBy('hostname')->get();
 
-        // Client filter
+        // Build query for clients with their activities
+        $query = Client::query();
+
+        // Client filter - fixed to use UUID properly
         if ($request->has('client_id') && $request->client_id) {
             $query->where('client_id', $request->client_id);
         }
 
-        $clients = $query->get();
+        // Load relationships with date filtering
+        $clients = $query->with([
+            // Basic events (fallback if they exist)
+            'browserEvents' => function($q) use ($from, $to) {
+                $q->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+                  ->orderBy('created_at', 'desc')
+                  ->limit(10);
+            },
+            'processEvents' => function($q) use ($from, $to) {
+                $q->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+                  ->orderBy('created_at', 'desc')
+                  ->limit(10);
+            },
+            'urlEvents' => function($q) use ($from, $to) {
+                $q->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+                  ->orderBy('created_at', 'desc')
+                  ->limit(10);
+            },
+            // Enhanced tracking data (primary source)
+            'browserSessions' => function($q) use ($from, $to) {
+                $q->whereBetween('session_start', [$from . ' 00:00:00', $to . ' 23:59:59'])
+                  ->orderBy('session_start', 'desc')
+                  ->limit(10);
+            },
+            'urlActivities' => function($q) use ($from, $to) {
+                $q->whereBetween('visit_start', [$from . ' 00:00:00', $to . ' 23:59:59'])
+                  ->orderBy('visit_start', 'desc')
+                  ->limit(10);
+            }
+        ])->get();
 
-        // Activity summary
+        // Activity summary with enhanced data
         $activitySummary = [
-            'browser_events' => BrowserEvent::whereBetween('created_at', [$from, $to])->count(),
-            'process_events' => ProcessEvent::whereBetween('created_at', [$from, $to])->count(),
-            'url_events' => UrlEvent::whereBetween('created_at', [$from, $to])->count(),
-            'screenshots' => Screenshot::whereBetween('captured_at', [$from, $to])->count(),
+            'browser_events' => BrowserEvent::whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])->count()
+                              + BrowserSession::whereBetween('session_start', [$from . ' 00:00:00', $to . ' 23:59:59'])->count(),
+            'process_events' => ProcessEvent::whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])->count(),
+            'url_events' => UrlEvent::whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])->count()
+                           + UrlActivity::whereBetween('visit_start', [$from . ' 00:00:00', $to . ' 23:59:59'])->count(),
+            'screenshots' => Screenshot::whereBetween('captured_at', [$from . ' 00:00:00', $to . ' 23:59:59'])->count(),
         ];
 
-        return view('dashboard.history-activity', compact('clients', 'activitySummary', 'from', 'to'));
+        return view('dashboard.history-activity', compact('clients', 'allClients', 'activitySummary', 'from', 'to'));
     }
 
     public function screenshots(Request $request): View
@@ -209,14 +251,11 @@ class DashboardController extends Controller
 
     public function browserActivity(Request $request): View
     {
-        $query = BrowserEvent::with('client');
+        $query = BrowserSession::with('client');
 
         // Client filter
         if ($request->has('client_id') && $request->client_id) {
-            $client = Client::where('client_id', $request->client_id)->first();
-            if ($client) {
-                $query->where('client_id', $client->id);
-            }
+            $query->where('client_id', $request->client_id);
         }
 
         // Date range filter
@@ -241,18 +280,15 @@ class DashboardController extends Controller
             $query->where('browser_name', 'LIKE', '%' . ucfirst($request->browser) . '%');
         }
 
-        // Get browser events
+        // Get browser sessions (renamed from browserEvents)
         $browserEvents = $query->orderBy('created_at', 'desc')->paginate(20);
 
-        // Generate statistics
-        $statsQuery = BrowserEvent::query();
+        // Generate statistics using BrowserSession
+        $statsQuery = BrowserSession::query();
 
         // Apply same filters for stats
         if ($request->has('client_id') && $request->client_id) {
-            $client = Client::where('client_id', $request->client_id)->first();
-            if ($client) {
-                $statsQuery->where('client_id', $client->id);
-            }
+            $statsQuery->where('client_id', $request->client_id);
         }
 
         switch ($dateRange) {
@@ -274,29 +310,63 @@ class DashboardController extends Controller
             $statsQuery->where('browser_name', 'LIKE', '%' . ucfirst($request->browser) . '%');
         }
 
+        // Calculate unique URLs from URL activities
+        $uniqueUrls = UrlActivity::query()
+            ->when($request->client_id, function($q) use ($request) {
+                return $q->where('client_id', $request->client_id);
+            })
+            ->when($dateRange == 'today', function($q) {
+                return $q->whereDate('created_at', today());
+            })
+            ->when($dateRange == 'yesterday', function($q) {
+                return $q->whereDate('created_at', today()->subDay());
+            })
+            ->when($dateRange == 'week', function($q) {
+                return $q->whereBetween('created_at', [today()->startOfWeek(), today()->endOfWeek()]);
+            })
+            ->when($dateRange == 'month', function($q) {
+                return $q->whereMonth('created_at', today()->month)->whereYear('created_at', today()->year);
+            })
+            ->distinct('url')
+            ->count('url');
+
         $stats = [
             'total_events' => $statsQuery->count(),
-            'unique_urls' => $statsQuery->whereNotNull('url')->distinct('url')->count('url'),
-            'avg_session_time' => 0, // Simplified for now since we don't have duration field in our schema
+            'unique_urls' => $uniqueUrls,
+            'avg_session_time' => round($statsQuery->avg('total_duration') / 60, 1), // Convert to minutes
             'active_clients' => $statsQuery->distinct('client_id')->count('client_id'),
         ];
 
-        // Top domains
-        $topDomains = $statsQuery->whereNotNull('url')
-            ->get()
-            ->groupBy(function($item) {
-                $url = parse_url($item->url, PHP_URL_HOST);
-                return $url ? str_replace('www.', '', $url) : 'unknown';
+        // Top domains from URL activities (enhanced)
+        $topDomains = UrlActivity::query()
+            ->when($request->client_id, function($q) use ($request) {
+                return $q->where('client_id', $request->client_id);
             })
-            ->map(function($group, $domain) {
-                return [
-                    'domain' => $domain,
-                    'visits' => $group->count()
-                ];
+            ->when($dateRange == 'today', function($q) {
+                return $q->whereDate('created_at', today());
             })
-            ->sortByDesc('visits')
+            ->when($dateRange == 'yesterday', function($q) {
+                return $q->whereDate('created_at', today()->subDay());
+            })
+            ->when($dateRange == 'week', function($q) {
+                return $q->whereBetween('created_at', [today()->startOfWeek(), today()->endOfWeek()]);
+            })
+            ->when($dateRange == 'month', function($q) {
+                return $q->whereMonth('created_at', today()->month)->whereYear('created_at', today()->year);
+            })
+            ->whereNotNull('domain')
+            ->selectRaw('domain, COUNT(*) as visits, SUM(duration) as total_time')
+            ->groupBy('domain')
+            ->orderByDesc('visits')
             ->take(5)
-            ->values();
+            ->get()
+            ->map(function($item) {
+                return [
+                    'domain' => $item->domain,
+                    'visits' => $item->visits,
+                    'total_time' => round($item->total_time / 60, 1) // Convert to minutes
+                ];
+            });
 
         // Browser stats
         $browserStats = $statsQuery->whereNotNull('browser_name')
@@ -325,31 +395,28 @@ class DashboardController extends Controller
 
     public function urlActivity(Request $request): View
     {
-        $query = UrlEvent::with('client');
+        $query = UrlActivity::with('client');
 
         // Client filter
         if ($request->has('client_id') && $request->client_id) {
-            $client = Client::where('client_id', $request->client_id)->first();
-            if ($client) {
-                $query->where('client_id', $client->id);
-            }
+            $query->where('client_id', $request->client_id);
         }
 
         // Date range filter
         $dateRange = $request->get('date_range', 'today');
         switch ($dateRange) {
             case 'yesterday':
-                $query->whereDate('created_at', today()->subDay());
+                $query->whereDate('visit_start', today()->subDay());
                 break;
             case 'week':
-                $query->whereBetween('created_at', [today()->startOfWeek(), today()->endOfWeek()]);
+                $query->whereBetween('visit_start', [today()->startOfWeek(), today()->endOfWeek()]);
                 break;
             case 'month':
-                $query->whereMonth('created_at', today()->month)
-                      ->whereYear('created_at', today()->year);
+                $query->whereMonth('visit_start', today()->month)
+                      ->whereYear('visit_start', today()->year);
                 break;
             default:
-                $query->whereDate('created_at', today());
+                $query->whereDate('visit_start', today());
         }
 
         // URL search filter
@@ -358,38 +425,32 @@ class DashboardController extends Controller
                   ->orWhere('page_title', 'LIKE', '%' . $request->search . '%');
         }
 
-        // Event type filter
-        if ($request->has('event_type') && $request->event_type) {
-            $query->where('event_type', $request->event_type);
-        }
+        // Remove event_type filter since UrlActivity doesn't have this field
 
-        $urlEvents = $query->orderBy('start_time', 'desc')->paginate(20);
+        $urlActivities = $query->orderBy('visit_start', 'desc')->paginate(20);
         $clients = Client::orderBy('hostname')->get();
 
         // Generate statistics
-        $statsQuery = UrlEvent::query();
+        $statsQuery = UrlActivity::query();
 
         // Apply same filters for stats
         if ($request->has('client_id') && $request->client_id) {
-            $client = Client::where('client_id', $request->client_id)->first();
-            if ($client) {
-                $statsQuery->where('client_id', $client->id);
-            }
+            $statsQuery->where('client_id', $request->client_id);
         }
 
         switch ($dateRange) {
             case 'yesterday':
-                $statsQuery->whereDate('created_at', today()->subDay());
+                $statsQuery->whereDate('visit_start', today()->subDay());
                 break;
             case 'week':
-                $statsQuery->whereBetween('created_at', [today()->startOfWeek(), today()->endOfWeek()]);
+                $statsQuery->whereBetween('visit_start', [today()->startOfWeek(), today()->endOfWeek()]);
                 break;
             case 'month':
-                $statsQuery->whereMonth('created_at', today()->month)
-                          ->whereYear('created_at', today()->year);
+                $statsQuery->whereMonth('visit_start', today()->month)
+                          ->whereYear('visit_start', today()->year);
                 break;
             default:
-                $statsQuery->whereDate('created_at', today());
+                $statsQuery->whereDate('visit_start', today());
         }
 
         if ($request->has('search') && $request->search) {
@@ -397,41 +458,28 @@ class DashboardController extends Controller
                       ->orWhere('page_title', 'LIKE', '%' . $request->search . '%');
         }
 
-        if ($request->has('event_type') && $request->event_type) {
-            $statsQuery->where('event_type', $request->event_type);
-        }
-
         // Calculate stats separately to avoid query conflicts
         $totalEvents = $statsQuery->count();
 
         // Create fresh query for unique URLs count
-        $uniqueUrlsQuery = UrlEvent::whereDate('created_at', today());
+        $uniqueUrlsQuery = UrlActivity::whereDate('visit_start', today());
         if ($request->has('client_id') && $request->client_id) {
             $uniqueUrlsQuery->where('client_id', $request->client_id);
-        }
-        if ($request->has('event_type') && $request->event_type) {
-            $uniqueUrlsQuery->where('event_type', $request->event_type);
         }
         $uniqueUrls = $uniqueUrlsQuery->distinct('url')->count();
 
         // Create fresh query for average duration
-        $avgDurationQuery = UrlEvent::whereDate('created_at', today())
+        $avgDurationQuery = UrlActivity::whereDate('visit_start', today())
             ->whereNotNull('duration');
         if ($request->has('client_id') && $request->client_id) {
             $avgDurationQuery->where('client_id', $request->client_id);
         }
-        if ($request->has('event_type') && $request->event_type) {
-            $avgDurationQuery->where('event_type', $request->event_type);
-        }
         $avgDuration = round($avgDurationQuery->avg('duration') / 60, 1) ?? 0;
 
         // Create fresh query for active clients
-        $activeClientsQuery = UrlEvent::whereDate('created_at', today());
+        $activeClientsQuery = UrlActivity::whereDate('visit_start', today());
         if ($request->has('client_id') && $request->client_id) {
             $activeClientsQuery->where('client_id', $request->client_id);
-        }
-        if ($request->has('event_type') && $request->event_type) {
-            $activeClientsQuery->where('event_type', $request->event_type);
         }
         $activeClients = $activeClientsQuery->distinct('client_id')->count();
 
@@ -475,12 +523,97 @@ class DashboardController extends Controller
             ->values();
 
         return view('dashboard.url-activity', compact(
-            'urlEvents',
+            'urlActivities',
             'clients',
             'stats',
             'topUrls',
             'topDomains'
         ));
+    }
+
+    public function exportActivities(Request $request)
+    {
+        $from = $request->get('from', today()->subDays(7)->toDateString());
+        $to = $request->get('to', today()->toDateString());
+        $clientId = $request->get('client_id');
+
+        // Prepare CSV headers
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="activity-export-' . date('Y-m-d') . '.csv"',
+        ];
+
+        // Create CSV content
+        $callback = function() use ($from, $to, $clientId) {
+            $file = fopen('php://output', 'w');
+
+            // CSV headers
+            fputcsv($file, ['Type', 'Client', 'Activity', 'Details', 'Date', 'Duration']);
+
+            // Export browser sessions
+            $browserSessionsQuery = BrowserSession::with('client')
+                ->whereBetween('session_start', [$from . ' 00:00:00', $to . ' 23:59:59']);
+
+            if ($clientId) {
+                $browserSessionsQuery->where('client_id', $clientId);
+            }
+
+            foreach ($browserSessionsQuery->get() as $session) {
+                fputcsv($file, [
+                    'Browser Session',
+                    $session->client ? $session->client->getDisplayUsername() . ' (' . $session->client->hostname . ')' : 'Unknown',
+                    $session->browser_name . ' Session',
+                    $session->window_count . ' windows, ' . $session->tab_count . ' tabs',
+                    $session->session_start->format('Y-m-d H:i:s'),
+                    gmdate('H:i:s', $session->total_duration)
+                ]);
+            }
+
+            // Export URL activities
+            $urlActivitiesQuery = UrlActivity::with('client')
+                ->whereBetween('visit_start', [$from . ' 00:00:00', $to . ' 23:59:59']);
+
+            if ($clientId) {
+                $urlActivitiesQuery->where('client_id', $clientId);
+            }
+
+            foreach ($urlActivitiesQuery->get() as $activity) {
+                fputcsv($file, [
+                    'URL Activity',
+                    $activity->client ? $activity->client->getDisplayUsername() . ' (' . $activity->client->hostname . ')' : 'Unknown',
+                    $activity->title ?: 'Page Visit',
+                    $activity->domain,
+                    $activity->visit_start->format('Y-m-d H:i:s'),
+                    gmdate('H:i:s', $activity->duration)
+                ]);
+            }
+
+            // Export basic browser events (if any)
+            $browserEventsQuery = BrowserEvent::with('client')
+                ->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59']);
+
+            if ($clientId) {
+                $client = Client::where('client_id', $clientId)->first();
+                if ($client) {
+                    $browserEventsQuery->where('client_id', $client->id);
+                }
+            }
+
+            foreach ($browserEventsQuery->get() as $event) {
+                fputcsv($file, [
+                    'Browser Event',
+                    $event->client ? $event->client->getDisplayUsername() . ' (' . $event->client->hostname . ')' : 'Unknown',
+                    $event->title ?: 'Page Visit',
+                    $event->url ?: 'No URL',
+                    $event->created_at->format('Y-m-d H:i:s'),
+                    $event->duration ? gmdate('H:i:s', $event->duration) : 'N/A'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function exportReport(Request $request)
@@ -500,5 +633,143 @@ class DashboardController extends Controller
         ];
 
         return response()->json($reportData);
+    }
+
+    public function clientSummary(Request $request)
+    {
+        // Get date range filter
+        $dateRange = $request->get('date_range', 'today');
+        $customFrom = $request->get('from');
+        $customTo = $request->get('to');
+
+        // Set date filters based on range
+        switch ($dateRange) {
+            case 'yesterday':
+                $from = today()->subDay();
+                $to = today()->subDay()->endOfDay();
+                break;
+            case 'week':
+                $from = today()->startOfWeek();
+                $to = today()->endOfWeek();
+                break;
+            case 'month':
+                $from = today()->startOfMonth();
+                $to = today()->endOfMonth();
+                break;
+            case 'custom':
+                $from = $customFrom ? Carbon::parse($customFrom) : today();
+                $to = $customTo ? Carbon::parse($customTo)->endOfDay() : today()->endOfDay();
+                break;
+            default: // today
+                $from = today();
+                $to = today()->endOfDay();
+        }
+
+        // Get all clients with their statistics
+        $clients = Client::get()->map(function($client) use ($from, $to) {
+            // Screenshot statistics
+            $screenshots = Screenshot::where('client_id', $client->client_id)
+                ->whereBetween('captured_at', [$from, $to])
+                ->count();
+
+            // Browser session statistics using enhanced tracking
+            $browserSessions = BrowserSession::where('client_id', $client->client_id)
+                ->whereBetween('created_at', [$from, $to])
+                ->count();
+
+            // URL activity statistics using enhanced tracking
+            $urlActivities = UrlActivity::where('client_id', $client->client_id)
+                ->whereBetween('visit_start', [$from, $to])
+                ->count();
+
+            $uniqueUrls = UrlActivity::where('client_id', $client->client_id)
+                ->whereBetween('visit_start', [$from, $to])
+                ->distinct('url')
+                ->count();
+
+            $totalDuration = UrlActivity::where('client_id', $client->client_id)
+                ->whereBetween('visit_start', [$from, $to])
+                ->whereNotNull('duration')
+                ->sum('duration');
+
+            // Top domains
+            $topDomainsData = UrlActivity::where('client_id', $client->client_id)
+                ->whereBetween('visit_start', [$from, $to])
+                ->get()
+                ->groupBy(function($item) {
+                    return $item->domain ?: 'Unknown';
+                })
+                ->map(function($group) {
+                    return [
+                        'count' => $group->count(),
+                        'duration' => $group->sum('duration')
+                    ];
+                })
+                ->sortByDesc('count')
+                ->take(3);
+
+            $topDomains = $topDomainsData->isEmpty()
+                ? 'None'
+                : ($topDomainsData->keys()->filter(function($key) {
+                    return !empty($key) && $key !== 'Unknown';
+                })->implode(', ') ?: 'None');            return [
+                'client' => $client,
+                'stats' => [
+                    'screenshots' => $screenshots,
+                    'browser_sessions' => $browserSessions,
+                    'url_activities' => $urlActivities,
+                    'unique_urls' => $uniqueUrls,
+                    'total_duration_minutes' => round($totalDuration / 60, 1),
+                    'top_domains' => $topDomains,
+                    'last_activity' => $client->last_seen ? Carbon::parse($client->last_seen)->diffForHumans() : 'Never',
+                    'status' => $client->isOnline() ? 'Online' : 'Offline'
+                ]
+            ];
+        });
+
+        // Overall statistics
+        $overallStats = [
+            'total_clients' => $clients->count(),
+            'online_clients' => $clients->where('stats.status', 'Online')->count(),
+            'total_screenshots' => $clients->sum('stats.screenshots'),
+            'total_browser_sessions' => $clients->sum('stats.browser_sessions'),
+            'total_url_activities' => $clients->sum('stats.url_activities'),
+            'total_unique_urls' => $clients->sum('stats.unique_urls'),
+            'total_duration_hours' => round($clients->sum('stats.total_duration_minutes') / 60, 1),
+        ];
+
+        // Handle export requests
+        if ($request->has('export')) {
+            if ($request->export === 'excel') {
+                return Excel::download(
+                    new ClientSummaryExport($clients, $overallStats, [
+                        'from' => $from->format('Y-m-d'),
+                        'to' => $to->format('Y-m-d')
+                    ]),
+                    'client-summary-' . now()->format('Y-m-d') . '.xlsx'
+                );
+            }
+
+            if ($request->export === 'pdf') {
+                $pdf = Pdf::loadView('exports.client-summary-pdf', compact(
+                    'clients',
+                    'overallStats',
+                    'from',
+                    'to'
+                ));
+
+                return $pdf->download('client-summary-' . now()->format('Y-m-d') . '.pdf');
+            }
+        }
+
+        return view('dashboard.client-summary', compact(
+            'clients',
+            'overallStats',
+            'dateRange',
+            'from',
+            'to',
+            'customFrom',
+            'customTo'
+        ));
     }
 }

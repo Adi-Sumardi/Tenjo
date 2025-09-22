@@ -196,7 +196,7 @@
                             <option value="">All Clients</option>
                             @foreach($clients as $client)
                                 <option value="{{ $client->client_id }}" {{ request('client_id') == $client->client_id ? 'selected' : '' }}>
-                                    {{ $client->hostname }} ({{ $client->username }})
+                                    {{ $client->hostname }} ({{ $client->getDisplayUsername() }})
                                 </option>
                             @endforeach
                         </select>
@@ -321,16 +321,16 @@
                                         <div class="timeline-content">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div class="flex-grow-1">
-                                                    <h6 class="mb-1">{{ $event->title ?: 'Browser Activity' }}</h6>
+                                                    <h6 class="mb-1">{{ $event->browser_name }} Session</h6>
                                                     <p class="mb-1">
-                                                        <a href="{{ $event->url ?: '#' }}" target="_blank" class="text-decoration-none">
-                                                            {{ Str::limit($event->url ?: 'No URL', 60) }}
-                                                        </a>
+                                                        <span class="text-muted">
+                                                            Windows: {{ $event->window_count ?? 0 }} | Tabs: {{ $event->tab_count ?? 0 }}
+                                                        </span>
                                                     </p>
                                                     <div class="text-muted small">
-                                                        <i class="fas fa-desktop me-1"></i>{{ $event->client->hostname ?? 'Unknown' }}
+                                                        <i class="fas fa-desktop me-1"></i>{{ $event->client->getDisplayUsername() ?? 'Unknown' }} ({{ $event->client->hostname ?? 'Unknown' }})
                                                         <i class="fas fa-globe ms-3 me-1"></i>{{ $event->browser_name ?? 'Unknown' }}
-                                                        <i class="fas fa-tag ms-3 me-1"></i>{{ ucfirst($event->event_type) }}
+                                                        <i class="fas fa-clock ms-3 me-1"></i>{{ round(($event->total_duration ?? 0) / 60, 1) }}m
                                                     </div>
                                                 </div>
                                                 <span class="badge bg-light text-dark">
@@ -364,32 +364,24 @@
                                         <th>Time</th>
                                         <th>Client</th>
                                         <th>Browser</th>
-                                        <th>Event Type</th>
-                                        <th>URL</th>
-                                        <th>Title</th>
+                                        <th>Duration</th>
+                                        <th>Windows</th>
+                                        <th>Tabs</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($browserEvents as $event)
                                         <tr>
                                             <td>{{ $event->created_at->format('H:i:s') }}</td>
-                                            <td>{{ $event->client->hostname ?? 'Unknown' }}</td>
+                                            <td>{{ $event->client->getDisplayUsername() ?? 'Unknown' }} ({{ $event->client->hostname ?? 'Unknown' }})</td>
                                             <td>
                                                 <span class="badge bg-primary">{{ $event->browser_name ?? 'Unknown' }}</span>
                                             </td>
                                             <td>
-                                                <span class="badge bg-info">{{ ucfirst($event->event_type) }}</span>
+                                                <span class="badge bg-info">{{ round(($event->total_duration ?? 0) / 60, 1) }}m</span>
                                             </td>
-                                            <td>
-                                                @if($event->url)
-                                                    <a href="{{ $event->url }}" target="_blank" class="text-decoration-none">
-                                                        {{ Str::limit($event->url, 40) }}
-                                                    </a>
-                                                @else
-                                                    <span class="text-muted">No URL</span>
-                                                @endif
-                                            </td>
-                                            <td>{{ Str::limit($event->title ?? 'No title', 30) }}</td>
+                                            <td>{{ $event->window_count ?? 0 }}</td>
+                                            <td>{{ $event->tab_count ?? 0 }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -527,6 +519,7 @@
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="flex-grow-1">
                                     <h6 class="mb-1">{{ $domain['domain'] }}</h6>
+                                    <small class="text-muted">{{ $domain['total_time'] }}m total time</small>
                                     <div class="progress" style="height: 6px;">
                                         <div class="progress-bar bg-primary"
                                              style="width: {{ count($topDomains) > 0 && $topDomains[0]['visits'] > 0 ? ($domain['visits'] / $topDomains[0]['visits']) * 100 : 100 }}%"></div>

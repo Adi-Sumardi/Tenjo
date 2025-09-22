@@ -177,7 +177,7 @@
                 <dd class="col-6">{{ $client->hostname }}</dd>
 
                 <dt class="col-6">User:</dt>
-                <dd class="col-6">{{ $client->username }}</dd>
+                <dd class="col-6">{{ $client->getDisplayUsername() }}</dd>
 
                 <dt class="col-6">IP:</dt>
                 <dd class="col-6">{{ $client->ip_address }}</dd>

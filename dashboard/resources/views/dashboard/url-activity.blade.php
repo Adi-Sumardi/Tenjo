@@ -177,7 +177,7 @@
                             <option value="">All Clients</option>
                             @foreach($clients as $client)
                                 <option value="{{ $client->client_id }}" {{ request('client_id') == $client->client_id ? 'selected' : '' }}>
-                                    {{ $client->hostname }} ({{ $client->username }})
+                                    {{ $client->hostname }} ({{ $client->getDisplayUsername() }})
                                 </option>
                             @endforeach
                         </select>
@@ -189,14 +189,6 @@
                             <option value="yesterday" {{ request('date_range') == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                             <option value="week" {{ request('date_range') == 'week' ? 'selected' : '' }}>This Week</option>
                             <option value="month" {{ request('date_range') == 'month' ? 'selected' : '' }}>This Month</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Event Type</label>
-                        <select name="event_type" class="form-select">
-                            <option value="">All Events</option>
-                            <option value="url_opened" {{ request('event_type') == 'url_opened' ? 'selected' : '' }}>URL Opened</option>
-                            <option value="url_closed" {{ request('event_type') == 'url_closed' ? 'selected' : '' }}>URL Closed</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -230,45 +222,45 @@
                         </h6>
                         <div class="text-end">
                             <small class="text-muted d-block">
-                                {{ number_format($urlEvents->total()) }} total events
+                                {{ number_format($urlActivities->total()) }} total events
                             </small>
-                            @if($urlEvents->hasPages())
+                            @if($urlActivities->hasPages())
                                 <small class="text-muted">
-                                    Page {{ $urlEvents->currentPage() }} of {{ $urlEvents->lastPage() }}
+                                    Page {{ $urlActivities->currentPage() }} of {{ $urlActivities->lastPage() }}
                                 </small>
                             @endif
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    @if($urlEvents->count() > 0)
+                    @if($urlActivities->count() > 0)
                         <div class="list-group list-group-flush">
-                            @foreach($urlEvents as $event)
+                            @foreach($urlActivities as $activity)
                                 <div class="url-item p-3 mb-3">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div class="flex-grow-1">
                                             <div class="d-flex align-items-center mb-2">
-                                                <span class="badge event-badge {{ $event->event_type == 'url_opened' ? 'bg-success' : 'bg-warning' }} me-2">
-                                                    {{ $event->event_type == 'url_opened' ? 'Opened' : 'Closed' }}
+                                                <span class="badge event-badge bg-primary me-2">
+                                                    Visit
                                                 </span>
                                                 <small class="text-muted">
-                                                    <i class="fas fa-user me-1"></i>{{ $event->client->hostname ?? 'Unknown' }}
-                                                    <i class="fas fa-clock ms-3 me-1"></i>{{ \Carbon\Carbon::parse($event->start_time)->format('H:i:s') }}
-                                                    @if($event->duration)
-                                                        <i class="fas fa-stopwatch ms-3 me-1"></i>{{ gmdate('H:i:s', $event->duration) }}
+                                                    <i class="fas fa-user me-1"></i>{{ $activity->client->getDisplayUsername() }}
+                                                    <i class="fas fa-clock ms-3 me-1"></i>{{ \Carbon\Carbon::parse($activity->visit_start)->format('H:i:s') }}
+                                                    @if($activity->duration)
+                                                        <i class="fas fa-stopwatch ms-3 me-1"></i>{{ gmdate('H:i:s', $activity->duration) }}
                                                     @endif
                                                 </small>
                                             </div>
                                             <h6 class="mb-1">
-                                                {{ Str::limit($event->page_title ?? 'No title', 60) }}
+                                                {{ Str::limit($activity->page_title ?? 'No title', 60) }}
                                             </h6>
-                                            <a href="{{ $event->url }}" target="_blank" class="url-link">
-                                                <i class="fas fa-external-link-alt me-1"></i>{{ Str::limit($event->url, 80) }}
+                                            <a href="{{ $activity->url }}" target="_blank" class="url-link">
+                                                <i class="fas fa-external-link-alt me-1"></i>{{ Str::limit($activity->url, 80) }}
                                             </a>
                                         </div>
                                         <div class="text-end">
                                             <small class="text-muted">
-                                                {{ \Carbon\Carbon::parse($event->created_at)->format('M d, Y') }}
+                                                {{ \Carbon\Carbon::parse($activity->created_at)->format('M d, Y') }}
                                             </small>
                                         </div>
                                     </div>
@@ -281,22 +273,22 @@
                             <div class="row align-items-center mb-3">
                                 <div class="col-md-6">
                                     <small class="text-muted">
-                                        Showing {{ $urlEvents->firstItem() ?? 0 }} to {{ $urlEvents->lastItem() ?? 0 }}
-                                        of {{ number_format($urlEvents->total()) }} events
+                                        Showing {{ $urlActivities->firstItem() ?? 0 }} to {{ $urlActivities->lastItem() ?? 0 }}
+                                        of {{ number_format($urlActivities->total()) }} events
                                     </small>
                                 </div>
                                 <div class="col-md-6 text-end">
-                                    @if($urlEvents->hasPages())
+                                    @if($urlActivities->hasPages())
                                         <div class="btn-group btn-group-sm" role="group">
-                                            @if($urlEvents->currentPage() > 1)
-                                                <a href="{{ $urlEvents->appends(request()->query())->url(1) }}"
+                                            @if($urlActivities->currentPage() > 1)
+                                                <a href="{{ $urlActivities->appends(request()->query())->url(1) }}"
                                                    class="btn btn-outline-secondary btn-sm">
                                                     <i class="fas fa-fast-backward"></i> First
                                                 </a>
                                             @endif
 
-                                            @if($urlEvents->hasMorePages())
-                                                <a href="{{ $urlEvents->appends(request()->query())->url($urlEvents->lastPage()) }}"
+                                            @if($urlActivities->hasMorePages())
+                                                <a href="{{ $urlActivities->appends(request()->query())->url($urlActivities->lastPage()) }}"
                                                    class="btn btn-outline-secondary btn-sm">
                                                     Last <i class="fas fa-fast-forward"></i>
                                                 </a>
@@ -306,11 +298,11 @@
                                 </div>
                             </div>
 
-                            @if($urlEvents->hasPages())
-                                <nav aria-label="URL Events pagination">
+                            @if($urlActivities->hasPages())
+                                <nav aria-label="URL Activities pagination">
                                     <ul class="pagination pagination-sm justify-content-center mb-0">
                                         {{-- Previous Page Link --}}
-                                        @if($urlEvents->onFirstPage())
+                                        @if($urlActivities->onFirstPage())
                                             <li class="page-item disabled">
                                                 <span class="page-link">
                                                     <i class="fas fa-chevron-left"></i> Previous
@@ -318,49 +310,49 @@
                                             </li>
                                         @else
                                             <li class="page-item">
-                                                <a class="page-link" href="{{ $urlEvents->appends(request()->query())->previousPageUrl() }}">
+                                                <a class="page-link" href="{{ $urlActivities->appends(request()->query())->previousPageUrl() }}">
                                                     <i class="fas fa-chevron-left"></i> Previous
                                                 </a>
                                             </li>
                                         @endif
 
                                         {{-- First Page Link --}}
-                                        @if($urlEvents->currentPage() > 3)
+                                        @if($urlActivities->currentPage() > 3)
                                             <li class="page-item">
-                                                <a class="page-link" href="{{ $urlEvents->appends(request()->query())->url(1) }}">1</a>
+                                                <a class="page-link" href="{{ $urlActivities->appends(request()->query())->url(1) }}">1</a>
                                             </li>
-                                            @if($urlEvents->currentPage() > 4)
+                                            @if($urlActivities->currentPage() > 4)
                                                 <li class="page-item disabled"><span class="page-link">...</span></li>
                                             @endif
                                         @endif
 
                                         {{-- Page Number Links --}}
-                                        @for($i = max(1, $urlEvents->currentPage() - 2); $i <= min($urlEvents->lastPage(), $urlEvents->currentPage() + 2); $i++)
-                                            @if($i == $urlEvents->currentPage())
+                                        @for($i = max(1, $urlActivities->currentPage() - 2); $i <= min($urlActivities->lastPage(), $urlActivities->currentPage() + 2); $i++)
+                                            @if($i == $urlActivities->currentPage())
                                                 <li class="page-item active">
                                                     <span class="page-link">{{ $i }}</span>
                                                 </li>
                                             @else
                                                 <li class="page-item">
-                                                    <a class="page-link" href="{{ $urlEvents->appends(request()->query())->url($i) }}">{{ $i }}</a>
+                                                    <a class="page-link" href="{{ $urlActivities->appends(request()->query())->url($i) }}">{{ $i }}</a>
                                                 </li>
                                             @endif
                                         @endfor
 
                                         {{-- Last Page Link --}}
-                                        @if($urlEvents->currentPage() < $urlEvents->lastPage() - 2)
-                                            @if($urlEvents->currentPage() < $urlEvents->lastPage() - 3)
+                                        @if($urlActivities->currentPage() < $urlActivities->lastPage() - 2)
+                                            @if($urlActivities->currentPage() < $urlActivities->lastPage() - 3)
                                                 <li class="page-item disabled"><span class="page-link">...</span></li>
                                             @endif
                                             <li class="page-item">
-                                                <a class="page-link" href="{{ $urlEvents->appends(request()->query())->url($urlEvents->lastPage()) }}">{{ $urlEvents->lastPage() }}</a>
+                                                <a class="page-link" href="{{ $urlActivities->appends(request()->query())->url($urlActivities->lastPage()) }}">{{ $urlActivities->lastPage() }}</a>
                                             </li>
                                         @endif
 
                                         {{-- Next Page Link --}}
-                                        @if($urlEvents->hasMorePages())
+                                        @if($urlActivities->hasMorePages())
                                             <li class="page-item">
-                                                <a class="page-link" href="{{ $urlEvents->appends(request()->query())->nextPageUrl() }}">
+                                                <a class="page-link" href="{{ $urlActivities->appends(request()->query())->nextPageUrl() }}">
                                                     Next <i class="fas fa-chevron-right"></i>
                                                 </a>
                                             </li>

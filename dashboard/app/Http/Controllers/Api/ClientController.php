@@ -12,6 +12,7 @@ use App\Models\Screenshot;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ClientController extends Controller
@@ -311,7 +312,9 @@ class ClientController extends Controller
                 return [
                     'client_id' => $client->client_id,
                     'hostname' => $client->hostname,
-                    'username' => $client->username,
+                    'username' => $client->getDisplayUsername(),
+                    'original_username' => $client->username,
+                    'custom_username' => $client->custom_username,
                     'ip_address' => $client->ip_address,
                     'os_info' => $client->os_info,
                     'browser_events' => $client->browserEvents->map(function($event) {
@@ -360,5 +363,182 @@ class ClientController extends Controller
 
         return response()->json($exportData)
             ->header('Content-Disposition', 'attachment; filename="tenjo-activities-' . date('Y-m-d') . '.json"');
+    }
+
+    /**
+     * Update client's custom username
+     */
+    public function updateUsername(Request $request, string $clientId): JsonResponse
+    {
+        try {
+            $request->validate([
+                'username' => 'required|string|max:255|min:2'
+            ]);
+
+            $client = Client::where('client_id', $clientId)->first();
+
+            if (!$client) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Client not found'
+                ], 404);
+            }
+
+            // Sanitize username
+            $newUsername = trim($request->username);
+
+            // Additional validation
+            if (empty($newUsername)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Username cannot be empty'
+                ], 422);
+            }
+
+            if (strlen($newUsername) > 50) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Username must be less than 50 characters'
+                ], 422);
+            }
+
+            $result = $client->updateCustomUsername($newUsername);
+
+            if (!$result) {
+                throw new \Exception('Failed to save username to database');
+            }
+
+            Log::info('Client username updated', [
+                'client_id' => $clientId,
+                'old_username' => $client->username,
+                'old_custom_username' => $client->getOriginal('custom_username'),
+                'new_custom_username' => $newUsername,
+                'ip_address' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Username updated successfully',
+                'data' => [
+                    'client_id' => $client->client_id,
+                    'original_username' => $client->username,
+                    'custom_username' => $client->custom_username,
+                    'display_username' => $client->getDisplayUsername()
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('Username update validation failed', [
+                'client_id' => $clientId,
+                'errors' => $e->errors(),
+                'ip_address' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error updating client username', [
+                'client_id' => $clientId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'ip_address' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating username. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete client and all associated data
+     */
+    public function deleteClient(Request $request, string $clientId): JsonResponse
+    {
+        try {
+            $client = Client::where('client_id', $clientId)->first();
+
+            if (!$client) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Client not found'
+                ], 404);
+            }
+
+            // Store client info for logging before deletion
+            $clientInfo = [
+                'client_id' => $client->client_id,
+                'hostname' => $client->hostname,
+                'username' => $client->username,
+                'custom_username' => $client->custom_username,
+                'ip_address' => $client->ip_address,
+                'last_seen' => $client->last_seen
+            ];
+
+            // Use database transaction for data integrity
+            DB::transaction(function () use ($client, $clientInfo) {
+                // Delete associated data in proper order
+                $screenshotCount = $client->screenshots()->count();
+                $browserEventCount = $client->browserEvents()->count();
+                $processEventCount = $client->processEvents()->count();
+                $urlEventCount = $client->urlEvents()->count();
+
+                $client->screenshots()->delete();
+                $client->browserEvents()->delete();
+                $client->processEvents()->delete();
+                $client->urlEvents()->delete();
+
+                // Delete related data from enhanced tracking tables if they exist
+                try {
+                    DB::table('browser_sessions')->where('client_id', $client->client_id)->delete();
+                    DB::table('url_activities')->where('client_id', $client->client_id)->delete();
+                } catch (\Exception $e) {
+                    // Tables might not exist, log but continue
+                    Log::warning('Could not delete from enhanced tracking tables: ' . $e->getMessage());
+                }
+
+                // Finally delete the client
+                $client->delete();
+
+                Log::info('Client deleted successfully', array_merge($clientInfo, [
+                    'deleted_screenshots' => $screenshotCount,
+                    'deleted_browser_events' => $browserEventCount,
+                    'deleted_process_events' => $processEventCount,
+                    'deleted_url_events' => $urlEventCount,
+                    'deleted_by_ip' => request()->ip()
+                ]));
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Client and all associated data deleted successfully',
+                'data' => $clientInfo
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting client', [
+                'client_id' => $clientId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'ip_address' => $request->ip()
+            ]);
+
+            // Check if it's a database constraint error
+            if (str_contains($e->getMessage(), 'foreign key constraint')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete client due to data dependencies. Please contact administrator.'
+                ], 409);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting client. Please try again.'
+            ], 500);
+        }
     }
 }

@@ -17,6 +17,7 @@ return [
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
+        // 'localhost,127.0.0.1',  # Development domains (COMMENTED)
         '103.129.149.67',
         Sanctum::currentApplicationUrlWithPort(),
         // Sanctum::currentRequestHost(),

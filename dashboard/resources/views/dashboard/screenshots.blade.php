@@ -75,7 +75,7 @@
                             <option value="">All Clients</option>
                             @foreach($clients as $client)
                                 <option value="{{ $client->client_id }}" {{ request('client_id') == $client->client_id ? 'selected' : '' }}>
-                                    {{ $client->hostname }} ({{ $client->username }})
+                                    {{ $client->hostname }} ({{ $client->getDisplayUsername() }})
                                 </option>
                             @endforeach
                         </select>
@@ -137,7 +137,7 @@
                                     </div>
                                     <p class="card-text mb-2">
                                         <small class="text-muted">
-                                            <i class="fas fa-user me-1"></i>{{ $screenshot->client->username ?? 'Unknown' }}
+                                            <i class="fas fa-user me-1"></i>{{ $screenshot->client->getDisplayUsername() ?? 'Unknown' }}
                                         </small>
                                     </p>
                                     <p class="card-text mb-2">
@@ -146,14 +146,6 @@
                                             {{ $screenshot->captured_at ? $screenshot->captured_at->diffForHumans() : $screenshot->created_at->diffForHumans() }}
                                         </small>
                                     </p>
-                                    @if($screenshot->active_window)
-                                        <p class="card-text mb-0">
-                                            <small class="text-info">
-                                                <i class="fas fa-window-maximize me-1"></i>
-                                                {{ Str::limit($screenshot->active_window, 25) }}
-                                            </small>
-                                        </p>
-                                    @endif
                                     <div class="d-flex justify-content-between align-items-center">
                                         <button class="btn btn-outline-primary btn-sm"
                                                 data-bs-toggle="modal"
@@ -161,7 +153,8 @@
                                                 data-screenshot="{{ Storage::url($screenshot->file_path) }}">
                                             <i class="fas fa-eye me-1"></i>View
                                         </button>
-                                        <button class="btn btn-outline-secondary btn-sm">
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                onclick="downloadScreenshot('{{ Storage::url($screenshot->file_path) }}', '{{ $screenshot->filename }}')">
                                             <i class="fas fa-download"></i>
                                         </button>
                                     </div>
@@ -188,7 +181,7 @@
                                 <th>Preview</th>
                                 <th>Client</th>
                                 <th>Captured At</th>
-                                <th>Active Window</th>
+                                <th>Filename</th>
                                 <th>Size</th>
                                 <th>Actions</th>
                             </tr>
@@ -205,9 +198,9 @@
                                              data-bs-target="#screenshotModal"
                                              data-screenshot="{{ Storage::url($screenshot->file_path) }}">
                                     </td>
-                                    <td>{{ $screenshot->client->hostname ?? 'Unknown' }}</td>
+                                    <td>{{ $screenshot->client->getDisplayUsername() }} ({{ $screenshot->client->hostname ?? 'Unknown' }})</td>
                                     <td>{{ $screenshot->captured_at ? $screenshot->captured_at->format('M d, Y H:i') : $screenshot->created_at->format('M d, Y H:i') }}</td>
-                                    <td>{{ Str::limit($screenshot->active_window ?? 'N/A', 40) }}</td>
+                                    <td>{{ $screenshot->filename }}</td>
                                     <td>{{ $screenshot->file_size ? number_format($screenshot->file_size / 1024, 0) . ' KB' : 'N/A' }}</td>
                                     <td>
                                         <button class="btn btn-outline-primary btn-sm me-1"
@@ -216,7 +209,8 @@
                                                 data-screenshot="{{ Storage::url($screenshot->file_path) }}">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-outline-secondary btn-sm">
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                onclick="downloadScreenshot('{{ Storage::url($screenshot->file_path) }}', '{{ $screenshot->filename }}')">
                                             <i class="fas fa-download"></i>
                                         </button>
                                     </td>
@@ -280,7 +274,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Download</button>
+                <button type="button" class="btn btn-primary" id="modal-download-btn">Download</button>
             </div>
         </div>
     </div>
@@ -319,10 +313,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Screenshot modal
     const screenshotModal = document.getElementById('screenshotModal');
     const modalScreenshot = document.getElementById('modal-screenshot');
+    const modalDownloadBtn = document.getElementById('modal-download-btn');
+    let currentScreenshotUrl = '';
 
     screenshotModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
         const screenshotUrl = button.getAttribute('data-screenshot');
+        currentScreenshotUrl = screenshotUrl;
 
         // Show loading state
         modalScreenshot.src = '';
@@ -338,6 +335,25 @@ document.addEventListener('DOMContentLoaded', function() {
             this.alt = 'Image Not Found';
         };
     });
+
+    // Modal download button
+    modalDownloadBtn.addEventListener('click', function() {
+        if (currentScreenshotUrl) {
+            const filename = currentScreenshotUrl.split('/').pop();
+            downloadScreenshot(currentScreenshotUrl, filename);
+        }
+    });
 });
+
+// Download function
+function downloadScreenshot(url, filename) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'screenshot.jpg';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 </script>
 @endsection

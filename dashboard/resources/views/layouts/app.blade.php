@@ -425,6 +425,11 @@
                             <i class="fas fa-link me-2"></i>URL Activity
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('dashboard.client-summary') ? 'active' : '' }}" href="{{ route('dashboard.client-summary') }}">
+                            <i class="fas fa-chart-bar me-2"></i>Client Summary
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -13,6 +13,7 @@ class Client extends Model
         'client_id',
         'ip_address',
         'username',
+        'custom_username',
         'os_info',
         'status',
         'last_seen',
@@ -44,6 +45,17 @@ class Client extends Model
     public function urlEvents(): HasMany
     {
         return $this->hasMany(UrlEvent::class);
+    }
+
+    // Enhanced tracking relationships - using client_id (UUID) as foreign key
+    public function browserSessions(): HasMany
+    {
+        return $this->hasMany(BrowserSession::class, 'client_id', 'client_id');
+    }
+
+    public function urlActivities(): HasMany
+    {
+        return $this->hasMany(UrlActivity::class, 'client_id', 'client_id');
     }
 
     public function isOnline(): bool
@@ -117,5 +129,22 @@ class Client extends Model
         }
 
         return $this->os_info['platform'] ?? $this->os_info['name'] ?? 'Unknown';
+    }
+
+    /**
+     * Get the display username (custom if set, otherwise original)
+     */
+    public function getDisplayUsername(): string
+    {
+        return $this->custom_username ?: $this->username;
+    }
+
+    /**
+     * Update custom username
+     */
+    public function updateCustomUsername(string $customUsername): bool
+    {
+        $this->custom_username = $customUsername;
+        return $this->save();
     }
 }
