@@ -509,23 +509,24 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Top domains - optimized with PostgreSQL-compatible aggregation
+        // Top domains - memory efficient approach with limited dataset
         $topDomainsQuery = clone $statsQuery;
-        $topDomains = $topDomainsQuery
-            ->selectRaw('SPLIT_PART(SPLIT_PART(REPLACE(url, \'www.\', \'\'), \'://\', 2), \'/\', 1) as domain')
-            ->selectRaw('COUNT(*) as visits')
-            ->selectRaw('ROUND(SUM(duration) / 60, 1) as duration')
-            ->groupBy('domain')
-            ->orderByDesc('visits')
-            ->limit(5)
-            ->get()
-            ->map(function($item) {
+        $limitedData = $topDomainsQuery->select('url', 'duration')->limit(10000)->get();
+        $topDomains = $limitedData
+            ->groupBy(function($item) {
+                $url = parse_url($item->url, PHP_URL_HOST);
+                return $url ? str_replace('www.', '', $url) : 'unknown';
+            })
+            ->map(function($group, $domain) {
                 return [
-                    'domain' => $item->domain ?: 'unknown',
-                    'visits' => $item->visits,
-                    'duration' => $item->duration ?? 0
+                    'domain' => $domain,
+                    'visits' => $group->count(),
+                    'duration' => round($group->sum('duration') / 60, 1) // in minutes
                 ];
-            });
+            })
+            ->sortByDesc('visits')
+            ->take(5)
+            ->values();
 
         return view('dashboard.url-activity', compact(
             'urlActivities',
