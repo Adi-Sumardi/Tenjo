@@ -509,10 +509,10 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Top domains - optimized with database aggregation
+        // Top domains - optimized with PostgreSQL-compatible aggregation
         $topDomainsQuery = clone $statsQuery;
         $topDomains = $topDomainsQuery
-            ->selectRaw('SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE(url, "www.", ""), "://", -1), "/", 1) as domain')
+            ->selectRaw('SPLIT_PART(SPLIT_PART(REPLACE(url, \'www.\', \'\'), \'://\', 2), \'/\', 1) as domain')
             ->selectRaw('COUNT(*) as visits')
             ->selectRaw('ROUND(SUM(duration) / 60, 1) as duration')
             ->groupBy('domain')
