@@ -34,15 +34,19 @@ PGPASSWORD="tenjo_secure_2025" pg_dump -h 127.0.0.1 -U tenjo_user tenjo_producti
 
 ### 2. **GitHub Push** ✅
 - All code committed and pushed
-- 2 commits total:
+- 4 commits total:
   1. `a488d2e` - Silent push deployment system
   2. `edddf4d` - VPS automation scripts
+  3. `5420692` - Final deployment summary
+  4. `fa575b8` - SSL, domain, and admin user setup
 - **Result**: `origin/master` up to date
 
 ### 3. **Deployment Automation** ✅
-- Created `vps_deploy_commands.sh` - Interactive deployment script
+- Created `vps_deploy_commands.sh` - Interactive 8-step deployment
 - Created `VPS_COMMANDS_REFERENCE.md` - Complete commands reference
-- **Result**: One-command deployment ready!
+- Created `SSL_DOMAIN_SETUP.md` - SSL/Certbot guide
+- Created `ADMIN_USER_SETUP.md` - Admin user guide
+- **Result**: Fully automated deployment with SSL and admin!
 
 ---
 
@@ -148,6 +152,26 @@ mkdir -p packages
 - Makes deployment scripts executable
 - Creates packages directory
 - Ready for silent deployment!
+
+### Step 6: Create Admin User (30 sec) 🆕
+- Creates admin user for dashboard login
+- Email: `admin@tenjo.local`
+- Password: `TenjoAdmin2025!`
+- ⚠️ Change password after first login!
+
+### Step 7: SSL Certificate Setup (2-5 min) 🆕
+- Checks DNS configuration
+- Installs Certbot (if needed)
+- Obtains Let's Encrypt SSL certificate
+- Configures Nginx for HTTPS
+- Sets up auto-renewal
+- Redirects HTTP → HTTPS
+
+### Step 8: Final Verification
+- Shows system status
+- Displays access URLs (HTTP/HTTPS)
+- Shows admin credentials
+- Ready for testing!
 
 ---
 
@@ -258,8 +282,10 @@ Duplicates found:   0
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `vps_deploy_commands.sh` | Interactive deployment script | VPS: `/var/www/Tenjo/` |
+| `vps_deploy_commands.sh` | Interactive 8-step deployment | VPS: `/var/www/Tenjo/` |
 | `VPS_COMMANDS_REFERENCE.md` | All commands reference | Documentation |
+| `SSL_DOMAIN_SETUP.md` | SSL & domain setup guide | Documentation |
+| `ADMIN_USER_SETUP.md` | Admin user creation guide | Documentation |
 | `silent_push_deploy.sh` | Mass silent deployment | VPS: `/var/www/Tenjo/` |
 | `cleanup_duplicate_clients.php` | Remove duplicates | VPS: `/var/www/Tenjo/` |
 | `deploy_production.sh` | Build & upload packages | Mac local |
@@ -267,8 +293,28 @@ Duplicates found:   0
 
 ---
 
-## 🔒 Database Credentials (Production)
+## 🌐 Application Access
 
+### After SSL Setup (HTTPS):
+- **Dashboard**: https://tenjo.adilabs.id/login
+- **API**: https://tenjo.adilabs.id/api
+- **Health Check**: https://tenjo.adilabs.id/api/health
+
+### Before SSL (HTTP):
+- **Dashboard**: http://103.129.149.67/login
+- **API**: http://103.129.149.67/api
+- **Health Check**: http://103.129.149.67/api/health
+
+### Admin Login:
+- **Email**: `admin@tenjo.local`
+- **Password**: `TenjoAdmin2025!`
+- ⚠️ **Change password** after first login!
+
+---
+
+## 🔒 Credentials Reference
+
+### Database (Production VPS):
 ```env
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1  # Important: Use 127.0.0.1, not localhost!
