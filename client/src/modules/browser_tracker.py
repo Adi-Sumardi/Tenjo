@@ -49,7 +49,7 @@ class BrowserSession:
     total_time: int = 0
 
 class BrowserTracker:
-    """Enhanced browser tracking with real-time tab and URL monitoring"""
+    """Enhanced browser tracking with real-time tab and URL monitoring + activity detection"""
     
     def __init__(self, api_client, logger):
         self.api_client = api_client
@@ -59,6 +59,10 @@ class BrowserTracker:
         # Browser sessions tracking
         self.active_sessions: Dict[str, BrowserSession] = {}
         self.url_activities: Dict[str, Dict] = {}  # url -> activity data
+        
+        # Activity detector integration
+        self.activity_detector = None
+        self.tracking_paused = False  # Flag to pause duration tracking when user inactive
         
         # Platform-specific browser detection
         self.system = platform.system()
@@ -76,22 +80,53 @@ class BrowserTracker:
         self.last_check = datetime.now()
         
     def start_tracking(self):
-        """Start browser tracking"""
-        self.logger.info("Starting enhanced browser tracking...")
+        """Start browser tracking with activity detection"""
+        self.logger.info("Starting enhanced browser tracking with smart activity detection...")
         self.running = True
+        
+        # Initialize and start activity detector
+        try:
+            from .activity_detector import ActivityDetector
+            self.activity_detector = ActivityDetector(self.logger, inactivity_timeout=300)
+            
+            # Register callbacks for pause/resume
+            self.activity_detector.register_activity_paused_callback(self._on_tracking_paused)
+            self.activity_detector.register_activity_started_callback(self._on_tracking_resumed)
+            
+            self.activity_detector.start_monitoring()
+            self.logger.info("✓ Activity detection enabled (auto-pause after 5min inactivity)")
+        except Exception as e:
+            self.logger.warning(f"⚠ Could not initialize activity detection: {e}")
+            self.activity_detector = None
+        
         self.tracker_thread = threading.Thread(target=self._tracking_loop, daemon=True)
         self.tracker_thread.start()
         
     def stop_tracking(self):
-        """Stop browser tracking"""
+        """Stop browser tracking and activity detection"""
         self.logger.info("Stopping browser tracking...")
         self.running = False
+        
+        # Stop activity detector
+        if self.activity_detector:
+            self.activity_detector.stop_monitoring()
+            
         if self.tracker_thread:
             self.tracker_thread.join(timeout=5)
             
         # End all active sessions
         for session in self.active_sessions.values():
             self._end_browser_session(session)
+    
+    def _on_tracking_paused(self):
+        """Callback when user activity pauses"""
+        self.tracking_paused = True
+        self.logger.info("⏸ Duration tracking paused (user inactive)")
+    
+    def _on_tracking_resumed(self):
+        """Callback when user activity resumes"""
+        self.tracking_paused = False
+        self.logger.info("▶ Duration tracking resumed (user active)")
             
     def _tracking_loop(self):
         """Main tracking loop"""
@@ -519,8 +554,12 @@ class BrowserTracker:
             self.logger.error(f"Error tracking URL activity: {e}")
             
     def _update_url_durations(self, current_time: datetime):
-        """Update durations for active URL activities"""
+        """Update durations for active URL activities (smart pause when user inactive)"""
         try:
+            # Skip duration updates if user is inactive (activity detector paused)
+            if self.tracking_paused:
+                return
+            
             for url_key, activity in self.url_activities.items():
                 if activity['is_active']:
                     # Check if URL is still active (seen in last 30 seconds)
@@ -530,9 +569,16 @@ class BrowserTracker:
                         activity['is_active'] = False
                         activity['end_time'] = activity['last_seen']
                     else:
-                        # Update total time
+                        # Update total time ONLY if user is active
                         time_since_start = (current_time - activity['start_time']).total_seconds()
                         activity['total_time'] = int(time_since_start)
+                        
+                        # Add activity stats if activity detector is available
+                        if self.activity_detector:
+                            stats = self.activity_detector.get_activity_stats()
+                            activity['clicks'] = stats.get('mouse_clicks', 0)
+                            activity['keystrokes'] = stats.get('key_presses', 0)
+                            activity['scroll_events'] = stats.get('scroll_events', 0)
                         
         except Exception as e:
             self.logger.error(f"Error updating URL durations: {e}")

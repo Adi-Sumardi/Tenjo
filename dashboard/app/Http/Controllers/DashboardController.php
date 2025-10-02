@@ -234,7 +234,7 @@ class DashboardController extends Controller
 
     public function clientSummary(Request $request)
     {
-        // Get date range filter
+        // Get date range filter with validation
         $dateRange = $request->get('date_range', 'today');
         $customFrom = $request->get('from');
         $customTo = $request->get('to');
@@ -253,6 +253,14 @@ class DashboardController extends Controller
                 $from = today()->startOfMonth();
                 $to = today()->endOfMonth();
                 break;
+            case 'last_7_days':
+                $from = today()->subDays(6);
+                $to = today()->endOfDay();
+                break;
+            case 'last_30_days':
+                $from = today()->subDays(29);
+                $to = today()->endOfDay();
+                break;
             case 'custom':
                 $from = $customFrom ? Carbon::parse($customFrom) : today();
                 $to = $customTo ? Carbon::parse($customTo)->endOfDay() : today()->endOfDay();
@@ -261,6 +269,14 @@ class DashboardController extends Controller
                 $from = today();
                 $to = today()->endOfDay();
         }
+        
+        // Add date range info for view
+        $dateRangeInfo = [
+            'type' => $dateRange,
+            'from' => $from->format('Y-m-d'),
+            'to' => $to->format('Y-m-d'),
+            'label' => $this->getDateRangeLabel($dateRange, $from, $to)
+        ];
 
         // Get all clients and their stats in a more optimized way
         $clientsWithStats = Client::all()->keyBy('client_id');
@@ -354,10 +370,111 @@ class DashboardController extends Controller
             'clients',
             'overallStats',
             'dateRange',
+            'dateRangeInfo',
             'from',
             'to',
             'customFrom',
             'customTo'
         ));
+    }
+    
+    /**
+     * Helper method to generate date range label for display
+     */
+    private function getDateRangeLabel($type, $from, $to)
+    {
+        switch($type) {
+            case 'yesterday':
+                return 'Yesterday - ' . $from->format('M d, Y');
+            case 'week':
+                return 'This Week (' . $from->format('M d') . ' - ' . $to->format('M d, Y') . ')';
+            case 'month':
+                return $from->format('F Y');
+            case 'last_7_days':
+                return 'Last 7 Days (' . $from->format('M d') . ' - ' . $to->format('M d, Y') . ')';
+            case 'last_30_days':
+                return 'Last 30 Days (' . $from->format('M d') . ' - ' . $to->format('M d, Y') . ')';
+            case 'custom':
+                return 'Custom Range: ' . $from->format('M d, Y') . ' - ' . $to->format('M d, Y');
+            default:
+                return 'Today - ' . $from->format('M d, Y');
+        }
+    }
+    
+    /**
+     * Get browser usage statistics for specific client and date range
+     */
+    public function browserUsageStats(Request $request, string $clientId)
+    {
+        $from = $request->get('from', today());
+        $to = $request->get('to', today()->endOfDay());
+        
+        $browserUsage = BrowserSession::where('client_id', $clientId)
+            ->whereBetween('session_start', [$from, $to])
+            ->selectRaw('
+                browser_name,
+                COUNT(*) as session_count,
+                SUM(total_duration) as total_duration,
+                ROUND(AVG(total_duration), 2) as avg_duration,
+                MAX(session_start) as last_used
+            ')
+            ->groupBy('browser_name')
+            ->orderBy('total_duration', 'desc')
+            ->get()
+            ->map(function($item) {
+                $item->total_duration_formatted = gmdate('H:i:s', $item->total_duration);
+                $item->avg_duration_formatted = gmdate('H:i:s', $item->avg_duration);
+                return $item;
+            });
+        
+        return response()->json($browserUsage);
+    }
+    
+    /**
+     * Get URL access duration statistics for specific client and date range
+     */
+    public function urlDurationStats(Request $request, string $clientId)
+    {
+        $from = $request->get('from', today());
+        $to = $request->get('to', today()->endOfDay());
+        $groupBy = $request->get('group_by', 'url'); // 'url' or 'domain'
+        
+        $query = UrlActivity::where('client_id', $clientId)
+            ->whereBetween('visit_start', [$from, $to]);
+        
+        if ($groupBy === 'domain') {
+            $urlStats = $query->selectRaw('
+                domain as item,
+                COUNT(*) as visit_count,
+                SUM(duration) as total_duration,
+                ROUND(AVG(duration), 2) as avg_duration,
+                MAX(visit_start) as last_visited
+            ')
+            ->groupBy('domain')
+            ->orderBy('total_duration', 'desc')
+            ->limit(20)
+            ->get();
+        } else {
+            $urlStats = $query->selectRaw('
+                url as item,
+                domain,
+                COUNT(*) as visit_count,
+                SUM(duration) as total_duration,
+                ROUND(AVG(duration), 2) as avg_duration,
+                MAX(visit_start) as last_visited
+            ')
+            ->groupBy('url', 'domain')
+            ->orderBy('total_duration', 'desc')
+            ->limit(20)
+            ->get();
+        }
+        
+        $urlStats = $urlStats->map(function($item) {
+            $item->total_duration_formatted = gmdate('H:i:s', $item->total_duration);
+            $item->avg_duration_formatted = gmdate('H:i:s', $item->avg_duration);
+            return $item;
+        });
+        
+        return response()->json($urlStats);
     }
 }

@@ -20,6 +20,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/screenshots', [DashboardController::class, 'screenshots'])->name('screenshots');
     Route::get('/client-summary', [DashboardController::class, 'clientSummary'])->name('dashboard.client-summary');
 
+    // Statistics API endpoints
+    Route::get('/api/client/{clientId}/browser-usage', [DashboardController::class, 'browserUsageStats'])->name('api.browser-usage');
+    Route::get('/api/client/{clientId}/url-duration', [DashboardController::class, 'urlDurationStats'])->name('api.url-duration');
+
     // Export
     Route::get('/activities/export', [DashboardController::class, 'exportActivities'])->name('activities.export');
     Route::get('/export-report', [DashboardController::class, 'exportReport'])->name('export.report');

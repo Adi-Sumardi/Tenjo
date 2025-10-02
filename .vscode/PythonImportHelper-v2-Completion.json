@@ -117,6 +117,22 @@
         "documentation": {}
     },
     {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "datetime",
         "importPath": "datetime",
         "description": "datetime",
@@ -504,12 +520,27 @@
         "documentation": {}
     },
     {
-        "label": "re",
-        "kind": 6,
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
         "isExtraImport": true,
-        "importPath": "re",
-        "description": "re",
-        "detail": "re",
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Callable",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
         "documentation": {}
     },
     {
@@ -542,6 +573,15 @@
         "description": "typing",
         "isExtraImport": true,
         "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
         "documentation": {}
     },
     {
@@ -759,7 +799,7 @@
         "kind": 6,
         "importPath": "client.src.core.config",
         "description": "client.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Development server (COMMENTED)\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development (local) (COMMENTED)\n    SERVER_URL = os.getenv(\"TENJO_SERVER_URL\", \"http://103.129.149.67\")  # Production server IP\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Dynamic generation based on hardware\n    @staticmethod\n    def generate_client_id():",
+        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Development server (COMMENTED)\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development (local) (COMMENTED)\n    SERVER_URL = os.getenv(\"TENJO_SERVER_URL\", \"http://103.129.149.67\")  # Production server IP\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():",
         "detail": "client.src.core.config",
         "documentation": {}
     },
@@ -770,6 +810,15 @@
         "description": "client.src.core.config",
         "peekOfCode": "def get_local_ip():\n    \"\"\"Get the best available local IP address\"\"\"\n    try:\n        # Method 1: Socket connection (most reliable)\n        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:\n            s.connect((\"8.8.8.8\", 80))\n            ip = s.getsockname()[0]\n            if ip and ip != '127.0.0.1':\n                return ip\n    except Exception:",
         "detail": "client.src.core.config",
+        "documentation": {}
+    },
+    {
+        "label": "ActivityDetector",
+        "kind": 6,
+        "importPath": "client.src.modules.activity_detector",
+        "description": "client.src.modules.activity_detector",
+        "peekOfCode": "class ActivityDetector:\n    \"\"\"\n    Detects user activity (mouse, keyboard, clicks) and manages\n    auto-pause/resume functionality for activity tracking.\n    \"\"\"\n    def __init__(self, logger, inactivity_timeout: int = 300):\n        \"\"\"\n        Initialize Activity Detector\n        Args:\n            logger: Logger instance",
+        "detail": "client.src.modules.activity_detector",
         "documentation": {}
     },
     {
@@ -822,7 +871,7 @@
         "kind": 6,
         "importPath": "client.src.modules.browser_tracker",
         "description": "client.src.modules.browser_tracker",
-        "peekOfCode": "class BrowserTracker:\n    \"\"\"Enhanced browser tracking with real-time tab and URL monitoring\"\"\"\n    def __init__(self, api_client, logger):\n        self.api_client = api_client\n        self.logger = logger\n        self.running = False\n        # Browser sessions tracking\n        self.active_sessions: Dict[str, BrowserSession] = {}\n        self.url_activities: Dict[str, Dict] = {}  # url -> activity data\n        # Platform-specific browser detection",
+        "peekOfCode": "class BrowserTracker:\n    \"\"\"Enhanced browser tracking with real-time tab and URL monitoring + activity detection\"\"\"\n    def __init__(self, api_client, logger):\n        self.api_client = api_client\n        self.logger = logger\n        self.running = False\n        # Browser sessions tracking\n        self.active_sessions: Dict[str, BrowserSession] = {}\n        self.url_activities: Dict[str, Dict] = {}  # url -> activity data\n        # Activity detector integration",
         "detail": "client.src.modules.browser_tracker",
         "documentation": {}
     },
