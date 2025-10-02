@@ -551,4 +551,89 @@ class ClientController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Check if client has pending update (for silent push deployment)
+     */
+    public function checkUpdate(string $clientId): JsonResponse
+    {
+        try {
+            $client = Client::where('client_id', $clientId)->first();
+
+            if (!$client) {
+                return response()->json([
+                    'has_update' => false
+                ]);
+            }
+
+            // Check if there's a pending update
+            if ($client->pending_update) {
+                return response()->json([
+                    'has_update' => true,
+                    'version' => $client->update_version,
+                    'update_url' => $client->update_url,
+                    'changes' => $client->update_changes ? json_decode($client->update_changes) : []
+                ]);
+            }
+
+            return response()->json([
+                'has_update' => false
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error checking update', [
+                'client_id' => $clientId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'has_update' => false
+            ]);
+        }
+    }
+
+    /**
+     * Mark update as completed (client notifies after successful update)
+     */
+    public function updateCompleted(Request $request, string $clientId): JsonResponse
+    {
+        try {
+            $client = Client::where('client_id', $clientId)->first();
+
+            if (!$client) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Client not found'
+                ], 404);
+            }
+
+            // Update client record
+            $client->pending_update = false;
+            $client->current_version = $request->input('version');
+            $client->update_completed_at = now();
+            $client->save();
+
+            Log::info('Client update completed', [
+                'client_id' => $clientId,
+                'hostname' => $client->hostname,
+                'version' => $request->input('version')
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Update completion recorded'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error recording update completion', [
+                'client_id' => $clientId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error recording update completion'
+            ], 500);
+        }
+    }
 }

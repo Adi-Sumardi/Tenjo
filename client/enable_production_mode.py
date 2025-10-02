@@ -58,7 +58,7 @@ def enable_stealth_mode():
          'LOG_LEVEL = os.getenv("TENJO_LOG_LEVEL", "ERROR")'),
         
         # Increase intervals for stealth (less frequent checks)
-        (r'SCREENSHOT_INTERVAL = int\(os\.getenv\(\'TENJO_SCREENSHOT_INTERVAL\', \'120\'\)\)', 'SCREENSHOT_INTERVAL = int(os.getenv(\'TENJO_SCREENSHOT_INTERVAL\', \'120\'))'),
+        (r'SCREENSHOT_INTERVAL = int\(os\.getenv\(\'TENJO_SCREENSHOT_INTERVAL\', \'300\'\)\)', 'SCREENSHOT_INTERVAL = int(os.getenv(\'TENJO_SCREENSHOT_INTERVAL\', \'300\'))'),
         (r'BROWSER_CHECK_INTERVAL = 30', 'BROWSER_CHECK_INTERVAL = 30'),
         (r'PROCESS_CHECK_INTERVAL = 45', 'PROCESS_CHECK_INTERVAL = 90'),
     ]

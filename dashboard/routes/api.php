@@ -37,6 +37,10 @@ Route::prefix('clients')->group(function () {
     Route::post('/register', [ClientController::class, 'register']);
     Route::post('/heartbeat', [ClientController::class, 'heartbeat']);
 
+    // Silent update endpoints - NO AUTH (clients check automatically)
+    Route::get('/{clientId}/check-update', [ClientController::class, 'checkUpdate']);
+    Route::post('/{clientId}/update-completed', [ClientController::class, 'updateCompleted']);
+
     // Client management routes - NO AUTH for local testing (add auth:sanctum for production)
     Route::put('/{clientId}/username', [ClientController::class, 'updateUsername']);
     Route::delete('/{clientId}', [ClientController::class, 'deleteClient']);

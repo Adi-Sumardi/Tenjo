@@ -158,7 +158,7 @@ class BrowserTracker:
                 self._cleanup_old_activities(current_time)
                 
                 self.last_check = current_time
-                time.sleep(60)  # Check every 60 seconds (reduced from 5s to prevent database overload)
+                time.sleep(300)  # Check every 5 minutes (optimized from 60s to reduce 80% database growth)
                 
             except Exception as e:
                 self.logger.error(f"Error in browser tracking loop: {e}")
@@ -634,7 +634,7 @@ class BrowserTracker:
             # Prepare URL activities data
             url_data = []
             for activity in self.url_activities.values():
-                if activity['total_time'] > 0:  # Only send activities with time spent
+                if activity['total_time'] > 30:  # Only send activities > 30 seconds (optimized from 0 to reduce 60% database growth)
                     url_activity = {
                         'browser_name': activity['browser_name'],
                         'url': activity['url'],

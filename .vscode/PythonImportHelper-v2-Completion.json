@@ -197,6 +197,14 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "time",
         "kind": 6,
         "isExtraImport": true,
@@ -628,12 +636,46 @@
         "documentation": {}
     },
     {
+        "label": "hashlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "hashlib",
+        "description": "hashlib",
+        "detail": "hashlib",
+        "documentation": {}
+    },
+    {
+        "label": "tarfile",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "tarfile",
+        "description": "tarfile",
+        "detail": "tarfile",
+        "documentation": {}
+    },
+    {
         "label": "shutil",
         "kind": 6,
         "isExtraImport": true,
         "importPath": "shutil",
         "description": "shutil",
         "detail": "shutil",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "check_and_update_if_needed",
+        "importPath": "src.utils.auto_update",
+        "description": "src.utils.auto_update",
+        "isExtraImport": true,
+        "detail": "src.utils.auto_update",
         "documentation": {}
     },
     {
@@ -673,7 +715,7 @@
         "kind": 6,
         "importPath": "client.installer_package.src.core.config",
         "description": "client.installer_package.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://103.129.149.67\")  # Production server\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Local development server\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Base paths for persistent storage\n    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n    DATA_DIR = os.path.join(BASE_DIR, \"data\")\n    LOG_DIR = os.path.join(BASE_DIR, \"logs\")",
+        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Local development server\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Base paths for persistent storage\n    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n    DATA_DIR = os.path.join(BASE_DIR, \"data\")\n    LOG_DIR = os.path.join(BASE_DIR, \"logs\")",
         "detail": "client.installer_package.src.core.config",
         "documentation": {}
     },
@@ -799,7 +841,7 @@
         "kind": 6,
         "importPath": "client.src.core.config",
         "description": "client.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - LOCAL TESTING MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Development server (LOCAL)\n    # SERVER_URL = \"http://103.129.149.67\"  # Production server IP (COMMENTED FOR TESTING)\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():\n        \"\"\"",
+        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development server (COMMENTED FOR PRODUCTION)\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():\n        \"\"\"",
         "detail": "client.src.core.config",
         "documentation": {}
     },
@@ -918,6 +960,24 @@
         "description": "client.src.utils.api_client",
         "peekOfCode": "class APIClient:\n    def __init__(self, server_url, api_key):\n        self.server_url = server_url.rstrip('/')\n        self.api_key = api_key\n        self.client_id = None\n        self.session = requests.Session()\n        # Cache for missing endpoints to avoid spam warnings\n        self._missing_endpoints = set()\n        # Set default headers\n        self.session.headers.update({",
         "detail": "client.src.utils.api_client",
+        "documentation": {}
+    },
+    {
+        "label": "ClientUpdater",
+        "kind": 6,
+        "importPath": "client.src.utils.auto_update",
+        "description": "client.src.utils.auto_update",
+        "peekOfCode": "class ClientUpdater:\n    \"\"\"Handles automatic client updates from server\"\"\"\n    # Current client version\n    CURRENT_VERSION = \"2025.10.02\"  # Format: YYYY.MM.DD[.patch]\n    def __init__(self, config):\n        self.config = config\n        self.server_url = config.SERVER_URL\n        self.version_check_url = f\"{self.server_url}/downloads/client/version.json\"\n        self.download_base_url = f\"{self.server_url}/downloads/client\"\n        # Update paths based on OS",
+        "detail": "client.src.utils.auto_update",
+        "documentation": {}
+    },
+    {
+        "label": "check_and_update_if_needed",
+        "kind": 2,
+        "importPath": "client.src.utils.auto_update",
+        "description": "client.src.utils.auto_update",
+        "peekOfCode": "def check_and_update_if_needed(config):\n    \"\"\"\n    Helper function to check and update client if needed\n    Call this on client startup\n    \"\"\"\n    updater = ClientUpdater(config)\n    # Only check for updates once per day\n    last_check_file = Path(config.DATA_DIR) / \".last_update_check\"\n    try:\n        if last_check_file.exists():",
+        "detail": "client.src.utils.auto_update",
         "documentation": {}
     },
     {
@@ -1195,7 +1255,7 @@
         "kind": 2,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "def main():\n    \"\"\"Entry point\"\"\"\n    # Set up signal handlers\n    signal.signal(signal.SIGINT, signal_handler)\n    signal.signal(signal.SIGTERM, signal_handler)\n    # Create and run stealth client\n    client = StealthClient()\n    client.run()\nif __name__ == \"__main__\":\n    main()",
+        "peekOfCode": "def main():\n    \"\"\"Entry point\"\"\"\n    # Check for updates first (will restart if update available)\n    try:\n        if check_and_update_if_needed(Config):\n            # Update was performed, client will restart\n            return\n    except Exception as e:\n        # Update failed, continue with current version\n        if not Config.STEALTH_MODE:",
         "detail": "client.main",
         "documentation": {}
     },

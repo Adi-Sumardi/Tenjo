@@ -632,14 +632,18 @@ function showUrlActivitiesModal(clientId, username, event) {
     const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
     const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
 
-    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}&per_page=50`)
+    loadUrlActivitiesPage(clientId, from, to, 1);
+}
+
+function loadUrlActivitiesPage(clientId, from, to, page = 1) {
+    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}&per_page=20&page=${page}`)
         .then(response => response.json())
         .then(data => {
             const activities = data.url_activities?.data || data.data || [];
             const pagination = data.url_activities || data;
             let content = '';
 
-            if (activities.length === 0) {
+            if (activities.length === 0 && page === 1) {
                 content = '<div class="alert alert-info">No URL activities found in this period.</div>';
             } else {
                 content = `
@@ -679,9 +683,38 @@ function showUrlActivitiesModal(clientId, username, event) {
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-3">
-                        <strong>Total URL Activities:</strong> ${pagination.total || activities.length}
-                        <span class="text-muted ms-2">(Showing ${pagination.from || 1} to ${pagination.to || activities.length})</span>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <strong>Total URL Activities:</strong> ${pagination.total || activities.length}
+                            <span class="text-muted ms-2">(Showing ${pagination.from || 1} to ${pagination.to || activities.length})</span>
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                `;
+
+                // Pagination buttons
+                if (pagination.prev_page_url) {
+                    content += `<li class="page-item"><a class="page-link" href="#" onclick="loadUrlActivitiesPage('${clientId}', '${from}', '${to}', ${page - 1}); return false;">Previous</a></li>`;
+                }
+
+                // Page numbers
+                const currentPage = pagination.current_page || page;
+                const lastPage = pagination.last_page || 1;
+                const startPage = Math.max(1, currentPage - 2);
+                const endPage = Math.min(lastPage, currentPage + 2);
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const activeClass = i === currentPage ? 'active' : '';
+                    content += `<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="loadUrlActivitiesPage('${clientId}', '${from}', '${to}', ${i}); return false;">${i}</a></li>`;
+                }
+
+                if (pagination.next_page_url) {
+                    content += `<li class="page-item"><a class="page-link" href="#" onclick="loadUrlActivitiesPage('${clientId}', '${from}', '${to}', ${page + 1}); return false;">Next</a></li>`;
+                }
+
+                content += `
+                            </ul>
+                        </nav>
                     </div>
                 `;
             }
@@ -730,6 +763,13 @@ function showUniqueUrlsModal(clientId, username, event) {
     const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
     const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
 
+    // Store aggregated data globally for pagination
+    window.uniqueUrlsData = {
+        clientId: clientId,
+        from: from,
+        to: to
+    };
+
     fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}&per_page=1000`)
         .then(response => response.json())
         .then(data => {
@@ -760,57 +800,113 @@ function showUniqueUrlsModal(clientId, username, event) {
             });
 
             const uniqueUrlsArray = Object.values(uniqueUrls).sort((a, b) => b.count - a.count);
-            let content = '';
 
-            if (uniqueUrlsArray.length === 0) {
-                content = '<div class="alert alert-info">No unique URLs found in this period.</div>';
-            } else {
-                content = `
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40%">URL</th>
-                                    <th>Domain</th>
-                                    <th>Page Title</th>
-                                    <th>Visits</th>
-                                    <th>Total Duration</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
+            // Store for pagination
+            window.uniqueUrlsData.allUrls = uniqueUrlsArray;
 
-                uniqueUrlsArray.forEach(urlData => {
-                    const totalDuration = Math.round(urlData.totalDuration / 60) + ' min';
-
-                    content += `
-                        <tr>
-                            <td><small><a href="${urlData.url}" target="_blank" class="text-decoration-none">${urlData.url.substring(0, 50)}${urlData.url.length > 50 ? '...' : ''}</a></small></td>
-                            <td><small><span class="badge bg-secondary">${urlData.domain}</span></small></td>
-                            <td><small>${urlData.title.substring(0, 30)}${urlData.title.length > 30 ? '...' : ''}</small></td>
-                            <td><span class="badge bg-success">${urlData.count}</span></td>
-                            <td><small>${totalDuration}</small></td>
-                        </tr>
-                    `;
-                });
-
-                content += `
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-3">
-                        <strong>Total Unique URLs:</strong> ${uniqueUrlsArray.length}
-                    </div>
-                `;
-            }
-
-            document.querySelector('#uniqueUrlsModal .modal-body').innerHTML = content;
+            // Display first page
+            displayUniqueUrlsPage(1);
         })
         .catch(error => {
             console.error('Error loading unique URLs:', error);
             document.querySelector('#uniqueUrlsModal .modal-body').innerHTML =
                 '<div class="alert alert-danger">Failed to load unique URLs data.</div>';
         });
+}
+
+function displayUniqueUrlsPage(page = 1) {
+    const allUrls = window.uniqueUrlsData.allUrls || [];
+    const perPage = 20;
+    const totalPages = Math.ceil(allUrls.length / perPage);
+    const startIndex = (page - 1) * perPage;
+    const endIndex = startIndex + perPage;
+    const pageUrls = allUrls.slice(startIndex, endIndex);
+
+    let content = '';
+
+    if (allUrls.length === 0) {
+        content = '<div class="alert alert-info">No unique URLs found in this period.</div>';
+    } else {
+        content = `
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%">URL</th>
+                            <th>Domain</th>
+                            <th>Page Title</th>
+                            <th>Visits</th>
+                            <th>Total Duration</th>
+                            <th>Last Visit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        pageUrls.forEach(urlData => {
+            const totalDuration = Math.round(urlData.totalDuration / 60) + ' min';
+            const lastVisitDate = new Date(urlData.lastVisit);
+            const formattedLastVisit = lastVisitDate.toLocaleString('id-ID', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            content += `
+                <tr>
+                    <td><small><a href="${urlData.url}" target="_blank" class="text-decoration-none">${urlData.url.substring(0, 45)}${urlData.url.length > 45 ? '...' : ''}</a></small></td>
+                    <td><small><span class="badge bg-secondary">${urlData.domain}</span></small></td>
+                    <td><small>${urlData.title.substring(0, 25)}${urlData.title.length > 25 ? '...' : ''}</small></td>
+                    <td><span class="badge bg-success">${urlData.count}</span></td>
+                    <td><small>${totalDuration}</small></td>
+                    <td><small class="text-muted">${formattedLastVisit}</small></td>
+                </tr>
+            `;
+        });
+
+        content += `
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <strong>Total Unique URLs:</strong> ${allUrls.length}
+                    <span class="text-muted ms-2">(Showing ${startIndex + 1} to ${Math.min(endIndex, allUrls.length)})</span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+        `;
+
+        // Pagination buttons
+        if (page > 1) {
+            content += `<li class="page-item"><a class="page-link" href="#" onclick="displayUniqueUrlsPage(${page - 1}); return false;">Previous</a></li>`;
+        }
+
+        // Page numbers
+        const startPage = Math.max(1, page - 2);
+        const endPage = Math.min(totalPages, page + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const activeClass = i === page ? 'active' : '';
+            content += `<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="displayUniqueUrlsPage(${i}); return false;">${i}</a></li>`;
+        }
+
+        if (page < totalPages) {
+            content += `<li class="page-item"><a class="page-link" href="#" onclick="displayUniqueUrlsPage(${page + 1}); return false;">Next</a></li>`;
+        }
+
+        content += `
+                    </ul>
+                </nav>
+            </div>
+        `;
+    }
+
+    document.querySelector('#uniqueUrlsModal .modal-body').innerHTML = content;
 }
 </script>
 @endsection
