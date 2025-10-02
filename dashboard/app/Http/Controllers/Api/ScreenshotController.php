@@ -20,7 +20,7 @@ class ScreenshotController extends Controller
     {
         $request->validate([
             'client_id' => 'required|string',
-            'image_data' => 'required|string',
+            'image_data' => 'required|string|max:700000', // Max ~500KB after base64 encoding
             'resolution' => 'required|string',
             'monitor' => 'integer|min:1',
             'timestamp' => 'required|date'

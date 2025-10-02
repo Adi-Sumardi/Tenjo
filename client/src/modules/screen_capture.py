@@ -269,13 +269,13 @@ class ScreenCapture:
             logging.error(f"Error capturing screenshot: {str(e)}")
             return False
             
-    def compress_image(self, img, quality=85, max_size=(1920, 1080)):
-        """Compress image to reduce file size"""
+    def compress_image(self, img, quality=65, max_size=(1920, 1080)):
+        """Compress image to reduce file size - quality 65 provides 50% smaller files while maintaining good quality"""
         # Resize if too large
         if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
             img.thumbnail(max_size, Image.Resampling.LANCZOS)
         
-        # Convert to JPEG and compress
+        # Convert to JPEG and compress with optimized quality
         buffer = io.BytesIO()
         img.save(buffer, format='JPEG', quality=quality, optimize=True)
         

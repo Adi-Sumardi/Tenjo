@@ -179,17 +179,29 @@ class ClientController extends Controller
         ]);
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        // Add pagination to prevent memory issues with large datasets
+        $perPage = $request->get('per_page', 50); // Default 50, max 100
+        $perPage = min($perPage, 100); // Enforce max limit
+
         $clients = Client::with(['screenshots' => function($query) {
                 $query->latest()->limit(1);
             }])
             ->orderBy('last_seen', 'desc')
-            ->get();
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
-            'clients' => $clients
+            'clients' => $clients->items(),
+            'pagination' => [
+                'total' => $clients->total(),
+                'per_page' => $clients->perPage(),
+                'current_page' => $clients->currentPage(),
+                'last_page' => $clients->lastPage(),
+                'from' => $clients->firstItem(),
+                'to' => $clients->lastItem()
+            ]
         ]);
     }
 

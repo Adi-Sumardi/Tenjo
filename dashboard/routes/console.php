@@ -8,6 +8,21 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Schedule automatic database cleanup daily (CRITICAL for preventing storage explosion)
+Schedule::command('tenjo:cleanup-database', ['--days=7'])
+    ->daily()
+    ->at('02:00')
+    ->description('Daily cleanup of old database records (screenshots, URL activities, browser sessions older than 7 days)')
+    ->emailOutputOnFailure(config('mail.admin_email', 'admin@tenjo.app'));
+
+// Schedule weekly deep cleanup to aggressively reduce database size
+Schedule::command('tenjo:cleanup-database', ['--days=3', '--deep'])
+    ->weekly()
+    ->sundays()
+    ->at('03:00')
+    ->description('Weekly deep cleanup - keeps only 3 days of data for heavy tables')
+    ->emailOutputOnFailure(config('mail.admin_email', 'admin@tenjo.app'));
+
 // Schedule automatic cleanup of stream chunks every week
 Schedule::command('tenjo:cleanup-streams', ['--days=7'])
     ->weekly()

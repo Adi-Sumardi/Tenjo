@@ -119,8 +119,11 @@ class BrowserTracker:
                 # Update URL activity durations
                 self._update_url_durations(current_time)
                 
+                # Clean up old activities to prevent memory leaks
+                self._cleanup_old_activities(current_time)
+                
                 self.last_check = current_time
-                time.sleep(5)  # Check every 5 seconds
+                time.sleep(60)  # Check every 60 seconds (reduced from 5s to prevent database overload)
                 
             except Exception as e:
                 self.logger.error(f"Error in browser tracking loop: {e}")
@@ -533,6 +536,37 @@ class BrowserTracker:
                         
         except Exception as e:
             self.logger.error(f"Error updating URL durations: {e}")
+            
+    def _cleanup_old_activities(self, current_time: datetime):
+        """Remove old activities to prevent memory leaks"""
+        try:
+            cutoff_time = current_time - timedelta(hours=1)
+            
+            # Clean old URL activities (keep only last 1 hour)
+            self.url_activities = {
+                key: activity 
+                for key, activity in self.url_activities.items()
+                if activity.get('last_seen', activity['start_time']) > cutoff_time
+            }
+            
+            # Clean old browser sessions that have ended
+            self.active_sessions = {
+                session_id: session 
+                for session_id, session in self.active_sessions.items()
+                if session.end_time is None or (current_time - session.end_time).total_seconds() < 3600
+            }
+            
+            # Log cleanup stats every hour
+            if hasattr(self, '_last_cleanup_log'):
+                time_since_log = (current_time - self._last_cleanup_log).total_seconds()
+                if time_since_log > 3600:  # Log every hour
+                    self.logger.info(f"Memory cleanup: {len(self.url_activities)} URL activities, {len(self.active_sessions)} sessions in memory")
+                    self._last_cleanup_log = current_time
+            else:
+                self._last_cleanup_log = current_time
+                
+        except Exception as e:
+            self.logger.error(f"Error cleaning up old activities: {e}")
             
     def _send_tracking_data(self):
         """Send tracking data to server"""
