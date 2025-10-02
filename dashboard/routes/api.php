@@ -14,6 +14,24 @@ use App\Http\Controllers\BrowserTrackingController;
 // Health check - public for monitoring
 Route::get('/health', [ClientController::class, 'health']);
 
+// Streaming endpoints with HIGH rate limiting (OUTSIDE throttle:api group)
+Route::prefix('stream')->group(function () {
+    // Client endpoints - allow higher rate for video streaming
+    Route::middleware('throttle:240,1')->group(function () {
+        Route::get('/request/{clientId}', [StreamController::class, 'getStreamRequest']);
+        Route::post('/chunk/{clientId}', [StreamController::class, 'uploadStreamChunk']);
+        Route::get('/status/{clientId}', [StreamController::class, 'getStreamStatus']);
+    });
+
+    // Dashboard endpoints - NO AUTH for local testing, add auth later for production
+    Route::middleware('throttle:240,1')->group(function () {
+        Route::post('/start/{clientId}', [StreamController::class, 'startStream']);
+        Route::post('/stop/{clientId}', [StreamController::class, 'stopStream']);
+        Route::get('/latest/{clientId}', [StreamController::class, 'getLatestChunk']);
+        Route::get('/video/{clientId}', [StreamController::class, 'getVideoStream']);
+    });
+});
+
 // Add CORS middleware with rate limiting for API security
 Route::middleware(['throttle:api'])->group(function () {
 
@@ -50,24 +68,6 @@ Route::prefix('clients')->group(function () {
 
             return response()->json($clients);
         });
-    });
-});
-
-// Streaming endpoints with rate limiting
-Route::prefix('stream')->group(function () {
-    // Client endpoints - allow higher rate for video streaming
-    Route::middleware('throttle:240,1')->group(function () {
-        Route::get('/request/{clientId}', [StreamController::class, 'getStreamRequest']);
-        Route::post('/chunk/{clientId}', [StreamController::class, 'uploadStreamChunk']);
-        Route::get('/status/{clientId}', [StreamController::class, 'getStreamStatus']);
-    });
-
-    // Dashboard endpoints - NO AUTH for local testing, add auth later for production
-    Route::middleware('throttle:240,1')->group(function () {
-        Route::post('/start/{clientId}', [StreamController::class, 'startStream']);
-        Route::post('/stop/{clientId}', [StreamController::class, 'stopStream']);
-        Route::get('/latest/{clientId}', [StreamController::class, 'getLatestChunk']);
-        Route::get('/video/{clientId}', [StreamController::class, 'getVideoStream']);
     });
 });
 

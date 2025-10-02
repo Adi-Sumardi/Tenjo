@@ -33,5 +33,24 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Return JSON for API 429 errors instead of HTML
+        $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'error' => 'Too many requests',
+                    'message' => 'Please slow down and try again in a few seconds.',
+                    'retry_after' => $e->getHeaders()['Retry-After'] ?? null,
+                ], 429, $e->getHeaders());
+            }
+        });
+
+        // Return JSON for general API errors
+        $exceptions->render(function (\Throwable $e, Request $request) {
+            if ($request->is('api/*') && !config('app.debug')) {
+                return response()->json([
+                    'error' => 'Server error',
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+        });
     })->create();
