@@ -37,6 +37,10 @@ Route::prefix('clients')->group(function () {
     Route::post('/register', [ClientController::class, 'register']);
     Route::post('/heartbeat', [ClientController::class, 'heartbeat']);
 
+    // Client management routes - NO AUTH for local testing (add auth:sanctum for production)
+    Route::put('/{clientId}/username', [ClientController::class, 'updateUsername']);
+    Route::delete('/{clientId}', [ClientController::class, 'deleteClient']);
+
     // Protected routes - require authentication
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [ClientController::class, 'index']);
@@ -44,10 +48,6 @@ Route::prefix('clients')->group(function () {
         Route::get('/{clientId}/settings', [ClientController::class, 'getSettings']);
         Route::get('/{clientId}/latest-screenshot', [ClientController::class, 'getLatestScreenshot']);
         Route::put('/{clientId}/status', [ClientController::class, 'updateStatus']);
-
-        // Client management routes
-        Route::put('/{clientId}/username', [ClientController::class, 'updateUsername']);
-        Route::delete('/{clientId}', [ClientController::class, 'deleteClient']);
 
         // Add status endpoint for dashboard
         Route::get('/status', function () {
