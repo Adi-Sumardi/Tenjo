@@ -138,24 +138,24 @@
                 <div class="row text-center">
                     <div class="col-md-3">
                         <div class="border-end">
-                            <h4 class="text-primary mb-0">{{ $client->screenshots->count() }}</h4>
+                            <h4 class="text-primary mb-0">{{ $client->screenshots ? $client->screenshots->count() : 0 }}</h4>
                             <small class="text-muted">Screenshots</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="border-end">
-                            <h4 class="text-success mb-0">{{ $browserStats->sum('sessions') ?: $enhancedBrowserStats->sum('session_count') }}</h4>
+                            <h4 class="text-success mb-0">{{ $summary['browser_sessions'] ?? 0 }}</h4>
                             <small class="text-muted">Browser Sessions</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="border-end">
-                            <h4 class="text-info mb-0">{{ ($client->urlEvents ? $client->urlEvents->count() : 0) ?: $recentUrlActivities->count() }}</h4>
+                            <h4 class="text-info mb-0">{{ $summary['urls_visited'] ?? 0 }}</h4>
                             <small class="text-muted">URLs Visited</small>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <h4 class="text-warning mb-0">{{ $client->processEvents ? $client->processEvents->count() : 0 }}</h4>
+                        <h4 class="text-warning mb-0">{{ $client->processEvents?->count() ?? 0 }}</h4>
                         <small class="text-muted">Process Events</small>
                     </div>
                 </div>
@@ -203,7 +203,7 @@
         </a>
     </div>
     <div class="card-body">
-        @if($client->screenshots->count() > 0)
+        @if($client->screenshots && $client->screenshots->count() > 0)
             <div class="row">
                 @foreach($client->screenshots->take(6) as $screenshot)
                 <div class="col-md-2 mb-3">
@@ -418,8 +418,7 @@
                         <td class="time-info">{{ $activity->visit_start->format('H:i:s') }}</td>
                         <td>
                             @php
-                                $browserSession = $activity->browserSession;
-                                $browserName = $browserSession ? $browserSession->browser_name : 'Unknown';
+                                $browserName = $activity->browserSession?->browser_name ?? 'Unknown';
                             @endphp
                             @if($browserName == 'Chrome')
                                 <i class="fab fa-chrome text-warning browser-icon"></i>
@@ -475,7 +474,7 @@
         <h6 class="mb-0">Recent Browser Activity</h6>
     </div>
     <div class="card-body">
-        @if($client->browserEvents->count() > 0)
+        @if($client->browserEvents && $client->browserEvents->count() > 0)
             <div class="table-responsive browser-activity-table">
                 <table class="table table-sm table-striped table-hover">
                     <thead class="table-dark">
@@ -570,89 +569,6 @@
 
 @section('scripts')
 <script>
-    // Initialize tooltips
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Bootstrap tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl, {
-                trigger: 'hover focus',
-                delay: { show: 500, hide: 100 }
-            });
-        });
-
-        // Auto-refresh dynamic content every 30 seconds
-        setInterval(function() {
-            const currentUrl = window.location.href;
-            if (currentUrl.includes('/details')) {
-                // Refresh dynamic content via AJAX
-                fetch(currentUrl, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'text/html'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    // Extract and update dynamic sections
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    // Update Client Information section (for username changes)
-                    const newClientInfo = doc.querySelector('.card-body dl.row');
-                    const currentClientInfo = document.querySelector('.card-body dl.row');
-                    if (newClientInfo && currentClientInfo) {
-                        currentClientInfo.innerHTML = newClientInfo.innerHTML;
-                    }
-
-                    // Update activity summary cards
-                    const newSummaryCard = doc.querySelector('.card-body .row.text-center');
-                    const currentSummaryCard = document.querySelector('.card-body .row.text-center');
-                    if (newSummaryCard && currentSummaryCard) {
-                        currentSummaryCard.innerHTML = newSummaryCard.innerHTML;
-                    }                    // Update browser activity table if exists
-                    const newTable = doc.querySelector('.browser-activity-table');
-                    const currentTable = document.querySelector('.browser-activity-table');
-                    if (newTable && currentTable) {
-                        currentTable.innerHTML = newTable.innerHTML;
-                    }
-
-                    // Update enhanced browser stats if exists
-                    const newEnhancedStats = doc.querySelector('.row.mb-4 .row.text-center');
-                    const currentEnhancedStats = document.querySelector('.row.mb-4 .row.text-center');
-                    if (newEnhancedStats && currentEnhancedStats && newEnhancedStats !== newSummaryCard) {
-                        currentEnhancedStats.innerHTML = newEnhancedStats.innerHTML;
-                    }
-
-                    // Reinitialize tooltips for new content
-                    const newTooltips = [].slice.call(document.querySelectorAll('[title]'));
-                    newTooltips.map(function (el) {
-                        // Dispose existing tooltip if any
-                        const existingTooltip = bootstrap.Tooltip.getInstance(el);
-                        if (existingTooltip) {
-                            existingTooltip.dispose();
-                        }
-                        return new bootstrap.Tooltip(el, {
-                            trigger: 'hover focus',
-                            delay: { show: 500, hide: 100 }
-                        });
-                    });
-
-                    console.log('Dynamic content refreshed successfully');
-                })
-                .catch(error => {
-                    console.warn('Auto-refresh failed:', error);
-                    // Optionally show user notification that auto-refresh failed
-                });
-            }
-        }, 30000);
-    });
-
     // Screenshot modal
     document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('screenshotModal');
@@ -665,6 +581,74 @@
                 document.getElementById('modalScreenshot').src = screenshot;
                 document.getElementById('modalTime').textContent = 'Captured at: ' + time;
             });
+        }
+
+        // Initialize Bootstrap tooltips
+        let tooltipList = [];
+        function initializeTooltips() {
+            // Dispose of old tooltips
+            tooltipList.forEach(tooltip => tooltip.dispose());
+
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+            tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover focus',
+                    delay: { show: 500, hide: 100 }
+                });
+            });
+        }
+        initializeTooltips();
+
+        // Auto-refresh dynamic content every 30 seconds
+        // Note: It's better to create a dedicated API endpoint that returns JSON
+        // instead of fetching and parsing the whole HTML page.
+        const autoRefresh = () => {
+            // Using current URL to fetch HTML for demonstration.
+            // A dedicated JSON API endpoint would be more efficient.
+            fetch(window.location.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html' // Requesting HTML to parse
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const sectionsToUpdate = [
+                    '.card-body dl.row', // Client Info
+                    '.card-body .row.text-center', // Activity Summary
+                    '.browser-activity-table', // Browser Activity Table
+                    // Add other selectors for sections that need refreshing
+                ];
+
+                let contentChanged = false;
+                sectionsToUpdate.forEach(selector => {
+                    const newContent = doc.querySelector(selector);
+                    const currentContent = document.querySelector(selector);
+                    if (newContent && currentContent && currentContent.innerHTML !== newContent.innerHTML) {
+                        currentContent.innerHTML = newContent.innerHTML;
+                        contentChanged = true;
+                    }
+                });
+
+                if (contentChanged) {
+                    initializeTooltips(); // Re-initialize tooltips only if content changed
+                    console.log('Dynamic content refreshed successfully');
+                }
+            })
+            .catch(error => {
+                console.warn('Auto-refresh failed:', error);
+            });
+        };
+
+        // Only set up interval if on the details page
+        if (window.location.href.includes('/details')) {
+            setInterval(autoRefresh, 30000);
         }
     });
 

@@ -177,3 +177,21 @@
 2025-10-02 14:55:04,444 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
 2025-10-02 14:55:09,796 - WARNING - API request failed with status 429
 2025-10-02 14:55:09,797 - ERROR - Failed to complete POST request to /api/clients/heartbeat after 1 attempts
+2025-10-02 14:55:29,842 - WARNING - API request failed with status 429
+2025-10-02 14:55:29,843 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:55:31,745 - WARNING - API request failed with status 429
+2025-10-02 14:55:31,745 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:55:44,869 - WARNING - API request failed with status 429
+2025-10-02 14:55:44,870 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:55:46,760 - WARNING - API request failed with status 429
+2025-10-02 14:55:46,760 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:55:59,901 - WARNING - API request failed with status 429
+2025-10-02 14:55:59,902 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:56:01,785 - WARNING - API request failed with status 429
+2025-10-02 14:56:01,786 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:56:02,085 - WARNING - API request failed with status 429
+2025-10-02 14:56:02,085 - ERROR - Failed to complete POST request to /api/screenshots after 1 attempts
+2025-10-02 14:56:02,086 - WARNING - Local upload failed, stored locally: API request failed: POST /api/screenshots after 1 attempts
+2025-10-02 14:56:05,155 - WARNING - API request failed with status 429
+2025-10-02 14:56:05,155 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:56:05,155 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
