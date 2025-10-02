@@ -182,7 +182,6 @@
     <div class="alert alert-info mb-4">
         <i class="fas fa-info-circle me-2"></i>
         <strong>Report Period:</strong> {{ $from->format('M d, Y') }} to {{ $to->format('M d, Y') }}
-        ({{ $from->diffInDays($to) + 1 }} days)
     </div>
 
     <!-- Client Summary Table -->
@@ -234,16 +233,24 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info">{{ number_format($clientData['stats']['screenshots']) }}</span>
+                                    <a href="#" class="text-decoration-none" onclick="showScreenshotsModal('{{ $clientData['client']->client_id }}', '{{ $clientData['client']->getDisplayUsername() }}', event)">
+                                        <span class="badge bg-info">{{ number_format($clientData['stats']['screenshots']) }}</span>
+                                    </a>
                                 </td>
                                 <td>
-                                    <span class="badge bg-warning">{{ number_format($clientData['stats']['browser_sessions']) }}</span>
+                                    <a href="#" class="text-decoration-none" onclick="showBrowserSessionsModal('{{ $clientData['client']->client_id }}', '{{ $clientData['client']->getDisplayUsername() }}', event)">
+                                        <span class="badge bg-warning">{{ number_format($clientData['stats']['browser_sessions']) }}</span>
+                                    </a>
                                 </td>
                                 <td>
-                                    <span class="badge bg-purple">{{ number_format($clientData['stats']['url_activities']) }}</span>
+                                    <a href="#" class="text-decoration-none" onclick="showUrlActivitiesModal('{{ $clientData['client']->client_id }}', '{{ $clientData['client']->getDisplayUsername() }}', event)">
+                                        <span class="badge bg-purple">{{ number_format($clientData['stats']['url_activities']) }}</span>
+                                    </a>
                                 </td>
                                 <td>
-                                    <span class="badge bg-primary">{{ number_format($clientData['stats']['unique_urls']) }}</span>
+                                    <a href="#" class="text-decoration-none" onclick="showUniqueUrlsModal('{{ $clientData['client']->client_id }}', '{{ $clientData['client']->getDisplayUsername() }}', event)">
+                                        <span class="badge bg-primary">{{ number_format($clientData['stats']['unique_urls']) }}</span>
+                                    </a>
                                 </td>
                                 <td>
                                     <span class="text-muted">{{ $clientData['stats']['total_duration_minutes'] }}m</span>
@@ -314,7 +321,423 @@ style.textContent = `
     .bg-purple {
         background-color: #6f42c1 !important;
     }
+    .badge {
+        cursor: pointer;
+    }
+    .badge:hover {
+        opacity: 0.8;
+    }
 `;
 document.head.appendChild(style);
+
+// Modal functions
+function showScreenshotsModal(clientId, username, event) {
+    event.preventDefault();
+
+    // Show loading modal
+    const modalHtml = `
+        <div class="modal fade" id="screenshotsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-camera me-2"></i>Screenshots - ${username}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading screenshots...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal
+    document.getElementById('screenshotsModal')?.remove();
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('screenshotsModal'));
+    modal.show();
+
+    // Fetch data
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
+    const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
+
+    fetch(`/api/screenshots?client_id=${clientId}&from=${from}&to=${to}&per_page=100`)
+        .then(response => response.json())
+        .then(data => {
+            const screenshots = data.screenshots?.data || data.data || [];
+            let content = '';
+
+            if (screenshots.length === 0) {
+                content = '<div class="alert alert-info">No screenshots found in this period.</div>';
+            } else {
+                content = `
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Preview</th>
+                                    <th>Filename</th>
+                                    <th>Resolution</th>
+                                    <th>File Size</th>
+                                    <th>Captured At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                screenshots.forEach(screenshot => {
+                    const imageUrl = screenshot.file_path ? '/storage/' + screenshot.file_path : '';
+                    const fileSize = screenshot.file_size ? (screenshot.file_size / 1024).toFixed(0) + ' KB' : 'N/A';
+                    const capturedAt = new Date(screenshot.captured_at || screenshot.created_at).toLocaleString();
+
+                    content += `
+                        <tr>
+                            <td>
+                                ${imageUrl ? `<img src="${imageUrl}" alt="Screenshot" style="width: 80px; height: 50px; object-fit: cover; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')">` : 'N/A'}
+                            </td>
+                            <td><small>${screenshot.filename || 'N/A'}</small></td>
+                            <td><small>${screenshot.resolution || 'N/A'}</small></td>
+                            <td><small>${fileSize}</small></td>
+                            <td><small>${capturedAt}</small></td>
+                            <td>
+                                ${imageUrl ? `<a href="${imageUrl}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>` : ''}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                content += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <strong>Total Screenshots:</strong> ${screenshots.length}
+                    </div>
+                `;
+            }
+
+            document.querySelector('#screenshotsModal .modal-body').innerHTML = content;
+        })
+        .catch(error => {
+            console.error('Error loading screenshots:', error);
+            document.querySelector('#screenshotsModal .modal-body').innerHTML =
+                '<div class="alert alert-danger">Failed to load screenshots data.</div>';
+        });
+}
+
+function showBrowserSessionsModal(clientId, username, event) {
+    event.preventDefault();
+
+    const modalHtml = `
+        <div class="modal fade" id="browserSessionsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-browser me-2"></i>Browser Sessions - ${username}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-warning" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading browser sessions...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('browserSessionsModal')?.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('browserSessionsModal'));
+    modal.show();
+
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
+    const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
+
+    fetch(`/api/browser-events?client_id=${clientId}&from=${from}&to=${to}`)
+        .then(response => response.json())
+        .then(data => {
+            const sessions = data.data || [];
+            let content = '';
+
+            if (sessions.length === 0) {
+                content = '<div class="alert alert-info">No browser sessions found in this period.</div>';
+            } else {
+                content = `
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Browser</th>
+                                    <th>Event Type</th>
+                                    <th>Timestamp</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                sessions.forEach(session => {
+                    const timestamp = new Date(session.created_at).toLocaleString();
+                    const browser = session.browser_name || 'Unknown';
+                    const eventType = session.event_type || 'N/A';
+
+                    content += `
+                        <tr>
+                            <td><i class="fab fa-${browser.toLowerCase()} me-1"></i>${browser}</td>
+                            <td><span class="badge bg-secondary">${eventType}</span></td>
+                            <td><small>${timestamp}</small></td>
+                            <td><small>${session.url ? session.url.substring(0, 50) + '...' : 'N/A'}</small></td>
+                        </tr>
+                    `;
+                });
+
+                content += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <strong>Total Sessions:</strong> ${sessions.length}
+                    </div>
+                `;
+            }
+
+            document.querySelector('#browserSessionsModal .modal-body').innerHTML = content;
+        })
+        .catch(error => {
+            console.error('Error loading browser sessions:', error);
+            document.querySelector('#browserSessionsModal .modal-body').innerHTML =
+                '<div class="alert alert-danger">Failed to load browser sessions data.</div>';
+        });
+}
+
+function showUrlActivitiesModal(clientId, username, event) {
+    event.preventDefault();
+
+    const modalHtml = `
+        <div class="modal fade" id="urlActivitiesModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-link me-2"></i>URL Activities - ${username}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-purple" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading URL activities...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('urlActivitiesModal')?.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('urlActivitiesModal'));
+    modal.show();
+
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
+    const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
+
+    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}`)
+        .then(response => response.json())
+        .then(data => {
+            const activities = data.data || [];
+            let content = '';
+
+            if (activities.length === 0) {
+                content = '<div class="alert alert-info">No URL activities found in this period.</div>';
+            } else {
+                content = `
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50%">URL</th>
+                                    <th>Title</th>
+                                    <th>Visit Count</th>
+                                    <th>Duration</th>
+                                    <th>Last Visit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                activities.forEach(activity => {
+                    const lastVisit = new Date(activity.created_at).toLocaleString();
+                    const url = activity.url || 'N/A';
+                    const title = activity.title || 'No title';
+                    const duration = activity.duration ? Math.round(activity.duration / 60) + ' min' : 'N/A';
+
+                    content += `
+                        <tr>
+                            <td><small><a href="${url}" target="_blank" class="text-decoration-none">${url.substring(0, 60)}${url.length > 60 ? '...' : ''}</a></small></td>
+                            <td><small>${title.substring(0, 30)}${title.length > 30 ? '...' : ''}</small></td>
+                            <td><span class="badge bg-info">${activity.visit_count || 1}</span></td>
+                            <td><small>${duration}</small></td>
+                            <td><small>${lastVisit}</small></td>
+                        </tr>
+                    `;
+                });
+
+                content += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <strong>Total Activities:</strong> ${activities.length}
+                    </div>
+                `;
+            }
+
+            document.querySelector('#urlActivitiesModal .modal-body').innerHTML = content;
+        })
+        .catch(error => {
+            console.error('Error loading URL activities:', error);
+            document.querySelector('#urlActivitiesModal .modal-body').innerHTML =
+                '<div class="alert alert-danger">Failed to load URL activities data.</div>';
+        });
+}
+
+function showUniqueUrlsModal(clientId, username, event) {
+    event.preventDefault();
+
+    const modalHtml = `
+        <div class="modal fade" id="uniqueUrlsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-list me-2"></i>Unique URLs - ${username}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading unique URLs...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('uniqueUrlsModal')?.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('uniqueUrlsModal'));
+    modal.show();
+
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
+    const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
+
+    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}`)
+        .then(response => response.json())
+        .then(data => {
+            const urlEvents = data.data || [];
+
+            // Get unique URLs
+            const uniqueUrls = {};
+            urlEvents.forEach(event => {
+                const url = event.url;
+                if (url) {
+                    if (!uniqueUrls[url]) {
+                        uniqueUrls[url] = {
+                            url: url,
+                            title: event.title || 'No title',
+                            count: 0,
+                            totalDuration: 0,
+                            lastVisit: event.created_at
+                        };
+                    }
+                    uniqueUrls[url].count++;
+                    uniqueUrls[url].totalDuration += event.duration || 0;
+                    if (new Date(event.created_at) > new Date(uniqueUrls[url].lastVisit)) {
+                        uniqueUrls[url].lastVisit = event.created_at;
+                    }
+                }
+            });
+
+            const uniqueUrlsArray = Object.values(uniqueUrls).sort((a, b) => b.count - a.count);
+            let content = '';
+
+            if (uniqueUrlsArray.length === 0) {
+                content = '<div class="alert alert-info">No unique URLs found in this period.</div>';
+            } else {
+                content = `
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50%">URL</th>
+                                    <th>Title</th>
+                                    <th>Visits</th>
+                                    <th>Total Duration</th>
+                                    <th>Last Visit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                uniqueUrlsArray.forEach(urlData => {
+                    const lastVisit = new Date(urlData.lastVisit).toLocaleString();
+                    const totalDuration = Math.round(urlData.totalDuration / 60) + ' min';
+
+                    content += `
+                        <tr>
+                            <td><small><a href="${urlData.url}" target="_blank" class="text-decoration-none">${urlData.url.substring(0, 60)}${urlData.url.length > 60 ? '...' : ''}</a></small></td>
+                            <td><small>${urlData.title.substring(0, 30)}${urlData.title.length > 30 ? '...' : ''}</small></td>
+                            <td><span class="badge bg-success">${urlData.count}</span></td>
+                            <td><small>${totalDuration}</small></td>
+                            <td><small>${lastVisit}</small></td>
+                        </tr>
+                    `;
+                });
+
+                content += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <strong>Total Unique URLs:</strong> ${uniqueUrlsArray.length}
+                    </div>
+                `;
+            }
+
+            document.querySelector('#uniqueUrlsModal .modal-body').innerHTML = content;
+        })
+        .catch(error => {
+            console.error('Error loading unique URLs:', error);
+            document.querySelector('#uniqueUrlsModal .modal-body').innerHTML =
+                '<div class="alert alert-danger">Failed to load unique URLs data.</div>';
+        });
+}
 </script>
 @endsection

@@ -69,10 +69,12 @@ Route::prefix('screenshots')->group(function () {
     Route::post('/', [ScreenshotController::class, 'store']);
     Route::post('/upload', [ScreenshotController::class, 'upload']);
 
+    // NO AUTH for local testing - fetch screenshots by client
+    Route::get('/', [ScreenshotController::class, 'index']);
+    Route::get('/{screenshot}', [ScreenshotController::class, 'show']);
+
     // View/manage endpoints - require authentication
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/', [ScreenshotController::class, 'index']);
-        Route::get('/{screenshot}', [ScreenshotController::class, 'show']);
         Route::delete('/{screenshot}', [ScreenshotController::class, 'destroy']);
     });
 });
@@ -80,8 +82,9 @@ Route::prefix('screenshots')->group(function () {
 // Browser Events - NO throttling (continuous monitoring)
 Route::prefix('browser-events')->group(function () {
     Route::post('/', [BrowserEventController::class, 'store']);
-    Route::middleware('auth:sanctum')->get('/', [BrowserEventController::class, 'index']);
-    Route::middleware('auth:sanctum')->get('/{event}', [BrowserEventController::class, 'show']);
+    // NO AUTH for local testing
+    Route::get('/', [BrowserEventController::class, 'index']);
+    Route::get('/{event}', [BrowserEventController::class, 'show']);
 });
 
 // Process Events - NO throttling (continuous monitoring)
@@ -94,8 +97,9 @@ Route::prefix('process-events')->group(function () {
 // URL Events - NO throttling (continuous monitoring)
 Route::prefix('url-events')->group(function () {
     Route::post('/', [UrlEventController::class, 'store']);
-    Route::middleware('auth:sanctum')->get('/', [UrlEventController::class, 'index']);
-    Route::middleware('auth:sanctum')->get('/{event}', [UrlEventController::class, 'show']);
+    // NO AUTH for local testing
+    Route::get('/', [UrlEventController::class, 'index']);
+    Route::get('/{event}', [UrlEventController::class, 'show']);
 });
 
 // Enhanced Browser Tracking - NO throttling (continuous monitoring)
