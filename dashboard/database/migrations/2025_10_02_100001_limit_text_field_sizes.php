@@ -11,6 +11,8 @@ return new class extends Migration
      * Run the migrations - Convert unlimited TEXT fields to VARCHAR with size limits.
      * Note: SQLite doesn't support ALTER COLUMN, so we skip for SQLite (mainly used in testing).
      * For production PostgreSQL/MySQL, this reduces storage significantly.
+     *
+     * Only modifies url_activities table (other tables don't have TEXT columns that need limiting).
      */
     public function up(): void
     {
@@ -23,7 +25,8 @@ return new class extends Migration
             return;
         }
 
-        // Modify url_activities table - biggest storage impact
+        // Modify url_activities table ONLY - biggest storage impact
+        // Columns: url, page_title, referrer_url (all are TEXT fields)
         // Use PostgreSQL syntax (ALTER COLUMN TYPE) or MySQL syntax (MODIFY COLUMN)
         if ($driver === 'pgsql') {
             // PostgreSQL syntax
