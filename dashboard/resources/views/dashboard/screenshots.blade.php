@@ -75,7 +75,7 @@
                             <option value="">All Clients</option>
                             @foreach($clients as $client)
                                 <option value="{{ $client->client_id }}" {{ request('client_id') == $client->client_id ? 'selected' : '' }}>
-                                    {{ $client->hostname }} ({{ $client->getDisplayUsername() }})
+                                    {{ $client->hostname }} ({{ $client ? $client->getDisplayUsername() : 'Unknown' }})
                                 </option>
                             @endforeach
                         </select>
@@ -198,7 +198,7 @@
                                              data-bs-target="#screenshotModal"
                                              data-screenshot="{{ Storage::url($screenshot->file_path) }}">
                                     </td>
-                                    <td>{{ $screenshot->client->getDisplayUsername() }} ({{ $screenshot->client->hostname ?? 'Unknown' }})</td>
+                                    <td>{{ $screenshot->client ? $screenshot->client->getDisplayUsername() : 'Unknown' }} ({{ $screenshot->client->hostname ?? 'Unknown' }})</td>
                                     <td>{{ $screenshot->captured_at ? $screenshot->captured_at->format('M d, Y H:i') : $screenshot->created_at->format('M d, Y H:i') }}</td>
                                     <td>{{ $screenshot->filename }}</td>
                                     <td>{{ $screenshot->file_size ? number_format($screenshot->file_size / 1024, 0) . ' KB' : 'N/A' }}</td>
