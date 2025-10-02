@@ -60,7 +60,7 @@ trait ClientValidation
         if ($request->has('client_id')) {
             $client = Client::where('client_id', $request->client_id)->first();
             if ($client) {
-                $query->where($clientRelationColumn, $client->id);
+                $query->where($clientRelationColumn, $client->client_id);
             }
         }
 

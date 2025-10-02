@@ -98,7 +98,7 @@ class ScreenshotController extends Controller
 
             // Create screenshot record
             $screenshot = Screenshot::create([
-                'client_id' => $client->id,
+                'client_id' => $client->client_id,
                 'filename' => $filename,
                 'file_path' => $path,
                 'resolution' => $request->resolution,
@@ -199,7 +199,7 @@ class ScreenshotController extends Controller
 
             // Create screenshot record
             $screenshot = Screenshot::create([
-                'client_id' => $client->id,
+                'client_id' => $client->client_id,
                 'filename' => $filename,
                 'file_path' => $path,
                 'resolution' => $request->resolution ?? 'unknown',
@@ -232,10 +232,8 @@ class ScreenshotController extends Controller
 
         // Apply client filtering similar to other controllers
         if ($request->has('client_id')) {
-            $client = Client::where('client_id', $request->client_id)->first();
-            if ($client) {
-                $query->where('client_id', $client->id);
-            }
+            // Now filtering by UUID directly
+            $query->where('client_id', $request->client_id);
         }
 
         // Filter by date range (using captured_at instead of start_time)

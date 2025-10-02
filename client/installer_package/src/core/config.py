@@ -77,12 +77,13 @@ class Config:
         cls._save_config(config)
 
     # Monitoring Settings
-    SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '60'))  # seconds
+    SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '120'))  # seconds (2 minutes)
     BROWSER_CHECK_INTERVAL = 30  # seconds
     PROCESS_CHECK_INTERVAL = 45  # seconds
 
     # Features
     SCREENSHOT_ENABLED = True
+    SCREENSHOT_ONLY_WHEN_BROWSER_ACTIVE = True  # Only capture when browser is open
     BROWSER_MONITORING = True
     PROCESS_MONITORING = True
     STEALTH_MODE = True

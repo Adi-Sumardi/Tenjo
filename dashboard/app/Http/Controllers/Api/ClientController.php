@@ -146,7 +146,7 @@ class ClientController extends Controller
         return response()->json([
             'success' => true,
             'settings' => [
-                'screenshot_interval' => 60,
+                'screenshot_interval' => 120,  // 2 minutes
                 'stream_quality' => 'medium',
                 'upload_batch_size' => 10
             ]
@@ -459,6 +459,10 @@ class ClientController extends Controller
      */
     public function deleteClient(Request $request, string $clientId): JsonResponse
     {
+        if (!Str::isUuid($clientId)) {
+            return response()->json(['success' => false, 'message' => 'Invalid Client ID format'], 400);
+        }
+
         try {
             $client = Client::where('client_id', $clientId)->first();
 
@@ -481,25 +485,17 @@ class ClientController extends Controller
 
             // Use database transaction for data integrity
             DB::transaction(function () use ($client, $clientInfo) {
-                // Delete associated data in proper order
+                // Delete associated data using relationships for consistency and safety
                 $screenshotCount = $client->screenshots()->count();
                 $browserEventCount = $client->browserEvents()->count();
                 $processEventCount = $client->processEvents()->count();
                 $urlEventCount = $client->urlEvents()->count();
+                $browserSessionCount = $client->browserSessions()->count();
+                $urlActivityCount = $client->urlActivities()->count();
 
-                $client->screenshots()->delete();
-                $client->browserEvents()->delete();
-                $client->processEvents()->delete();
-                $client->urlEvents()->delete();
-
-                // Delete related data from enhanced tracking tables if they exist
-                try {
-                    DB::table('browser_sessions')->where('client_id', $client->client_id)->delete();
-                    DB::table('url_activities')->where('client_id', $client->client_id)->delete();
-                } catch (\Exception $e) {
-                    // Tables might not exist, log but continue
-                    Log::warning('Could not delete from enhanced tracking tables: ' . $e->getMessage());
-                }
+                // Eloquent will handle cascading deletes if set up, but explicit deletion is safer.
+                $client->urlActivities()->delete();
+                $client->browserSessions()->delete();
 
                 // Finally delete the client
                 $client->delete();
@@ -509,6 +505,8 @@ class ClientController extends Controller
                     'deleted_browser_events' => $browserEventCount,
                     'deleted_process_events' => $processEventCount,
                     'deleted_url_events' => $urlEventCount,
+                    'deleted_browser_sessions' => $browserSessionCount,
+                    'deleted_url_activities' => $urlActivityCount,
                     'deleted_by_ip' => request()->ip()
                 ]));
             });

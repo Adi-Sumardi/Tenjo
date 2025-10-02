@@ -32,7 +32,7 @@ class ProcessEventController extends Controller
 
         try {
             $eventData = [
-                'client_id' => $client->id,
+                'client_id' => $client->client_id,
                 'event_type' => $request->event_type,
                 'process_name' => $request->process_name,
                 'process_pid' => $request->process_pid,

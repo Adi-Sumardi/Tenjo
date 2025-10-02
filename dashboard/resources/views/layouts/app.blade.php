@@ -406,29 +406,39 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('history.activity') ? 'active' : '' }}" href="{{ route('history.activity') }}">
-                            <i class="fas fa-history me-2"></i>History Activity
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('screenshots') ? 'active' : '' }}" href="{{ route('screenshots') }}">
                             <i class="fas fa-camera me-2"></i>Screenshots
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('browser.activity') ? 'active' : '' }}" href="{{ route('browser.activity') }}">
-                            <i class="fas fa-globe me-2"></i>Browser Activity
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('url.activity') ? 'active' : '' }}" href="{{ route('url.activity') }}">
-                            <i class="fas fa-link me-2"></i>URL Activity
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('dashboard.client-summary') ? 'active' : '' }}" href="{{ route('dashboard.client-summary') }}">
                             <i class="fas fa-chart-bar me-2"></i>Client Summary
                         </a>
+                    </li>
+                </ul>
+
+                <!-- User Menu -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-2"></i>{{ Auth::user()->name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-envelope me-2"></i>{{ Auth::user()->email }}
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}" id="logoutForm">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </div>

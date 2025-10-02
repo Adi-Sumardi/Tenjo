@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('screenshots', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
+            $table->string('client_id'); // Changed to string for UUID
+            $table->foreign('client_id')->references('client_id')->on('clients')->onDelete('cascade');
             $table->string('filename');
             $table->string('file_path');
             $table->string('resolution');

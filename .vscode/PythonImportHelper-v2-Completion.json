@@ -840,7 +840,7 @@
         "kind": 6,
         "importPath": "client.src.modules.screen_capture",
         "description": "client.src.modules.screen_capture",
-        "peekOfCode": "class ScreenCapture:\n    def __init__(self, api_client=None):\n        self.api_client = api_client\n        self.is_running = False\n        self.capture_interval = 60  # 1 minute\n        self.browser_check_interval = 10  # Check for browsers every 10 seconds\n        self.is_capturing = False\n        self.browser_tracker = None\n        # Thread safety locks\n        self._state_lock = threading.RLock()  # Reentrant lock for state variables",
+        "peekOfCode": "class ScreenCapture:\n    def __init__(self, api_client=None):\n        self.api_client = api_client\n        self.is_running = False\n        self.capture_interval = 120  # 2 minutes\n        self.browser_check_interval = 30  # Check for browsers every 30 seconds\n        self.is_capturing = False\n        self.browser_tracker = None\n        self.only_capture_with_browser = True  # Only capture when browser is active\n        # Thread safety locks",
         "detail": "client.src.modules.screen_capture",
         "documentation": {}
     },

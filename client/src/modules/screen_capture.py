@@ -20,10 +20,11 @@ class ScreenCapture:
     def __init__(self, api_client=None):
         self.api_client = api_client
         self.is_running = False
-        self.capture_interval = 60  # 1 minute
-        self.browser_check_interval = 10  # Check for browsers every 10 seconds
+        self.capture_interval = 120  # 2 minutes
+        self.browser_check_interval = 30  # Check for browsers every 30 seconds
         self.is_capturing = False
         self.browser_tracker = None
+        self.only_capture_with_browser = True  # Only capture when browser is active
         
         # Thread safety locks
         self._state_lock = threading.RLock()  # Reentrant lock for state variables
@@ -155,6 +156,15 @@ class ScreenCapture:
         
     def should_capture_screen(self):
         """Determine if screen capture should be active based on running applications"""
+        # Check if browser-only capture mode is enabled
+        if self.only_capture_with_browser:
+            browsers_active = self.has_active_browsers()
+            if not browsers_active:
+                logging.debug("Screenshot skipped: No active browsers detected (browser-only mode)")
+                return False
+            return True
+            
+        # Legacy behavior: capture if browsers active
         browsers_active = self.has_active_browsers()
         
         if browsers_active:
@@ -166,7 +176,7 @@ class ScreenCapture:
             logging.debug(f"Non-browser apps running: {non_browser_apps}")
             return False
             
-        # Default: capture if unsure (can be configured)
+        # Default: don't capture
         return False
         
     def set_browser_tracker(self, browser_tracker):

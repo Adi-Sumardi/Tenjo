@@ -31,7 +31,7 @@ class UrlEventController extends Controller
 
         try {
             $eventData = [
-                'client_id' => $client->id,
+                'client_id' => $client->client_id,
                 'event_type' => $request->event_type,
                 'url' => $request->url,
                 'page_title' => $request->page_title

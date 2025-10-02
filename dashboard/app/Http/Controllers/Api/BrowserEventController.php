@@ -32,7 +32,7 @@ class BrowserEventController extends Controller
 
         try {
             $eventData = [
-                'client_id' => $client->id,
+                'client_id' => $client->client_id,
                 'event_type' => $request->event_type,
                 'browser_name' => $request->browser_name,
             ];

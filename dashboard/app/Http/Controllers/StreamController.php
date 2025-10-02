@@ -105,8 +105,7 @@ class StreamController extends Controller
     public function getLatestChunk($clientId)
     {
         try {
-            // Directly fetch the latest video chunk from the cache.
-            // This is the ONLY source for the live view now. No fallbacks.
+            // Fetch the latest video chunk from the cache.
             $videoChunk = cache()->get("latest_video_chunk_{$clientId}");
 
             if ($videoChunk) {
@@ -115,13 +114,12 @@ class StreamController extends Controller
                     'sequence' => $videoChunk['sequence'],
                     'timestamp' => $videoChunk['timestamp'],
                     'type' => 'video_stream', // Hardcoded to video stream
-                    'quality' => $videoChunk['quality'] ?? 'medium',
-                    'source' => 'cache_video'
+                    'quality' => $videoChunk['quality'] ?? 'medium'
                 ]);
             }
 
             // If no data is available, return an empty state.
-            // This prevents the frontend from showing old screenshots.
+            // This prevents the frontend from showing old data.
             return response()->json([
                 'data' => null,
                 'sequence' => 0,

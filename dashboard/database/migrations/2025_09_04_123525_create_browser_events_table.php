@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('browser_events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
+            $table->string('client_id'); // Changed to string for UUID
+            $table->foreign('client_id')->references('client_id')->on('clients')->onDelete('cascade');
             $table->enum('event_type', ['browser_started', 'browser_closed']);
             $table->string('browser_name');
             $table->timestamp('start_time')->nullable();

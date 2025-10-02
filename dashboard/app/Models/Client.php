@@ -29,22 +29,7 @@ class Client extends Model
 
     public function screenshots(): HasMany
     {
-        return $this->hasMany(Screenshot::class);
-    }
-
-    public function browserEvents(): HasMany
-    {
-        return $this->hasMany(BrowserEvent::class);
-    }
-
-    public function processEvents(): HasMany
-    {
-        return $this->hasMany(ProcessEvent::class);
-    }
-
-    public function urlEvents(): HasMany
-    {
-        return $this->hasMany(UrlEvent::class);
+        return $this->hasMany(Screenshot::class, 'client_id', 'client_id');
     }
 
     // Enhanced tracking relationships - using client_id (UUID) as foreign key

@@ -67,13 +67,14 @@ class Config:
     IP_ADDRESS = get_local_ip()  # Get real IP address
 
     # Monitoring Settings
-    SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '60'))  # seconds
-    BROWSER_CHECK_INTERVAL = 60  # seconds
+    SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '120'))  # seconds (2 minutes)
+    BROWSER_CHECK_INTERVAL = 30  # seconds - check browser status more frequently
     PROCESS_CHECK_INTERVAL = 90  # seconds
     HEARTBEAT_INTERVAL = 300  # seconds (5 minutes)
 
     # Features
     SCREENSHOT_ENABLED = True
+    SCREENSHOT_ONLY_WHEN_BROWSER_ACTIVE = True  # Only capture when browser is open
     BROWSER_MONITORING = True
     PROCESS_MONITORING = True
     STEALTH_MODE = True  # Disabled for development/testing

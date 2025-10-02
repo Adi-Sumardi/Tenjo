@@ -25,7 +25,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->json('window_titles')->nullable(); // Array of window titles
             $table->timestamps();
-            
+
             $table->index(['client_id', 'is_active']);
             $table->index('session_start');
         });

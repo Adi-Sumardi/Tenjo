@@ -6,7 +6,6 @@ use Illuminate\Console\Command;
 use App\Models\UrlActivity;
 use App\Models\Screenshot;
 use App\Models\BrowserSession;
-use App\Models\BrowserEvent;
 use Carbon\Carbon;
 
 class CleanupDatabase extends Command
@@ -76,7 +75,7 @@ class CleanupDatabase extends Command
                 // Delete actual files first
                 $screenshots = $screenshotsQuery->get();
                 foreach ($screenshots as $screenshot) {
-                    $filePath = storage_path('app/private/' . $screenshot->file_path);
+                    $filePath = storage_path('app/public/' . $screenshot->file_path);
                     if (file_exists($filePath)) {
                         unlink($filePath);
                     }
@@ -104,22 +103,6 @@ class CleanupDatabase extends Command
             }
         } else {
             $this->info("✅ No old browser sessions found");
-        }
-
-        // 4. Browser Events
-        $this->info("\n📅 Cleaning Browser Events...");
-        $browserEventsQuery = BrowserEvent::where('created_at', '<', $cutoffDate);
-        $browserEventsCount = $browserEventsQuery->count();
-
-        if ($browserEventsCount > 0) {
-            $this->info("Found {$browserEventsCount} old browser events");
-            if (!$dryRun) {
-                $deleted = $browserEventsQuery->delete();
-                $totalDeleted += $deleted;
-                $this->info("✅ Deleted {$deleted} browser events");
-            }
-        } else {
-            $this->info("✅ No old browser events found");
         }
 
         // Deep cleanup mode - more aggressive
@@ -151,7 +134,6 @@ class CleanupDatabase extends Command
                 ['URL Activities', number_format(UrlActivity::count())],
                 ['Screenshots', number_format(Screenshot::count())],
                 ['Browser Sessions', number_format(BrowserSession::count())],
-                ['Browser Events', number_format(BrowserEvent::count())],
             ]
         );
 
