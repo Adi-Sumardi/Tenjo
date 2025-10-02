@@ -137,7 +137,7 @@
                                     </div>
                                     <p class="card-text mb-2">
                                         <small class="text-muted">
-                                            <i class="fas fa-user me-1"></i>{{ $screenshot->client->getDisplayUsername() ?? 'Unknown' }}
+                                            <i class="fas fa-user me-1"></i>{{ $screenshot->client ? $screenshot->client->getDisplayUsername() : 'Unknown' }}
                                         </small>
                                     </p>
                                     <p class="card-text mb-2">

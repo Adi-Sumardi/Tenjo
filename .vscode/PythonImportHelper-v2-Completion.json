@@ -799,7 +799,7 @@
         "kind": 6,
         "importPath": "client.src.core.config",
         "description": "client.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Development server (COMMENTED)\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development (local) (COMMENTED)\n    SERVER_URL = os.getenv(\"TENJO_SERVER_URL\", \"http://103.129.149.67\")  # Production server IP\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():",
+        "peekOfCode": "class Config:\n    # Server Configuration - LOCAL TESTING MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Development server (LOCAL)\n    # SERVER_URL = \"http://103.129.149.67\"  # Production server IP (COMMENTED FOR TESTING)\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():\n        \"\"\"",
         "detail": "client.src.core.config",
         "documentation": {}
     },

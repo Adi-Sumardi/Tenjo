@@ -62,8 +62,8 @@ Route::prefix('stream')->group(function () {
         Route::get('/status/{clientId}', [StreamController::class, 'getStreamStatus']);
     });
 
-    // Dashboard endpoints - require authentication
-    Route::middleware('auth:sanctum')->group(function () {
+    // Dashboard endpoints - NO AUTH for local testing, add auth later for production
+    Route::middleware('throttle:240,1')->group(function () {
         Route::post('/start/{clientId}', [StreamController::class, 'startStream']);
         Route::post('/stop/{clientId}', [StreamController::class, 'stopStream']);
         Route::get('/latest/{clientId}', [StreamController::class, 'getLatestChunk']);

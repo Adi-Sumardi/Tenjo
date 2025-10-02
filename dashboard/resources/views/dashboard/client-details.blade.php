@@ -150,12 +150,12 @@
                     </div>
                     <div class="col-md-3">
                         <div class="border-end">
-                            <h4 class="text-info mb-0">{{ $client->urlEvents->count() ?: $recentUrlActivities->count() }}</h4>
+                            <h4 class="text-info mb-0">{{ ($client->urlEvents ? $client->urlEvents->count() : 0) ?: $recentUrlActivities->count() }}</h4>
                             <small class="text-muted">URLs Visited</small>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <h4 class="text-warning mb-0">{{ $client->processEvents->count() }}</h4>
+                        <h4 class="text-warning mb-0">{{ $client->processEvents ? $client->processEvents->count() : 0 }}</h4>
                         <small class="text-muted">Process Events</small>
                     </div>
                 </div>

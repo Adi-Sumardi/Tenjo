@@ -21,3 +21,159 @@
 2025-09-15 21:08:12,466 - WARNING - API request failed with status 400
 2025-09-15 21:08:12,467 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
 2025-09-15 21:08:12,467 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:32:53,015 - WARNING - API request failed with status 500
+2025-10-02 14:32:53,016 - ERROR - Failed to complete POST request to /api/clients/register after 1 attempts
+2025-10-02 14:32:53,717 - WARNING - API request failed with status 500
+2025-10-02 14:32:53,717 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:33:05,378 - WARNING - API request failed with status 500
+2025-10-02 14:33:05,378 - ERROR - Failed to complete POST request to /api/screenshots after 1 attempts
+2025-10-02 14:33:05,379 - WARNING - Local upload failed, stored locally: API request failed: POST /api/screenshots after 1 attempts
+2025-10-02 14:33:05,995 - WARNING - API request failed with status 500
+2025-10-02 14:33:05,997 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:33:05,997 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:33:08,770 - WARNING - API request failed with status 500
+2025-10-02 14:33:08,770 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:33:23,844 - WARNING - API request failed with status 500
+2025-10-02 14:33:23,844 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:33:42,035 - WARNING - API request failed with status 500
+2025-10-02 14:33:42,035 - ERROR - Failed to complete POST request to /api/clients/register after 1 attempts
+2025-10-02 14:33:42,068 - WARNING - API request failed with status 500
+2025-10-02 14:33:42,068 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:33:42,333 - WARNING - API request failed with status 500
+2025-10-02 14:33:42,333 - ERROR - Failed to complete POST request to /api/screenshots after 1 attempts
+2025-10-02 14:33:42,334 - WARNING - Local upload failed, stored locally: API request failed: POST /api/screenshots after 1 attempts
+2025-10-02 14:33:42,902 - WARNING - API request failed with status 500
+2025-10-02 14:33:42,902 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:33:42,903 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:33:57,114 - WARNING - API request failed with status 500
+2025-10-02 14:33:57,114 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:34:12,187 - WARNING - API request failed with status 500
+2025-10-02 14:34:12,187 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:34:27,256 - WARNING - API request failed with status 500
+2025-10-02 14:34:27,256 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:34:42,317 - WARNING - API request failed with status 500
+2025-10-02 14:34:42,317 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:34:43,574 - WARNING - API request failed with status 500
+2025-10-02 14:34:43,574 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:34:43,574 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:34:57,399 - WARNING - API request failed with status 500
+2025-10-02 14:34:57,399 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:36:11,732 - WARNING - API request failed with status 500
+2025-10-02 14:36:11,732 - ERROR - Failed to complete POST request to /api/clients/register after 1 attempts
+2025-10-02 14:36:12,003 - WARNING - API request failed with status 500
+2025-10-02 14:36:12,003 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:36:14,846 - WARNING - API request failed with status 500
+2025-10-02 14:36:14,846 - ERROR - Failed to complete POST request to /api/screenshots after 1 attempts
+2025-10-02 14:36:14,851 - WARNING - Local upload failed, stored locally: API request failed: POST /api/screenshots after 1 attempts
+2025-10-02 14:36:15,375 - WARNING - API request failed with status 500
+2025-10-02 14:36:15,375 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:36:15,375 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:36:47,663 - WARNING - API request failed with status 500
+2025-10-02 14:36:47,663 - ERROR - Failed to complete POST request to /api/clients/register after 1 attempts
+2025-10-02 14:36:47,698 - WARNING - API request failed with status 500
+2025-10-02 14:36:47,699 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:36:47,975 - WARNING - API request failed with status 500
+2025-10-02 14:36:47,975 - ERROR - Failed to complete POST request to /api/screenshots after 1 attempts
+2025-10-02 14:36:47,976 - WARNING - Local upload failed, stored locally: API request failed: POST /api/screenshots after 1 attempts
+2025-10-02 14:36:48,490 - WARNING - API request failed with status 500
+2025-10-02 14:36:48,490 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:36:48,490 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:37:02,793 - WARNING - API request failed with status 500
+2025-10-02 14:37:02,793 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:37:17,870 - WARNING - API request failed with status 500
+2025-10-02 14:37:17,871 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:37:32,944 - WARNING - API request failed with status 500
+2025-10-02 14:37:32,945 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:37:48,023 - WARNING - API request failed with status 500
+2025-10-02 14:37:48,024 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:37:49,246 - WARNING - API request failed with status 500
+2025-10-02 14:37:49,246 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:37:49,246 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:38:03,070 - WARNING - API request failed with status 500
+2025-10-02 14:38:03,070 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:38:18,147 - WARNING - API request failed with status 500
+2025-10-02 14:38:18,148 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:39:17,575 - WARNING - API request failed with status 500
+2025-10-02 14:39:17,576 - ERROR - Failed to complete POST request to /api/clients/register after 1 attempts
+2025-10-02 14:39:17,613 - WARNING - API request failed with status 500
+2025-10-02 14:39:17,613 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:39:17,885 - WARNING - API request failed with status 500
+2025-10-02 14:39:17,885 - ERROR - Failed to complete POST request to /api/screenshots after 1 attempts
+2025-10-02 14:39:17,886 - WARNING - Local upload failed, stored locally: API request failed: POST /api/screenshots after 1 attempts
+2025-10-02 14:39:18,438 - WARNING - API request failed with status 500
+2025-10-02 14:39:18,438 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:39:18,438 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:39:32,666 - WARNING - API request failed with status 500
+2025-10-02 14:39:32,666 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:39:47,740 - WARNING - API request failed with status 500
+2025-10-02 14:39:47,740 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:40:02,816 - WARNING - API request failed with status 500
+2025-10-02 14:40:02,817 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:40:17,887 - WARNING - API request failed with status 500
+2025-10-02 14:40:17,887 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:40:19,157 - WARNING - API request failed with status 500
+2025-10-02 14:40:19,158 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:40:19,158 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:40:32,961 - WARNING - API request failed with status 500
+2025-10-02 14:40:32,961 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:40:48,028 - WARNING - API request failed with status 500
+2025-10-02 14:40:48,029 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:41:03,074 - WARNING - API request failed with status 500
+2025-10-02 14:41:03,074 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:41:18,132 - WARNING - API request failed with status 500
+2025-10-02 14:41:18,133 - ERROR - Failed to complete POST request to /api/screenshots after 1 attempts
+2025-10-02 14:41:18,133 - WARNING - Local upload failed, stored locally: API request failed: POST /api/screenshots after 1 attempts
+2025-10-02 14:41:18,162 - WARNING - API request failed with status 500
+2025-10-02 14:41:18,162 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:41:19,922 - WARNING - API request failed with status 500
+2025-10-02 14:41:19,922 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:41:19,922 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:41:33,236 - WARNING - API request failed with status 500
+2025-10-02 14:41:33,236 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:41:48,306 - WARNING - API request failed with status 500
+2025-10-02 14:41:48,306 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:42:03,380 - WARNING - API request failed with status 500
+2025-10-02 14:42:03,380 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:42:18,449 - WARNING - API request failed with status 500
+2025-10-02 14:42:18,450 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:42:20,641 - WARNING - API request failed with status 500
+2025-10-02 14:42:20,641 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:42:20,641 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:42:33,570 - WARNING - API request failed with status 500
+2025-10-02 14:42:33,570 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:42:48,612 - WARNING - API request failed with status 500
+2025-10-02 14:42:48,612 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:43:03,684 - WARNING - API request failed with status 500
+2025-10-02 14:43:03,684 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:43:18,292 - WARNING - API request failed with status 500
+2025-10-02 14:43:18,292 - ERROR - Failed to complete POST request to /api/screenshots after 1 attempts
+2025-10-02 14:43:18,293 - WARNING - Local upload failed, stored locally: API request failed: POST /api/screenshots after 1 attempts
+2025-10-02 14:43:18,753 - WARNING - API request failed with status 500
+2025-10-02 14:43:18,753 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:43:21,429 - WARNING - API request failed with status 500
+2025-10-02 14:43:21,429 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:43:21,429 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:43:33,835 - WARNING - API request failed with status 500
+2025-10-02 14:43:33,835 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:43:48,904 - WARNING - API request failed with status 500
+2025-10-02 14:43:48,905 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:44:03,977 - WARNING - API request failed with status 500
+2025-10-02 14:44:03,977 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:44:12,972 - WARNING - API request failed with status 500
+2025-10-02 14:44:12,973 - ERROR - Failed to complete POST request to /api/clients/heartbeat after 1 attempts
+2025-10-02 14:44:19,050 - WARNING - API request failed with status 500
+2025-10-02 14:44:19,050 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:44:22,162 - WARNING - API request failed with status 500
+2025-10-02 14:44:22,162 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:44:22,162 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:45:18,444 - WARNING - API endpoint not found: /api/screenshots
+2025-10-02 14:45:22,845 - WARNING - API endpoint not found: /api/browser-tracking
+2025-10-02 14:54:59,811 - WARNING - API request failed with status 429
+2025-10-02 14:54:59,812 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:55:01,694 - WARNING - API request failed with status 429
+2025-10-02 14:55:01,695 - ERROR - Failed to complete GET request to /api/stream/request/4de28844-c6ad-fd79-1115-af30d96a2bf9 after 1 attempts
+2025-10-02 14:55:04,444 - WARNING - API request failed with status 429
+2025-10-02 14:55:04,444 - ERROR - Failed to complete POST request to /api/browser-tracking after 1 attempts
+2025-10-02 14:55:04,444 - ERROR - Error sending tracking data: API request failed: POST /api/browser-tracking after 1 attempts
+2025-10-02 14:55:09,796 - WARNING - API request failed with status 429
+2025-10-02 14:55:09,797 - ERROR - Failed to complete POST request to /api/clients/heartbeat after 1 attempts
