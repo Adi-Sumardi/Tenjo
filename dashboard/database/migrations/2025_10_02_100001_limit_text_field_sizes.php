@@ -9,27 +9,33 @@ return new class extends Migration
 {
     /**
      * Run the migrations - Convert unlimited TEXT fields to VARCHAR with size limits.
-     * Note: SQLite doesn't support MODIFY COLUMN, so we skip for SQLite (mainly used in testing).
-     * For production MySQL/PostgreSQL, this reduces storage significantly.
+     * Note: SQLite doesn't support ALTER COLUMN, so we skip for SQLite (mainly used in testing).
+     * For production PostgreSQL/MySQL, this reduces storage significantly.
      */
     public function up(): void
     {
+        $driver = DB::connection()->getDriverName();
+
         // Check if using SQLite (skip modification for SQLite)
-        if (DB::connection()->getDriverName() === 'sqlite') {
-            // SQLite doesn't support MODIFY COLUMN
-            // In production, we'll use MySQL/PostgreSQL where this is critical
+        if ($driver === 'sqlite') {
+            // SQLite doesn't support ALTER COLUMN
+            // In production, we'll use PostgreSQL/MySQL where this is critical
             return;
         }
 
         // Modify url_activities table - biggest storage impact
-        // For MySQL/PostgreSQL
-        Schema::table('url_activities', function (Blueprint $table) {
-            // Change TEXT to VARCHAR with reasonable limits
-            // URLs are typically < 2KB, but we allow 2048 chars to be safe
+        // Use PostgreSQL syntax (ALTER COLUMN TYPE) or MySQL syntax (MODIFY COLUMN)
+        if ($driver === 'pgsql') {
+            // PostgreSQL syntax
+            DB::statement('ALTER TABLE url_activities ALTER COLUMN url TYPE VARCHAR(2048)');
+            DB::statement('ALTER TABLE url_activities ALTER COLUMN page_title TYPE VARCHAR(500)');
+            DB::statement('ALTER TABLE url_activities ALTER COLUMN referrer_url TYPE VARCHAR(2048)');
+        } else {
+            // MySQL syntax
             DB::statement('ALTER TABLE url_activities MODIFY COLUMN url VARCHAR(2048) NOT NULL');
             DB::statement('ALTER TABLE url_activities MODIFY COLUMN page_title VARCHAR(500) NULL');
             DB::statement('ALTER TABLE url_activities MODIFY COLUMN referrer_url VARCHAR(2048) NULL');
-        });
+        }
     }
 
     /**
@@ -37,16 +43,24 @@ return new class extends Migration
      */
     public function down(): void
     {
+        $driver = DB::connection()->getDriverName();
+
         // Check if using SQLite
-        if (DB::connection()->getDriverName() === 'sqlite') {
+        if ($driver === 'sqlite') {
             return;
         }
 
-        Schema::table('url_activities', function (Blueprint $table) {
-            // Revert back to TEXT if needed
+        // Revert back to TEXT if needed
+        if ($driver === 'pgsql') {
+            // PostgreSQL syntax
+            DB::statement('ALTER TABLE url_activities ALTER COLUMN url TYPE TEXT');
+            DB::statement('ALTER TABLE url_activities ALTER COLUMN page_title TYPE TEXT');
+            DB::statement('ALTER TABLE url_activities ALTER COLUMN referrer_url TYPE TEXT');
+        } else {
+            // MySQL syntax
             DB::statement('ALTER TABLE url_activities MODIFY COLUMN url TEXT NOT NULL');
             DB::statement('ALTER TABLE url_activities MODIFY COLUMN page_title TEXT NULL');
             DB::statement('ALTER TABLE url_activities MODIFY COLUMN referrer_url TEXT NULL');
-        });
+        }
     }
 };
