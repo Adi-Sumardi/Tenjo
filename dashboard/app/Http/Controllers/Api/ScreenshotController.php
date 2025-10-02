@@ -238,11 +238,11 @@ class ScreenshotController extends Controller
 
         // Filter by date range (using captured_at instead of start_time)
         if ($request->has('from')) {
-            $query->where('captured_at', '>=', $request->from);
+            $query->where('captured_at', '>=', $request->from . ' 00:00:00');
         }
 
         if ($request->has('to')) {
-            $query->where('captured_at', '<=', $request->to);
+            $query->where('captured_at', '<=', $request->to . ' 23:59:59');
         }
 
         $screenshots = $query->orderBy('captured_at', 'desc')

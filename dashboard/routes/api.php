@@ -4,9 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ScreenshotController;
-use App\Http\Controllers\Api\BrowserEventController;
+use App\Http\Controllers\Api\BrowserSessionController;
 use App\Http\Controllers\Api\ProcessEventController;
-use App\Http\Controllers\Api\UrlEventController;
+use App\Http\Controllers\Api\UrlActivityController;
 use App\Http\Controllers\StreamController;
 use App\Http\Controllers\BrowserTrackingController;
 
@@ -79,12 +79,12 @@ Route::prefix('screenshots')->group(function () {
     });
 });
 
-// Browser Events - NO throttling (continuous monitoring)
+// Browser Sessions - NO throttling (continuous monitoring)
 Route::prefix('browser-events')->group(function () {
-    Route::post('/', [BrowserEventController::class, 'store']);
+    Route::post('/', [BrowserSessionController::class, 'store']);
     // NO AUTH for local testing
-    Route::get('/', [BrowserEventController::class, 'index']);
-    Route::get('/{event}', [BrowserEventController::class, 'show']);
+    Route::get('/', [BrowserSessionController::class, 'index']);
+    Route::get('/{event}', [BrowserSessionController::class, 'show']);
 });
 
 // Process Events - NO throttling (continuous monitoring)
@@ -94,12 +94,12 @@ Route::prefix('process-events')->group(function () {
     Route::middleware('auth:sanctum')->get('/{event}', [ProcessEventController::class, 'show']);
 });
 
-// URL Events - NO throttling (continuous monitoring)
+// URL Activities - NO throttling (continuous monitoring)
 Route::prefix('url-events')->group(function () {
-    Route::post('/', [UrlEventController::class, 'store']);
+    Route::post('/', [UrlActivityController::class, 'store']);
     // NO AUTH for local testing
-    Route::get('/', [UrlEventController::class, 'index']);
-    Route::get('/{event}', [UrlEventController::class, 'show']);
+    Route::get('/', [UrlActivityController::class, 'index']);
+    Route::get('/{event}', [UrlActivityController::class, 'show']);
 });
 
 // Enhanced Browser Tracking - NO throttling (continuous monitoring)
