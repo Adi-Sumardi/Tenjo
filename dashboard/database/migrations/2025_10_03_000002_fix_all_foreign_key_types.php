@@ -26,6 +26,7 @@ return new class extends Migration
         // List of tables and their foreign key columns to fix
         $foreignKeys = [
             'url_activities' => 'browser_session_id',  // FK to browser_sessions.id
+            'screenshots' => 'client_id',              // FK to clients.client_id
         ];
 
         foreach ($foreignKeys as $table => $column) {
