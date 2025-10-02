@@ -132,7 +132,7 @@
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="card-title mb-0">{{ $screenshot->client->hostname ?? 'Unknown' }}</h6>
+                                        <h6 class="card-title mb-0">{{ $screenshot->client ? ($screenshot->client->hostname ?? 'Unknown') : 'Unknown' }}</h6>
                                         <small class="text-muted">{{ $screenshot->resolution ?? 'N/A' }}</small>
                                     </div>
                                     <p class="card-text mb-2">
@@ -198,7 +198,7 @@
                                              data-bs-target="#screenshotModal"
                                              data-screenshot="{{ Storage::url($screenshot->file_path) }}">
                                     </td>
-                                    <td>{{ $screenshot->client ? $screenshot->client->getDisplayUsername() : 'Unknown' }} ({{ $screenshot->client->hostname ?? 'Unknown' }})</td>
+                                    <td>{{ $screenshot->client ? $screenshot->client->getDisplayUsername() : 'Unknown' }} ({{ $screenshot->client ? ($screenshot->client->hostname ?? 'Unknown') : 'Unknown' }})</td>
                                     <td>{{ $screenshot->captured_at ? $screenshot->captured_at->format('M d, Y H:i') : $screenshot->created_at->format('M d, Y H:i') }}</td>
                                     <td>{{ $screenshot->filename }}</td>
                                     <td>{{ $screenshot->file_size ? number_format($screenshot->file_size / 1024, 0) . ' KB' : 'N/A' }}</td>
