@@ -509,7 +509,7 @@ function showBrowserSessionsModal(clientId, username, event) {
     fetch(`/api/browser-events?client_id=${clientId}&from=${from}&to=${to}`)
         .then(response => response.json())
         .then(data => {
-            const sessions = data.data || [];
+            const sessions = data.browser_sessions?.data || data.data || [];
             let content = '';
 
             if (sessions.length === 0) {
@@ -521,27 +521,61 @@ function showBrowserSessionsModal(clientId, username, event) {
                             <thead>
                                 <tr>
                                     <th>Browser</th>
-                                    <th>Event Type</th>
-                                    <th>Timestamp</th>
-                                    <th>Details</th>
+                                    <th>Version</th>
+                                    <th>Session Start</th>
+                                    <th>Duration</th>
+                                    <th>URL Activities</th>
                                 </tr>
                             </thead>
                             <tbody>
                 `;
 
                 sessions.forEach(session => {
-                    const timestamp = new Date(session.created_at).toLocaleString();
+                    const sessionStart = new Date(session.session_start).toLocaleString();
                     const browser = session.browser_name || 'Unknown';
-                    const eventType = session.event_type || 'N/A';
+                    const version = session.browser_version || 'Unknown';
+                    const duration = session.total_duration ? Math.round(session.total_duration / 60) + ' min' : 'Active';
+                    const urlCount = session.url_activities?.length || 0;
 
                     content += `
                         <tr>
                             <td><i class="fab fa-${browser.toLowerCase()} me-1"></i>${browser}</td>
-                            <td><span class="badge bg-secondary">${eventType}</span></td>
-                            <td><small>${timestamp}</small></td>
-                            <td><small>${session.url ? session.url.substring(0, 50) + '...' : 'N/A'}</small></td>
+                            <td><small>${version}</small></td>
+                            <td><small>${sessionStart}</small></td>
+                            <td><small>${duration}</small></td>
+                            <td><span class="badge bg-info">${urlCount} URLs</span></td>
                         </tr>
                     `;
+
+                    // Show URL activities if exists
+                    if (urlCount > 0) {
+                        content += `
+                            <tr class="table-light">
+                                <td colspan="5">
+                                    <div class="ps-4" style="max-height: 200px; overflow-y: auto;">
+                                        <small><strong>URL Activities:</strong></small>
+                                        <ul class="list-unstyled mb-0 mt-1">
+                        `;
+                        session.url_activities.slice(0, 10).forEach(url => {
+                            const visitStart = new Date(url.visit_start).toLocaleTimeString();
+                            const urlDuration = url.duration ? Math.round(url.duration / 60) + ' min' : 'N/A';
+                            content += `
+                                <li class="mb-1">
+                                    <i class="fas fa-link text-muted me-1"></i>
+                                    <small><strong>${visitStart}</strong>: ${url.page_title || url.url} (${urlDuration})</small>
+                                </li>
+                            `;
+                        });
+                        if (session.url_activities.length > 10) {
+                            content += `<li class="text-muted"><small>... and ${session.url_activities.length - 10} more</small></li>`;
+                        }
+                        content += `
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }
                 });
 
                 content += `
@@ -549,7 +583,7 @@ function showBrowserSessionsModal(clientId, username, event) {
                         </table>
                     </div>
                     <div class="mt-3">
-                        <strong>Total Sessions:</strong> ${sessions.length}
+                        <strong>Total Browser Sessions:</strong> ${sessions.length}
                     </div>
                 `;
             }
@@ -598,10 +632,11 @@ function showUrlActivitiesModal(clientId, username, event) {
     const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
     const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
 
-    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}`)
+    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}&per_page=50`)
         .then(response => response.json())
         .then(data => {
-            const activities = data.data || [];
+            const activities = data.url_activities?.data || data.data || [];
+            const pagination = data.url_activities || data;
             let content = '';
 
             if (activities.length === 0) {
@@ -612,29 +647,30 @@ function showUrlActivitiesModal(clientId, username, event) {
                         <table class="table table-hover table-sm">
                             <thead>
                                 <tr>
-                                    <th style="width: 50%">URL</th>
-                                    <th>Title</th>
-                                    <th>Visit Count</th>
+                                    <th style="width: 40%">URL</th>
+                                    <th>Page Title</th>
+                                    <th>Domain</th>
+                                    <th>Visit Start</th>
                                     <th>Duration</th>
-                                    <th>Last Visit</th>
                                 </tr>
                             </thead>
                             <tbody>
                 `;
 
                 activities.forEach(activity => {
-                    const lastVisit = new Date(activity.created_at).toLocaleString();
+                    const visitStart = new Date(activity.visit_start).toLocaleString();
                     const url = activity.url || 'N/A';
-                    const title = activity.title || 'No title';
-                    const duration = activity.duration ? Math.round(activity.duration / 60) + ' min' : 'N/A';
+                    const title = activity.page_title || 'No title';
+                    const domain = activity.domain || 'Unknown';
+                    const duration = activity.duration ? Math.round(activity.duration / 60) + ' min' : 'Active';
 
                     content += `
                         <tr>
-                            <td><small><a href="${url}" target="_blank" class="text-decoration-none">${url.substring(0, 60)}${url.length > 60 ? '...' : ''}</a></small></td>
+                            <td><small><a href="${url}" target="_blank" class="text-decoration-none">${url.substring(0, 50)}${url.length > 50 ? '...' : ''}</a></small></td>
                             <td><small>${title.substring(0, 30)}${title.length > 30 ? '...' : ''}</small></td>
-                            <td><span class="badge bg-info">${activity.visit_count || 1}</span></td>
+                            <td><small><span class="badge bg-secondary">${domain}</span></small></td>
+                            <td><small>${visitStart}</small></td>
                             <td><small>${duration}</small></td>
-                            <td><small>${lastVisit}</small></td>
                         </tr>
                     `;
                 });
@@ -644,7 +680,8 @@ function showUrlActivitiesModal(clientId, username, event) {
                         </table>
                     </div>
                     <div class="mt-3">
-                        <strong>Total Activities:</strong> ${activities.length}
+                        <strong>Total URL Activities:</strong> ${pagination.total || activities.length}
+                        <span class="text-muted ms-2">(Showing ${pagination.from || 1} to ${pagination.to || activities.length})</span>
                     </div>
                 `;
             }
@@ -693,10 +730,10 @@ function showUniqueUrlsModal(clientId, username, event) {
     const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
     const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
 
-    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}`)
+    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}&per_page=1000`)
         .then(response => response.json())
         .then(data => {
-            const urlEvents = data.data || [];
+            const urlEvents = data.url_activities?.data || data.data || [];
 
             // Get unique URLs
             const uniqueUrls = {};
@@ -706,16 +743,18 @@ function showUniqueUrlsModal(clientId, username, event) {
                     if (!uniqueUrls[url]) {
                         uniqueUrls[url] = {
                             url: url,
-                            title: event.title || 'No title',
+                            domain: event.domain || 'Unknown',
+                            title: event.page_title || 'No title',
                             count: 0,
                             totalDuration: 0,
-                            lastVisit: event.created_at
+                            lastVisit: event.visit_start || event.created_at
                         };
                     }
                     uniqueUrls[url].count++;
                     uniqueUrls[url].totalDuration += event.duration || 0;
-                    if (new Date(event.created_at) > new Date(uniqueUrls[url].lastVisit)) {
-                        uniqueUrls[url].lastVisit = event.created_at;
+                    const currentVisit = new Date(event.visit_start || event.created_at);
+                    if (currentVisit > new Date(uniqueUrls[url].lastVisit)) {
+                        uniqueUrls[url].lastVisit = event.visit_start || event.created_at;
                     }
                 }
             });
@@ -731,27 +770,26 @@ function showUniqueUrlsModal(clientId, username, event) {
                         <table class="table table-hover table-sm">
                             <thead>
                                 <tr>
-                                    <th style="width: 50%">URL</th>
-                                    <th>Title</th>
+                                    <th style="width: 40%">URL</th>
+                                    <th>Domain</th>
+                                    <th>Page Title</th>
                                     <th>Visits</th>
                                     <th>Total Duration</th>
-                                    <th>Last Visit</th>
                                 </tr>
                             </thead>
                             <tbody>
                 `;
 
                 uniqueUrlsArray.forEach(urlData => {
-                    const lastVisit = new Date(urlData.lastVisit).toLocaleString();
                     const totalDuration = Math.round(urlData.totalDuration / 60) + ' min';
 
                     content += `
                         <tr>
-                            <td><small><a href="${urlData.url}" target="_blank" class="text-decoration-none">${urlData.url.substring(0, 60)}${urlData.url.length > 60 ? '...' : ''}</a></small></td>
+                            <td><small><a href="${urlData.url}" target="_blank" class="text-decoration-none">${urlData.url.substring(0, 50)}${urlData.url.length > 50 ? '...' : ''}</a></small></td>
+                            <td><small><span class="badge bg-secondary">${urlData.domain}</span></small></td>
                             <td><small>${urlData.title.substring(0, 30)}${urlData.title.length > 30 ? '...' : ''}</small></td>
                             <td><span class="badge bg-success">${urlData.count}</span></td>
                             <td><small>${totalDuration}</small></td>
-                            <td><small>${lastVisit}</small></td>
                         </tr>
                     `;
                 });
