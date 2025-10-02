@@ -27,6 +27,13 @@ return new class extends Migration
 
         // Modify url_activities table ONLY - biggest storage impact
         // Columns: url, page_title, referrer_url (all are TEXT fields)
+
+        // IMPORTANT: Truncate existing data that exceeds the new limits BEFORE changing column type
+        // This prevents "value too long" errors during migration
+        DB::statement("UPDATE url_activities SET url = LEFT(url, 2048) WHERE LENGTH(url) > 2048");
+        DB::statement("UPDATE url_activities SET page_title = LEFT(page_title, 500) WHERE LENGTH(page_title) > 500");
+        DB::statement("UPDATE url_activities SET referrer_url = LEFT(referrer_url, 2048) WHERE LENGTH(referrer_url) > 2048");
+
         // Use PostgreSQL syntax (ALTER COLUMN TYPE) or MySQL syntax (MODIFY COLUMN)
         if ($driver === 'pgsql') {
             // PostgreSQL syntax
