@@ -371,13 +371,18 @@ function showScreenshotsModal(clientId, username, event) {
     const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
     const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
 
-    fetch(`/api/screenshots?client_id=${clientId}&from=${from}&to=${to}&per_page=100`)
+    loadScreenshotsPage(clientId, from, to, 1);
+}
+
+function loadScreenshotsPage(clientId, from, to, page = 1) {
+    fetch(`/api/screenshots?client_id=${clientId}&from=${from}&to=${to}&per_page=20&page=${page}`)
         .then(response => response.json())
         .then(data => {
             const screenshots = data.screenshots?.data || data.data || [];
+            const pagination = data.screenshots || data;
             let content = '';
 
-            if (screenshots.length === 0) {
+            if (screenshots.length === 0 && page === 1) {
                 content = '<div class="alert alert-info">No screenshots found in this period.</div>';
             } else {
                 content = `
@@ -421,8 +426,38 @@ function showScreenshotsModal(clientId, username, event) {
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-3">
-                        <strong>Total Screenshots:</strong> ${screenshots.length}
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <strong>Total Screenshots:</strong> ${pagination.total || screenshots.length}
+                            <span class="text-muted ms-2">(Showing ${pagination.from || 1} to ${pagination.to || screenshots.length})</span>
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                `;
+
+                // Pagination buttons
+                if (pagination.prev_page_url) {
+                    content += `<li class="page-item"><a class="page-link" href="#" onclick="loadScreenshotsPage('${clientId}', '${from}', '${to}', ${page - 1}); return false;">Previous</a></li>`;
+                }
+
+                // Page numbers
+                const currentPage = pagination.current_page || page;
+                const lastPage = pagination.last_page || 1;
+                const startPage = Math.max(1, currentPage - 2);
+                const endPage = Math.min(lastPage, currentPage + 2);
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const activeClass = i === currentPage ? 'active' : '';
+                    content += `<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="loadScreenshotsPage('${clientId}', '${from}', '${to}', ${i}); return false;">${i}</a></li>`;
+                }
+
+                if (pagination.next_page_url) {
+                    content += `<li class="page-item"><a class="page-link" href="#" onclick="loadScreenshotsPage('${clientId}', '${from}', '${to}', ${page + 1}); return false;">Next</a></li>`;
+                }
+
+                content += `
+                            </ul>
+                        </nav>
                     </div>
                 `;
             }
