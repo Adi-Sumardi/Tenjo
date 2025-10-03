@@ -211,10 +211,10 @@ class ClientController extends Controller
                 'screenshots' => function($query) {
                     $query->latest()->limit(10);
                 },
-                'browserEvents' => function($query) {
+                'browserSessions' => function($query) {
                     $query->latest()->limit(20);
                 },
-                'urlEvents' => function($query) {
+                'urlActivities' => function($query) {
                     $query->latest()->limit(20);
                 }
             ])
@@ -283,15 +283,11 @@ class ClientController extends Controller
         $to = $request->get('to', today()->addDay()->toDateString());
 
         $query = Client::with([
-            'browserEvents' => function($q) use ($from, $to) {
+            'browserSessions' => function($q) use ($from, $to) {
                 $q->whereBetween('created_at', [$from, $to])
                   ->orderBy('created_at', 'desc');
             },
-            'processEvents' => function($q) use ($from, $to) {
-                $q->whereBetween('created_at', [$from, $to])
-                  ->orderBy('created_at', 'desc');
-            },
-            'urlEvents' => function($q) use ($from, $to) {
+            'urlActivities' => function($q) use ($from, $to) {
                 $q->whereBetween('created_at', [$from, $to])
                   ->orderBy('created_at', 'desc');
             },
@@ -315,9 +311,9 @@ class ClientController extends Controller
             ],
             'total_clients' => $clients->count(),
             'summary' => [
-                'browser_events' => $clients->sum(fn($c) => $c->browserEvents->count()),
-                'process_events' => $clients->sum(fn($c) => $c->processEvents->count()),
-                'url_events' => $clients->sum(fn($c) => $c->urlEvents->count()),
+                'browser_events' => $clients->sum(fn($c) => $c->browserSessions->count()),
+                'process_events' => 0, // Process events not implemented yet
+                'url_events' => $clients->sum(fn($c) => $c->urlActivities->count()),
                 'screenshots' => $clients->sum(fn($c) => $c->screenshots->count()),
             ],
             'clients' => $clients->map(function($client) {
@@ -329,35 +325,23 @@ class ClientController extends Controller
                     'custom_username' => $client->custom_username,
                     'ip_address' => $client->ip_address,
                     'os_info' => $client->os_info,
-                    'browser_events' => $client->browserEvents->map(function($event) {
+                    'browser_events' => $client->browserSessions->map(function($session) {
                         return [
-                            'id' => $event->id,
-                            'event_type' => $event->event_type,
-                            'browser_name' => $event->browser_name,
-                            'url' => $event->url,
-                            'title' => $event->title,
-                            'created_at' => $event->created_at->toISOString()
+                            'id' => $session->id,
+                            'browser_name' => $session->browser_name,
+                            'session_id' => $session->session_id,
+                            'created_at' => $session->created_at->toISOString()
                         ];
                     }),
-                    'process_events' => $client->processEvents->map(function($event) {
+                    'process_events' => [], // Process events not implemented yet
+                    'url_events' => $client->urlActivities->map(function($activity) {
                         return [
-                            'id' => $event->id,
-                            'event_type' => $event->event_type,
-                            'process_name' => $event->process_name,
-                            'process_pid' => $event->process_pid,
-                            'created_at' => $event->created_at->toISOString()
-                        ];
-                    }),
-                    'url_events' => $client->urlEvents->map(function($event) {
-                        return [
-                            'id' => $event->id,
-                            'event_type' => $event->event_type,
-                            'url' => $event->url,
-                            'page_title' => $event->page_title,
-                            'start_time' => $event->start_time,
-                            'end_time' => $event->end_time,
-                            'duration' => $event->duration,
-                            'created_at' => $event->created_at->toISOString()
+                            'id' => $activity->id,
+                            'url' => $activity->url,
+                            'title' => $activity->title,
+                            'visit_count' => $activity->visit_count,
+                            'total_duration' => $activity->total_duration,
+                            'created_at' => $activity->created_at->toISOString()
                         ];
                     }),
                     'screenshots' => $client->screenshots->map(function($screenshot) {
@@ -499,9 +483,9 @@ class ClientController extends Controller
             DB::transaction(function () use ($client, $clientInfo) {
                 // Delete associated data using relationships for consistency and safety
                 $screenshotCount = $client->screenshots()->count();
-                $browserEventCount = $client->browserEvents()->count();
-                $processEventCount = $client->processEvents()->count();
-                $urlEventCount = $client->urlEvents()->count();
+                $browserEventCount = 0; // Browser events deprecated
+                $processEventCount = 0; // Process events not implemented yet
+                $urlEventCount = 0; // URL events deprecated
                 $browserSessionCount = $client->browserSessions()->count();
                 $urlActivityCount = $client->urlActivities()->count();
 
