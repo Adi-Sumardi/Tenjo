@@ -28,9 +28,9 @@ class APIClient:
         })
 
         # Connection settings
-        self.timeout = 30
-        self.max_retries = 3
-        self.retry_delay = 5
+        self.timeout = 5  # Reduced from 30 to 5 seconds to prevent hanging
+        self.max_retries = 1  # Reduced retries for faster failure
+        self.retry_delay = 2
 
     def get_real_ip_address(self):
         """Auto-detect the real IP address of the client with improved reliability."""
@@ -349,8 +349,9 @@ class APIClient:
         """Upload screenshot - Handle both local and production APIs with consistent format"""
         import base64  # Import at function level
         
-        # Check if this is production server
-        is_production = '103.129.149.67' in self.server_url
+        # Check if this is production server (disabled for local testing)
+        is_production = False  # Force to False for local development
+        # is_production = '103.129.149.67' in self.server_url  # Original production check
 
         try:
             logging.debug(f"Upload screenshot called with image_data type: {type(image_data)}")
@@ -513,8 +514,9 @@ class APIClient:
         else:
             logging.info(f"Using provided IP address: {provided_ip}")
 
-        # Check if this is production server
-        is_production = '103.129.149.67' in self.server_url
+        # Check if this is production server (disabled for local testing)
+        is_production = False  # Force to False for local development
+        # is_production = '103.129.149.67' in self.server_url  # Original production check
 
         if is_production:
             # Production API expects specific format
@@ -581,6 +583,18 @@ class APIClient:
     def send_url_data(self, url_data):
         """Send URL access data"""
         return self.post('/api/url-events', url_data)
+
+    def send_browser_tracking(self, tracking_data):
+        """Send enhanced browser tracking data with sessions and URL activities"""
+        return self.post('/api/browser-tracking', tracking_data)
+
+    def send_browser_session(self, session_data):
+        """Send browser session data"""
+        return self.post('/api/browser-sessions', session_data)
+
+    def send_url_activity(self, activity_data):
+        """Send URL activity data with duration tracking"""
+        return self.post('/api/url-activities', activity_data)
 
     # Helper methods for easy testing
     def send_test_browser_event(self, client_id, event_type='page_visit', browser_name='Chrome', url='https://test.com', title='Test Page'):

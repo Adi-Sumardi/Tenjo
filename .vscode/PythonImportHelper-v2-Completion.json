@@ -36,12 +36,27 @@
         "documentation": {}
     },
     {
-        "label": "json",
-        "kind": 6,
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
         "isExtraImport": true,
-        "importPath": "json",
-        "description": "json",
-        "detail": "json",
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
         "documentation": {}
     },
     {
@@ -54,6 +69,14 @@
     },
     {
         "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -223,6 +246,118 @@
         "documentation": {}
     },
     {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Callable",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Set",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Callable",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Set",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "logging",
         "kind": 6,
         "isExtraImport": true,
@@ -314,6 +449,65 @@
         "documentation": {}
     },
     {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "subprocess",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "subprocess",
+        "description": "subprocess",
+        "detail": "subprocess",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "dataclass",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "asdict",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "dataclass",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "asdict",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
         "label": "defaultdict",
         "importPath": "collections",
         "description": "collections",
@@ -389,226 +583,6 @@
         "documentation": {}
     },
     {
-        "label": "subprocess",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "subprocess",
-        "description": "subprocess",
-        "detail": "subprocess",
-        "documentation": {}
-    },
-    {
-        "label": "requests",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "requests",
-        "description": "requests",
-        "detail": "requests",
-        "documentation": {}
-    },
-    {
-        "label": "signal",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "signal",
-        "description": "signal",
-        "detail": "signal",
-        "documentation": {}
-    },
-    {
-        "label": "Config",
-        "importPath": "src.core.config",
-        "description": "src.core.config",
-        "isExtraImport": true,
-        "detail": "src.core.config",
-        "documentation": {}
-    },
-    {
-        "label": "Config",
-        "importPath": "src.core.config",
-        "description": "src.core.config",
-        "isExtraImport": true,
-        "detail": "src.core.config",
-        "documentation": {}
-    },
-    {
-        "label": "Config",
-        "importPath": "src.core.config",
-        "description": "src.core.config",
-        "isExtraImport": true,
-        "detail": "src.core.config",
-        "documentation": {}
-    },
-    {
-        "label": "ScreenCapture",
-        "importPath": "src.modules.screen_capture",
-        "description": "src.modules.screen_capture",
-        "isExtraImport": true,
-        "detail": "src.modules.screen_capture",
-        "documentation": {}
-    },
-    {
-        "label": "ScreenCapture",
-        "importPath": "src.modules.screen_capture",
-        "description": "src.modules.screen_capture",
-        "isExtraImport": true,
-        "detail": "src.modules.screen_capture",
-        "documentation": {}
-    },
-    {
-        "label": "BrowserMonitor",
-        "importPath": "src.modules.browser_monitor",
-        "description": "src.modules.browser_monitor",
-        "isExtraImport": true,
-        "detail": "src.modules.browser_monitor",
-        "documentation": {}
-    },
-    {
-        "label": "ProcessMonitor",
-        "importPath": "src.modules.process_monitor",
-        "description": "src.modules.process_monitor",
-        "isExtraImport": true,
-        "detail": "src.modules.process_monitor",
-        "documentation": {}
-    },
-    {
-        "label": "StreamHandler",
-        "importPath": "src.modules.stream_handler",
-        "description": "src.modules.stream_handler",
-        "isExtraImport": true,
-        "detail": "src.modules.stream_handler",
-        "documentation": {}
-    },
-    {
-        "label": "StreamHandler",
-        "importPath": "src.modules.stream_handler",
-        "description": "src.modules.stream_handler",
-        "isExtraImport": true,
-        "detail": "src.modules.stream_handler",
-        "documentation": {}
-    },
-    {
-        "label": "StreamHandler",
-        "importPath": "src.modules.stream_handler",
-        "description": "src.modules.stream_handler",
-        "isExtraImport": true,
-        "detail": "src.modules.stream_handler",
-        "documentation": {}
-    },
-    {
-        "label": "StealthManager",
-        "importPath": "src.utils.stealth",
-        "description": "src.utils.stealth",
-        "isExtraImport": true,
-        "detail": "src.utils.stealth",
-        "documentation": {}
-    },
-    {
-        "label": "APIClient",
-        "importPath": "src.utils.api_client",
-        "description": "src.utils.api_client",
-        "isExtraImport": true,
-        "detail": "src.utils.api_client",
-        "documentation": {}
-    },
-    {
-        "label": "APIClient",
-        "importPath": "src.utils.api_client",
-        "description": "src.utils.api_client",
-        "isExtraImport": true,
-        "detail": "src.utils.api_client",
-        "documentation": {}
-    },
-    {
-        "label": "APIClient",
-        "importPath": "src.utils.api_client",
-        "description": "src.utils.api_client",
-        "isExtraImport": true,
-        "detail": "src.utils.api_client",
-        "documentation": {}
-    },
-    {
-        "label": "Dict",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Optional",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Callable",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Dict",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "List",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Optional",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Set",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "re",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "re",
-        "description": "re",
-        "detail": "re",
-        "documentation": {}
-    },
-    {
-        "label": "dataclass",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "asdict",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
         "label": "traceback",
         "kind": 6,
         "isExtraImport": true,
@@ -633,6 +607,15 @@
         "importPath": "queue",
         "description": "queue",
         "detail": "queue",
+        "documentation": {}
+    },
+    {
+        "label": "requests",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "requests",
+        "description": "requests",
+        "detail": "requests",
         "documentation": {}
     },
     {
@@ -671,6 +654,71 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "signal",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "signal",
+        "description": "signal",
+        "detail": "signal",
+        "documentation": {}
+    },
+    {
+        "label": "Config",
+        "importPath": "src.core.config",
+        "description": "src.core.config",
+        "isExtraImport": true,
+        "detail": "src.core.config",
+        "documentation": {}
+    },
+    {
+        "label": "Config",
+        "importPath": "src.core.config",
+        "description": "src.core.config",
+        "isExtraImport": true,
+        "detail": "src.core.config",
+        "documentation": {}
+    },
+    {
+        "label": "Config",
+        "importPath": "src.core.config",
+        "description": "src.core.config",
+        "isExtraImport": true,
+        "detail": "src.core.config",
+        "documentation": {}
+    },
+    {
+        "label": "APIClient",
+        "importPath": "src.utils.api_client",
+        "description": "src.utils.api_client",
+        "isExtraImport": true,
+        "detail": "src.utils.api_client",
+        "documentation": {}
+    },
+    {
+        "label": "APIClient",
+        "importPath": "src.utils.api_client",
+        "description": "src.utils.api_client",
+        "isExtraImport": true,
+        "detail": "src.utils.api_client",
+        "documentation": {}
+    },
+    {
+        "label": "APIClient",
+        "importPath": "src.utils.api_client",
+        "description": "src.utils.api_client",
+        "isExtraImport": true,
+        "detail": "src.utils.api_client",
+        "documentation": {}
+    },
+    {
         "label": "check_and_update_if_needed",
         "importPath": "src.utils.auto_update",
         "description": "src.utils.auto_update",
@@ -679,11 +727,75 @@
         "documentation": {}
     },
     {
+        "label": "check_and_update_if_needed",
+        "importPath": "src.utils.auto_update",
+        "description": "src.utils.auto_update",
+        "isExtraImport": true,
+        "detail": "src.utils.auto_update",
+        "documentation": {}
+    },
+    {
+        "label": "StreamHandler",
+        "importPath": "src.modules.stream_handler",
+        "description": "src.modules.stream_handler",
+        "isExtraImport": true,
+        "detail": "src.modules.stream_handler",
+        "documentation": {}
+    },
+    {
+        "label": "StreamHandler",
+        "importPath": "src.modules.stream_handler",
+        "description": "src.modules.stream_handler",
+        "isExtraImport": true,
+        "detail": "src.modules.stream_handler",
+        "documentation": {}
+    },
+    {
+        "label": "StreamHandler",
+        "importPath": "src.modules.stream_handler",
+        "description": "src.modules.stream_handler",
+        "isExtraImport": true,
+        "detail": "src.modules.stream_handler",
+        "documentation": {}
+    },
+    {
         "label": "BrowserTracker",
         "importPath": "src.modules.browser_tracker",
         "description": "src.modules.browser_tracker",
         "isExtraImport": true,
         "detail": "src.modules.browser_tracker",
+        "documentation": {}
+    },
+    {
+        "label": "BrowserTracker",
+        "importPath": "src.modules.browser_tracker",
+        "description": "src.modules.browser_tracker",
+        "isExtraImport": true,
+        "detail": "src.modules.browser_tracker",
+        "documentation": {}
+    },
+    {
+        "label": "ScreenCapture",
+        "importPath": "src.modules.screen_capture",
+        "description": "src.modules.screen_capture",
+        "isExtraImport": true,
+        "detail": "src.modules.screen_capture",
+        "documentation": {}
+    },
+    {
+        "label": "ScreenCapture",
+        "importPath": "src.modules.screen_capture",
+        "description": "src.modules.screen_capture",
+        "isExtraImport": true,
+        "detail": "src.modules.screen_capture",
+        "documentation": {}
+    },
+    {
+        "label": "get_os_info_for_client",
+        "importPath": "os_detector",
+        "description": "os_detector",
+        "isExtraImport": true,
+        "detail": "os_detector",
         "documentation": {}
     },
     {
@@ -715,17 +827,26 @@
         "kind": 6,
         "importPath": "client.installer_package.src.core.config",
         "description": "client.installer_package.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    # SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Local development server\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Base paths for persistent storage\n    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n    DATA_DIR = os.path.join(BASE_DIR, \"data\")\n    LOG_DIR = os.path.join(BASE_DIR, \"logs\")",
+        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development server (COMMENTED FOR PRODUCTION)\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():\n        \"\"\"",
         "detail": "client.installer_package.src.core.config",
         "documentation": {}
     },
     {
-        "label": "Config.CLIENT_ID",
-        "kind": 5,
+        "label": "get_local_ip",
+        "kind": 2,
         "importPath": "client.installer_package.src.core.config",
         "description": "client.installer_package.src.core.config",
-        "peekOfCode": "Config.CLIENT_ID = Config.get_client_id()",
+        "peekOfCode": "def get_local_ip():\n    \"\"\"Get the best available local IP address\"\"\"\n    try:\n        # Method 1: Socket connection (most reliable)\n        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:\n            s.connect((\"8.8.8.8\", 80))\n            ip = s.getsockname()[0]\n            if ip and ip != '127.0.0.1':\n                return ip\n    except Exception:",
         "detail": "client.installer_package.src.core.config",
+        "documentation": {}
+    },
+    {
+        "label": "ActivityDetector",
+        "kind": 6,
+        "importPath": "client.installer_package.src.modules.activity_detector",
+        "description": "client.installer_package.src.modules.activity_detector",
+        "peekOfCode": "class ActivityDetector:\n    \"\"\"\n    Detects user activity (mouse, keyboard, clicks) and manages\n    auto-pause/resume functionality for activity tracking.\n    \"\"\"\n    def __init__(self, logger, inactivity_timeout: int = 300):\n        \"\"\"\n        Initialize Activity Detector\n        Args:\n            logger: Logger instance",
+        "detail": "client.installer_package.src.modules.activity_detector",
         "documentation": {}
     },
     {
@@ -747,6 +868,42 @@
         "documentation": {}
     },
     {
+        "label": "BrowserTab",
+        "kind": 6,
+        "importPath": "client.installer_package.src.modules.browser_tracker",
+        "description": "client.installer_package.src.modules.browser_tracker",
+        "peekOfCode": "class BrowserTab:\n    \"\"\"Represents a browser tab\"\"\"\n    tab_id: str\n    url: str\n    title: str\n    domain: str\n    is_active: bool\n    created_at: datetime\n    last_accessed: datetime\n    time_spent: int = 0  # seconds",
+        "detail": "client.installer_package.src.modules.browser_tracker",
+        "documentation": {}
+    },
+    {
+        "label": "BrowserWindow",
+        "kind": 6,
+        "importPath": "client.installer_package.src.modules.browser_tracker",
+        "description": "client.installer_package.src.modules.browser_tracker",
+        "peekOfCode": "class BrowserWindow:\n    \"\"\"Represents a browser window\"\"\"\n    window_id: str\n    browser_name: str\n    window_title: str\n    tabs: List[BrowserTab]\n    is_active: bool\n    created_at: datetime\n@dataclass\nclass BrowserSession:",
+        "detail": "client.installer_package.src.modules.browser_tracker",
+        "documentation": {}
+    },
+    {
+        "label": "BrowserSession",
+        "kind": 6,
+        "importPath": "client.installer_package.src.modules.browser_tracker",
+        "description": "client.installer_package.src.modules.browser_tracker",
+        "peekOfCode": "class BrowserSession:\n    \"\"\"Represents a browser session\"\"\"\n    session_id: str\n    browser_name: str\n    browser_version: str\n    executable_path: str\n    windows: List[BrowserWindow]\n    start_time: datetime\n    end_time: Optional[datetime] = None\n    total_time: int = 0",
+        "detail": "client.installer_package.src.modules.browser_tracker",
+        "documentation": {}
+    },
+    {
+        "label": "BrowserTracker",
+        "kind": 6,
+        "importPath": "client.installer_package.src.modules.browser_tracker",
+        "description": "client.installer_package.src.modules.browser_tracker",
+        "peekOfCode": "class BrowserTracker:\n    \"\"\"Enhanced browser tracking with real-time tab and URL monitoring + activity detection\"\"\"\n    def __init__(self, api_client, logger):\n        self.api_client = api_client\n        self.logger = logger\n        self.running = False\n        # Browser sessions tracking\n        self.active_sessions: Dict[str, BrowserSession] = {}\n        self.url_activities: Dict[str, Dict] = {}  # url -> activity data\n        # Activity detector integration",
+        "detail": "client.installer_package.src.modules.browser_tracker",
+        "documentation": {}
+    },
+    {
         "label": "ProcessMonitor",
         "kind": 6,
         "importPath": "client.installer_package.src.modules.process_monitor",
@@ -760,7 +917,7 @@
         "kind": 6,
         "importPath": "client.installer_package.src.modules.screen_capture",
         "description": "client.installer_package.src.modules.screen_capture",
-        "peekOfCode": "class ScreenCapture:\n    def __init__(self, api_client=None):\n        self.api_client = api_client\n        self.is_running = False\n        self.capture_interval = 60  # 1 minute\n    def start_capture(self):\n        \"\"\"Start screenshot capture loop\"\"\"\n        self.is_running = True\n        logging.info(\"Screenshot capture started\")\n        while self.is_running:",
+        "peekOfCode": "class ScreenCapture:\n    def __init__(self, api_client=None):\n        self.api_client = api_client\n        self.is_running = False\n        self.capture_interval = 120  # 2 minutes\n        self.browser_check_interval = 30  # Check for browsers every 30 seconds\n        self.is_capturing = False\n        self.browser_tracker = None\n        self.only_capture_with_browser = True  # Only capture when browser is active\n        # Thread safety locks",
         "detail": "client.installer_package.src.modules.screen_capture",
         "documentation": {}
     },
@@ -769,8 +926,17 @@
         "kind": 6,
         "importPath": "client.installer_package.src.modules.stream_handler",
         "description": "client.installer_package.src.modules.stream_handler",
-        "peekOfCode": "class StreamHandler:\n    def __init__(self, api_client):\n        self.api_client = api_client\n        self.is_streaming = False\n        self.ffmpeg_process = None\n        self.stream_quality = 'medium'  # low, medium, high\n        self.sequence = 0\n        self.stream_thread = None  # Initialize thread reference\n        # Stream settings\n        self.stream_settings = {",
+        "peekOfCode": "class StreamHandler:\n    def __init__(self, api_client):\n        self.api_client = api_client\n        self.is_streaming = False\n        self.video_streaming = False\n        self.stream_quality = 'medium'\n        self.sequence = 0\n        self.video_thread = None\n        self.chunks_sent = 0\n        # Enhanced logging",
         "detail": "client.installer_package.src.modules.stream_handler",
+        "documentation": {}
+    },
+    {
+        "label": "WebRTCStreamHandler",
+        "kind": 6,
+        "importPath": "client.installer_package.src.modules.webrtc_handler",
+        "description": "client.installer_package.src.modules.webrtc_handler",
+        "peekOfCode": "class WebRTCStreamHandler:\n    def __init__(self, api_client, client_id):\n        self.api_client = api_client\n        self.client_id = client_id\n        self.is_streaming = False\n        self.websocket = None\n        self.websocket_thread = None\n        self.message_queue = queue.Queue()\n        # Enhanced logging\n        self.logger = logging.getLogger(f\"WebRTCHandler-{client_id}\")",
+        "detail": "client.installer_package.src.modules.webrtc_handler",
         "documentation": {}
     },
     {
@@ -780,6 +946,51 @@
         "description": "client.installer_package.src.utils.api_client",
         "peekOfCode": "class APIClient:\n    def __init__(self, server_url, api_key):\n        self.server_url = server_url.rstrip('/')\n        self.api_key = api_key\n        self.client_id = None\n        self.session = requests.Session()\n        # Cache for missing endpoints to avoid spam warnings\n        self._missing_endpoints = set()\n        # Set default headers\n        self.session.headers.update({",
         "detail": "client.installer_package.src.utils.api_client",
+        "documentation": {}
+    },
+    {
+        "label": "ClientUpdater",
+        "kind": 6,
+        "importPath": "client.installer_package.src.utils.auto_update",
+        "description": "client.installer_package.src.utils.auto_update",
+        "peekOfCode": "class ClientUpdater:\n    \"\"\"Handles automatic client updates from server\"\"\"\n    # Current client version\n    CURRENT_VERSION = \"2025.10.02\"  # Format: YYYY.MM.DD[.patch]\n    def __init__(self, config):\n        self.config = config\n        self.server_url = config.SERVER_URL\n        self.version_check_url = f\"{self.server_url}/downloads/client/version.json\"\n        self.download_base_url = f\"{self.server_url}/downloads/client\"\n        # Update paths based on OS",
+        "detail": "client.installer_package.src.utils.auto_update",
+        "documentation": {}
+    },
+    {
+        "label": "check_and_update_if_needed",
+        "kind": 2,
+        "importPath": "client.installer_package.src.utils.auto_update",
+        "description": "client.installer_package.src.utils.auto_update",
+        "peekOfCode": "def check_and_update_if_needed(config):\n    \"\"\"\n    Helper function to check and update client if needed\n    Call this on client startup\n    \"\"\"\n    updater = ClientUpdater(config)\n    # Only check for updates once per day\n    last_check_file = Path(config.DATA_DIR) / \".last_update_check\"\n    try:\n        if last_check_file.exists():",
+        "detail": "client.installer_package.src.utils.auto_update",
+        "documentation": {}
+    },
+    {
+        "label": "check_screen_recording_permission",
+        "kind": 2,
+        "importPath": "client.installer_package.src.utils.macos_permissions",
+        "description": "client.installer_package.src.utils.macos_permissions",
+        "peekOfCode": "def check_screen_recording_permission():\n    \"\"\"Check if screen recording permission is granted on macOS\"\"\"\n    if platform.system() != 'Darwin':\n        return True  # Not macOS, assume permission is granted\n    try:\n        # Try importing macOS specific modules\n        from Quartz import CGMainDisplayID, CGDisplayCreateImage, CGImageRelease\n        from ApplicationServices import kCGNullWindowID\n        # Try to capture a small area of the screen\n        display_id = CGMainDisplayID()",
+        "detail": "client.installer_package.src.utils.macos_permissions",
+        "documentation": {}
+    },
+    {
+        "label": "request_screen_recording_permission",
+        "kind": 2,
+        "importPath": "client.installer_package.src.utils.macos_permissions",
+        "description": "client.installer_package.src.utils.macos_permissions",
+        "peekOfCode": "def request_screen_recording_permission():\n    \"\"\"Show dialog to request screen recording permission\"\"\"\n    if platform.system() != 'Darwin':\n        return True\n    try:\n        from AppKit import NSAlert, NSAlertFirstButtonReturn\n        alert = NSAlert.alloc().init()\n        alert.setMessageText_(\"Screen Recording Permission Required\")\n        alert.setInformativeText_(\n            \"Tenjo needs permission to record your screen for monitoring.\\n\\n\"",
+        "detail": "client.installer_package.src.utils.macos_permissions",
+        "documentation": {}
+    },
+    {
+        "label": "get_macos_info",
+        "kind": 2,
+        "importPath": "client.installer_package.src.utils.macos_permissions",
+        "description": "client.installer_package.src.utils.macos_permissions",
+        "peekOfCode": "def get_macos_info():\n    \"\"\"Get macOS version and system info\"\"\"\n    if platform.system() != 'Darwin':\n        return None\n    try:\n        import subprocess\n        result = subprocess.run(['sw_vers'], capture_output=True, text=True)\n        return result.stdout.strip()\n    except Exception as e:\n        logging.error(f\"Error getting macOS info: {e}\")",
+        "detail": "client.installer_package.src.utils.macos_permissions",
         "documentation": {}
     },
     {
@@ -801,11 +1012,11 @@
         "documentation": {}
     },
     {
-        "label": "TenjoClient",
+        "label": "StealthClient",
         "kind": 6,
         "importPath": "client.installer_package.main",
         "description": "client.installer_package.main",
-        "peekOfCode": "class TenjoClient:\n    def __init__(self, stealth_mode=True):\n        # Use API_ENDPOINT from config\n        self.api_client = APIClient(Config.SERVER_URL, Config.CLIENT_ID)\n        self.stealth_manager = StealthManager()\n        self.stealth_mode = stealth_mode\n        # Set up stealth logging if in stealth mode\n        if stealth_mode:\n            self._setup_stealth_logging()\n        # Initialize modules",
+        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Setup stealth logging\n        setup_stealth_logging()\n        self.logger = logging.getLogger('StealthClient')\n        # Initialize browser tracker\n        self.browser_tracker = BrowserTracker(self.api_client, self.logger)\n        # Initialize screen capture with browser tracker integration",
         "detail": "client.installer_package.main",
         "documentation": {}
     },
@@ -814,7 +1025,34 @@
         "kind": 2,
         "importPath": "client.installer_package.main",
         "description": "client.installer_package.main",
-        "peekOfCode": "def signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    logging.info(f\"Received signal {signum}, initiating graceful shutdown...\")\n    shutdown_flag = True\nclass TenjoClient:\n    def __init__(self, stealth_mode=True):\n        # Use API_ENDPOINT from config\n        self.api_client = APIClient(Config.SERVER_URL, Config.CLIENT_ID)\n        self.stealth_manager = StealthManager()",
+        "peekOfCode": "def signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    shutdown_flag = True\ndef setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')\n        logging.basicConfig(",
+        "detail": "client.installer_package.main",
+        "documentation": {}
+    },
+    {
+        "label": "setup_stealth_logging",
+        "kind": 2,
+        "importPath": "client.installer_package.main",
+        "description": "client.installer_package.main",
+        "peekOfCode": "def setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')\n        logging.basicConfig(\n            level=logging.WARNING,  # Only warnings and errors\n            format='%(asctime)s - %(levelname)s - %(message)s',\n            handlers=[\n                logging.FileHandler(log_file, mode='a'),",
+        "detail": "client.installer_package.main",
+        "documentation": {}
+    },
+    {
+        "label": "hide_console_window",
+        "kind": 2,
+        "importPath": "client.installer_package.main",
+        "description": "client.installer_package.main",
+        "peekOfCode": "def hide_console_window():\n    \"\"\"Hide console window on Windows\"\"\"\n    if platform.system() == \"Windows\":\n        try:\n            import ctypes\n            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)\n        except:\n            pass\ndef install_autostart():\n    \"\"\"Install client to start automatically on system boot\"\"\"",
+        "detail": "client.installer_package.main",
+        "documentation": {}
+    },
+    {
+        "label": "install_autostart",
+        "kind": 2,
+        "importPath": "client.installer_package.main",
+        "description": "client.installer_package.main",
+        "peekOfCode": "def install_autostart():\n    \"\"\"Install client to start automatically on system boot\"\"\"\n    try:\n        current_file = os.path.abspath(__file__)\n        if platform.system() == \"Darwin\":  # macOS\n            # Create LaunchAgent plist\n            plist_dir = os.path.expanduser(\"~/Library/LaunchAgents\")\n            os.makedirs(plist_dir, exist_ok=True)\n            plist_file = os.path.join(plist_dir, \"com.tenjo.client.plist\")\n            plist_content = f\"\"\"<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
         "detail": "client.installer_package.main",
         "documentation": {}
     },
@@ -823,7 +1061,7 @@
         "kind": 2,
         "importPath": "client.installer_package.main",
         "description": "client.installer_package.main",
-        "peekOfCode": "def main(stealth_mode=True):\n    \"\"\"Main entry point\"\"\"\n    global shutdown_flag\n    # Register signal handlers for graceful shutdown\n    signal.signal(signal.SIGTERM, signal_handler)\n    signal.signal(signal.SIGINT, signal_handler)\n    client = None\n    try:\n        # Check if running from stealth installation\n        is_stealth = stealth_mode or 'stealth_main.py' in sys.argv[0] or len(sys.argv) > 1 and sys.argv[1] == '--stealth'",
+        "peekOfCode": "def main():\n    \"\"\"Entry point\"\"\"\n    # Check for updates first (will restart if update available)\n    try:\n        if check_and_update_if_needed(Config):\n            # Update was performed, client will restart\n            return\n    except Exception as e:\n        # Update failed, continue with current version\n        if not Config.STEALTH_MODE:",
         "detail": "client.installer_package.main",
         "documentation": {}
     },
@@ -832,7 +1070,7 @@
         "kind": 5,
         "importPath": "client.installer_package.main",
         "description": "client.installer_package.main",
-        "peekOfCode": "shutdown_flag = False\ndef signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    logging.info(f\"Received signal {signum}, initiating graceful shutdown...\")\n    shutdown_flag = True\nclass TenjoClient:\n    def __init__(self, stealth_mode=True):\n        # Use API_ENDPOINT from config\n        self.api_client = APIClient(Config.SERVER_URL, Config.CLIENT_ID)",
+        "peekOfCode": "shutdown_flag = False\ndef signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    shutdown_flag = True\ndef setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')",
         "detail": "client.installer_package.main",
         "documentation": {}
     },
