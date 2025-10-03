@@ -136,27 +136,21 @@
             </div>
             <div class="card-body">
                 <div class="row text-center">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="border-end">
                             <h4 class="text-primary mb-0">{{ $client->screenshots ? $client->screenshots->count() : 0 }}</h4>
                             <small class="text-muted">Screenshots</small>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="border-end">
                             <h4 class="text-success mb-0">{{ $summary['browser_sessions'] ?? 0 }}</h4>
                             <small class="text-muted">Browser Sessions</small>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="border-end">
-                            <h4 class="text-info mb-0">{{ $summary['urls_visited'] ?? 0 }}</h4>
-                            <small class="text-muted">URLs Visited</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <h4 class="text-warning mb-0">{{ $client->processEvents?->count() ?? 0 }}</h4>
-                        <small class="text-muted">Process Events</small>
+                    <div class="col-md-4">
+                        <h4 class="text-info mb-0">{{ $summary['urls_visited'] ?? 0 }}</h4>
+                        <small class="text-muted">URLs Visited</small>
                     </div>
                 </div>
             </div>
@@ -474,65 +468,63 @@
         <h6 class="mb-0">Recent Browser Activity</h6>
     </div>
     <div class="card-body">
-        @if($client->browserEvents && $client->browserEvents->count() > 0)
+        @if(isset($recentBrowserSessions) && $recentBrowserSessions->count() > 0)
             <div class="table-responsive browser-activity-table">
                 <table class="table table-sm table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th width="12%">Time</th>
-                            <th width="15%">Event Type</th>
                             <th width="18%">Browser</th>
+                            <th width="18%">Session Start</th>
                             <th width="12%">Duration</th>
-                            <th width="43%">Page Details</th>
+                            <th width="12%">Status</th>
+                            <th width="40%">Recent URLs</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($client->browserEvents->take(10) as $event)
+                        @foreach($recentBrowserSessions as $session)
                         <tr>
+                            <td>
+                                <i class="fab fa-{{ strtolower($session->browser_name) === 'chrome' ? 'chrome' : (strtolower($session->browser_name) === 'firefox' ? 'firefox-browser' : (strtolower($session->browser_name) === 'safari' ? 'safari' : (strtolower($session->browser_name) === 'edge' ? 'edge' : 'globe'))) }} browser-icon"></i>
+                                {{ $session->browser_name ?? 'Unknown Browser' }}
+                            </td>
                             <td class="time-info">
-                                @if($event->start_time)
-                                    {{ $event->start_time->format('H:i:s') }}
-                                @elseif($event->created_at)
-                                    {{ $event->created_at->format('H:i:s') }}
+                                @if($session->session_start)
+                                    {{ $session->session_start->format('H:i:s') }}
                                 @else
                                     <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="badge event-badge-{{ $event->event_type }} {{ $event->event_type === 'browser_started' ? 'bg-success' : ($event->event_type === 'browser_closed' ? 'bg-danger' : 'bg-info') }}">
-                                    {{ ucfirst(str_replace('_', ' ', $event->event_type)) }}
-                                </span>
-                            </td>
-                            <td>
-                                @if($event->browser_name)
-                                    <i class="fab fa-{{ strtolower($event->browser_name) === 'chrome' ? 'chrome' : (strtolower($event->browser_name) === 'firefox' ? 'firefox-browser' : (strtolower($event->browser_name) === 'safari' ? 'safari' : (strtolower($event->browser_name) === 'edge' ? 'edge' : 'globe'))) }} browser-icon"></i>
-                                    {{ $event->browser_name }}
-                                @else
-                                    <i class="fas fa-globe browser-icon"></i>
-                                    <span class="text-muted">Unknown Browser</span>
                                 @endif
                             </td>
                             <td class="duration-info">
-                                @if($event->duration)
-                                    {{ $event->duration_human }}
-                                @elseif($event->start_time && $event->end_time)
-                                    {{ gmdate('H:i:s', $event->end_time->diffInSeconds($event->start_time)) }}
+                                @if($session->total_duration)
+                                    {{ gmdate('H:i:s', $session->total_duration) }}
+                                @elseif($session->is_active)
+                                    <span class="badge bg-success">Active</span>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
                             </td>
+                            <td>
+                                @if($session->is_active)
+                                    <span class="badge bg-success">Active</span>
+                                @else
+                                    <span class="badge bg-secondary">Completed</span>
+                                @endif
+                            </td>
                             <td class="page-details">
-                                @if($event->title || $event->url)
+                                @if($session->urlActivities && $session->urlActivities->count() > 0)
                                     <div class="d-flex flex-column">
-                                        @if($event->title)
-                                            <span class="page-title" title="{{ $event->title }}">{{ Str::limit($event->title, 35) }}</span>
-                                        @endif
-                                        @if($event->url)
-                                            <small class="page-url" title="{{ $event->url }}">{{ Str::limit($event->url, 45) }}</small>
+                                        @foreach($session->urlActivities->take(5) as $activity)
+                                            <small class="d-block" title="{{ $activity->url }}">
+                                                <strong>{{ $activity->visit_start ? $activity->visit_start->format('H:i') : '-' }}</strong>
+                                                {{ Str::limit($activity->page_title ?: $activity->url, 45) }}
+                                            </small>
+                                        @endforeach
+                                        @if($session->urlActivities->count() > 5)
+                                            <small class="text-muted">+ {{ $session->urlActivities->count() - 5 }} more URLs</small>
                                         @endif
                                     </div>
                                 @else
-                                    <span class="text-muted">-</span>
+                                    <span class="text-muted">No URL activity captured</span>
                                 @endif
                             </td>
                         </tr>
@@ -544,7 +536,7 @@
             <div class="text-center py-4">
                 <i class="fas fa-globe fa-3x text-muted mb-3"></i>
                 <h6 class="text-muted">No Browser Activity</h6>
-                <p class="text-muted">No browser activity recorded for this client yet.</p>
+                <p class="text-muted">No browser sessions recorded for this client yet.</p>
             </div>
         @endif
     </div>

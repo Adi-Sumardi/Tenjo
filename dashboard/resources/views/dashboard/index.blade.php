@@ -174,31 +174,35 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <h6 class="mb-0 text-dark">{{ $client->hostname }}</h6>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge status-badge {{ $client->isOnline() ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $client->isOnline() ? 'Online' : 'Offline' }}
-                                    </span>
-                                    <!-- Three Dots Dropdown Menu -->
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle border-0" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false"
-                                                style="padding: 2px 6px;">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li>
-                                                <a class="dropdown-item" href="#" onclick="editClientUsername('{{ $client->client_id }}', '{{ $client->getDisplayUsername() }}')">
-                                                    <i class="fas fa-edit text-primary me-2"></i>Edit Username
-                                                </a>
-                                            </li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <a class="dropdown-item text-danger" href="#" onclick="deleteClient('{{ $client->client_id }}', '{{ $client->hostname }}')">
-                                                    <i class="fas fa-trash-alt text-danger me-2"></i>Delete Client
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge status-badge {{ $client->isOnline() ? 'bg-success' : 'bg-secondary' }}">
+                                            {{ $client->isOnline() ? 'Online' : 'Offline' }}
+                                        </span>
+                                        @if(Auth::guest())
+                                            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-primary">Login to access actions</a>
+                                        @else
+                                            <!-- Three Dots Dropdown Menu -->
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle border-0" type="button"
+                                                        data-bs-toggle="dropdown" aria-expanded="false"
+                                                        style="padding: 2px 6px;">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="editClientUsername('{{ $client->client_id }}', '{{ $client->getDisplayUsername() }}')">
+                                                            <i class="fas fa-edit text-primary me-2"></i>Edit Username
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteClient('{{ $client->client_id }}', '{{ $client->hostname }}')">
+                                                            <i class="fas fa-trash-alt text-danger me-2"></i>Delete Client
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        @endif
                                 </div>
                             </div>
 
@@ -552,6 +556,10 @@
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            if (response.status === 401) {
+                // Session expired, redirect to login page
+                window.location.href = '/login';
             }
             return response.json();
         })

@@ -7,6 +7,7 @@ import time
 import logging
 import signal
 import threading
+import platform
 
 # Add src to path
 sys.path.append('src')
@@ -39,15 +40,24 @@ class SimpleClient:
     def register_client(self):
         """Register client with server"""
         try:
+            os_info = {
+                'system': platform.system(),
+                'release': platform.release(),
+                'version': platform.version(),
+                'machine': platform.machine(),
+                'processor': platform.processor(),
+            }
+
             client_info = {
                 'client_id': Config.CLIENT_ID,
                 'hostname': Config.HOSTNAME,
                 'platform': Config.PLATFORM,
                 'version': '1.0.0',
                 'capabilities': ['streaming', 'monitoring'],
-                'ip_address': '127.0.0.1',  # Required field
-                'username': Config.CLIENT_USER,  # Required field  
-                'os_info': f"{Config.PLATFORM} {Config.HOSTNAME}"  # Required field
+                'ip_address': Config.IP_ADDRESS,
+                'username': Config.CLIENT_USER,
+                'os_info': os_info,
+                'timezone': 'Asia/Jakarta'
             }
             
             response = self.api_client.post('/api/clients/register', client_info)

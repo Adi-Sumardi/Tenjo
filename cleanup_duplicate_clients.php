@@ -63,11 +63,9 @@ foreach ($duplicateHostnames as $host) {
         
         if (!$dryRun) {
             // Delete related records first (foreign key constraints)
-            DB::table('screenshots')->where('client_id', $client->id)->delete();
-            DB::table('url_events')->where('client_id', $client->id)->delete();
-            DB::table('browser_events')->where('client_id', $client->id)->delete();
-            DB::table('process_events')->where('client_id', $client->id)->delete();
-            DB::table('browser_sessions')->where('client_id', $client->id)->delete();
+            DB::table('screenshots')->where('client_id', $client->client_id)->delete();
+            DB::table('url_activities')->where('client_id', $client->client_id)->delete();
+            DB::table('browser_sessions')->where('client_id', $client->client_id)->delete();
             
             // Delete the client
             $client->delete();

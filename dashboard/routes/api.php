@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ScreenshotController;
 use App\Http\Controllers\Api\BrowserSessionController;
-use App\Http\Controllers\Api\ProcessEventController;
 use App\Http\Controllers\Api\UrlActivityController;
 use App\Http\Controllers\StreamController;
 use App\Http\Controllers\BrowserTrackingController;
@@ -41,10 +40,6 @@ Route::prefix('clients')->group(function () {
     Route::get('/{clientId}/check-update', [ClientController::class, 'checkUpdate']);
     Route::post('/{clientId}/update-completed', [ClientController::class, 'updateCompleted']);
 
-    // Client management routes - NO AUTH for local testing (add auth:sanctum for production)
-    Route::put('/{clientId}/username', [ClientController::class, 'updateUsername']);
-    Route::delete('/{clientId}', [ClientController::class, 'deleteClient']);
-
     // Protected routes - require authentication
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [ClientController::class, 'index']);
@@ -52,19 +47,6 @@ Route::prefix('clients')->group(function () {
         Route::get('/{clientId}/settings', [ClientController::class, 'getSettings']);
         Route::get('/{clientId}/latest-screenshot', [ClientController::class, 'getLatestScreenshot']);
         Route::put('/{clientId}/status', [ClientController::class, 'updateStatus']);
-
-        // Add status endpoint for dashboard
-        Route::get('/status', function () {
-            $clients = \App\Models\Client::all()->map(function($client) {
-                return [
-                    'client_id' => $client->client_id,
-                    'is_online' => $client->isOnline(),
-                    'last_seen_human' => $client->last_seen ? $client->last_seen->diffForHumans() : 'Never'
-                ];
-            });
-
-            return response()->json($clients);
-        });
     });
 });
 
@@ -83,29 +65,6 @@ Route::prefix('screenshots')->group(function () {
     });
 });
 
-// Browser Sessions - NO throttling (continuous monitoring)
-Route::prefix('browser-events')->group(function () {
-    Route::post('/', [BrowserSessionController::class, 'store']);
-    // NO AUTH for local testing
-    Route::get('/', [BrowserSessionController::class, 'index']);
-    Route::get('/{event}', [BrowserSessionController::class, 'show']);
-});
-
-// Process Events - NO throttling (continuous monitoring)
-Route::prefix('process-events')->group(function () {
-    Route::post('/', [ProcessEventController::class, 'store']);
-    Route::middleware('auth:sanctum')->get('/', [ProcessEventController::class, 'index']);
-    Route::middleware('auth:sanctum')->get('/{event}', [ProcessEventController::class, 'show']);
-});
-
-// URL Activities - NO throttling (continuous monitoring)
-Route::prefix('url-events')->group(function () {
-    Route::post('/', [UrlActivityController::class, 'store']);
-    // NO AUTH for local testing
-    Route::get('/', [UrlActivityController::class, 'index']);
-    Route::get('/{event}', [UrlActivityController::class, 'show']);
-});
-
 // Enhanced Browser Tracking - NO throttling (continuous monitoring)
 Route::prefix('browser-tracking')->group(function () {
     Route::post('/', [BrowserTrackingController::class, 'storeBrowserTracking']);
@@ -113,10 +72,14 @@ Route::prefix('browser-tracking')->group(function () {
 });
 
 Route::prefix('browser-sessions')->group(function () {
+    Route::get('/', [BrowserSessionController::class, 'index']);
+    Route::get('/{browserSession}', [BrowserSessionController::class, 'show']);
     Route::post('/', [BrowserTrackingController::class, 'storeBrowserSession']);
 });
 
 Route::prefix('url-activities')->group(function () {
+    Route::get('/', [UrlActivityController::class, 'index']);
+    Route::get('/{urlActivity}', [UrlActivityController::class, 'show']);
     Route::post('/', [BrowserTrackingController::class, 'storeUrlActivity']);
 });
 

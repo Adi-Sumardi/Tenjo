@@ -97,6 +97,15 @@ class DashboardController extends Controller
             ->limit(30)
             ->get();
 
+        // Recent browser sessions with their latest URL activities
+        $recentBrowserSessions = BrowserSession::where('client_id', $clientId)
+            ->with(['urlActivities' => function ($query) {
+                $query->orderBy('visit_start', 'desc')->limit(10);
+            }])
+            ->orderBy('session_start', 'desc')
+            ->limit(10)
+            ->get();
+
         // Daily Usage Summary
         $totalBrowsingTime = $enhancedBrowserStats->sum('total_time') ?: 0;
         $avgSessionTime = $enhancedBrowserStats->avg('avg_session_time') ?: 0;
@@ -116,6 +125,7 @@ class DashboardController extends Controller
             'topUrls',
             'enhancedBrowserStats',
             'enhancedUrlStats',
+            'recentBrowserSessions',
             'recentUrlActivities',
             'dailyUsageSummary'
         ));
@@ -269,7 +279,7 @@ class DashboardController extends Controller
                 $from = today();
                 $to = today()->endOfDay();
         }
-        
+
         // Add date range info for view
         $dateRangeInfo = [
             'type' => $dateRange,
@@ -377,7 +387,7 @@ class DashboardController extends Controller
             'customTo'
         ));
     }
-    
+
     /**
      * Helper method to generate date range label for display
      */
@@ -400,7 +410,7 @@ class DashboardController extends Controller
                 return 'Today - ' . $from->format('M d, Y');
         }
     }
-    
+
     /**
      * Get browser usage statistics for specific client and date range
      */
@@ -408,7 +418,7 @@ class DashboardController extends Controller
     {
         $from = $request->get('from', today());
         $to = $request->get('to', today()->endOfDay());
-        
+
         $browserUsage = BrowserSession::where('client_id', $clientId)
             ->whereBetween('session_start', [$from, $to])
             ->selectRaw('
@@ -426,10 +436,10 @@ class DashboardController extends Controller
                 $item->avg_duration_formatted = gmdate('H:i:s', $item->avg_duration);
                 return $item;
             });
-        
+
         return response()->json($browserUsage);
     }
-    
+
     /**
      * Get URL access duration statistics for specific client and date range
      */
@@ -438,10 +448,10 @@ class DashboardController extends Controller
         $from = $request->get('from', today());
         $to = $request->get('to', today()->endOfDay());
         $groupBy = $request->get('group_by', 'url'); // 'url' or 'domain'
-        
+
         $query = UrlActivity::where('client_id', $clientId)
             ->whereBetween('visit_start', [$from, $to]);
-        
+
         if ($groupBy === 'domain') {
             $urlStats = $query->selectRaw('
                 domain as item,
@@ -468,13 +478,13 @@ class DashboardController extends Controller
             ->limit(20)
             ->get();
         }
-        
+
         $urlStats = $urlStats->map(function($item) {
             $item->total_duration_formatted = gmdate('H:i:s', $item->total_duration);
             $item->avg_duration_formatted = gmdate('H:i:s', $item->avg_duration);
             return $item;
         });
-        
+
         return response()->json($urlStats);
     }
 }

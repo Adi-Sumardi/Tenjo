@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,16 +13,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create default admin user
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@tenjo.com',
-            'password' => bcrypt('password123'), // Change this in production!
-        ]);
+        // Create or update default admin user
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@tenjo.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password123'), // Change this in production!
+            ]
+        );
 
-        echo "Default admin user created:\n";
-        echo "Email: admin@tenjo.com\n";
+        echo "Default admin user ready:\n";
+        echo "Email: {$admin->email}\n";
         echo "Password: password123\n\n";
         echo "⚠️  IMPORTANT: Please change this password after first login!\n";
+
+        if (app()->environment('local', 'testing')) {
+            $this->call(ClientSeeder::class);
+            echo "Sample client data generated for dashboard testing.\n";
+        }
     }
 }

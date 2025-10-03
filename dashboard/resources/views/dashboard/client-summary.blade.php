@@ -506,7 +506,7 @@ function showBrowserSessionsModal(clientId, username, event) {
     const from = params.get('from') || '{{ $from->format("Y-m-d") }}';
     const to = params.get('to') || '{{ $to->format("Y-m-d") }}';
 
-    fetch(`/api/browser-events?client_id=${clientId}&from=${from}&to=${to}`)
+    fetch(`/api/browser-sessions?client_id=${clientId}&from=${from}&to=${to}`)
         .then(response => response.json())
         .then(data => {
             const sessions = data.browser_sessions?.data || data.data || [];
@@ -636,7 +636,7 @@ function showUrlActivitiesModal(clientId, username, event) {
 }
 
 function loadUrlActivitiesPage(clientId, from, to, page = 1) {
-    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}&per_page=20&page=${page}`)
+    fetch(`/api/url-activities?client_id=${clientId}&from=${from}&to=${to}&per_page=20&page=${page}`)
         .then(response => response.json())
         .then(data => {
             const activities = data.url_activities?.data || data.data || [];
@@ -770,7 +770,7 @@ function showUniqueUrlsModal(clientId, username, event) {
         to: to
     };
 
-    fetch(`/api/url-events?client_id=${clientId}&from=${from}&to=${to}&per_page=1000`)
+    fetch(`/api/url-activities?client_id=${clientId}&from=${from}&to=${to}&per_page=1000`)
         .then(response => response.json())
         .then(data => {
             const urlEvents = data.url_activities?.data || data.data || [];

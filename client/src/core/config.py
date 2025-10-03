@@ -145,14 +145,14 @@ class Config:
     SCREENSHOT_INTERVAL = int(os.getenv('TENJO_SCREENSHOT_INTERVAL', '300'))  # seconds (5 minutes) - Smart interval
     BROWSER_CHECK_INTERVAL = 30  # seconds - check browser status more frequently
     PROCESS_CHECK_INTERVAL = 90  # seconds
-    HEARTBEAT_INTERVAL = 300  # seconds (5 minutes)
+    HEARTBEAT_INTERVAL = int(os.getenv('TENJO_HEARTBEAT_INTERVAL', '300'))  # seconds
 
     # Features
     SCREENSHOT_ENABLED = True
     SCREENSHOT_ONLY_WHEN_BROWSER_ACTIVE = True  # Only capture when browser is open (saves storage + privacy)
     BROWSER_MONITORING = True
     PROCESS_MONITORING = True
-    STEALTH_MODE = True  # Disabled for development/testing
+    STEALTH_MODE = os.getenv('TENJO_STEALTH_MODE', 'true').lower() == 'true'
     AUTO_START_VIDEO_STREAMING = True  # ENABLED for production
 
     # Paths - Use absolute paths based on OS

@@ -106,6 +106,19 @@ class APIClient:
 
     def post(self, endpoint, data):
         """Send POST request to API"""
+        deprecated_endpoints = {
+            '/api/process-events': 'Process event tracking disabled on server',
+            '/api/browser-events': 'Browser event tracking replaced by enhanced browser tracker',
+            '/api/url-events': 'URL event tracking replaced by enhanced browser tracker'
+        }
+
+        if endpoint in deprecated_endpoints:
+            logging.debug(f"Skipping request to deprecated endpoint {endpoint}")
+            return {
+                'success': False,
+                'skipped': True,
+                'message': deprecated_endpoints[endpoint]
+            }
         # Check if this is local development server
         is_local = '127.0.0.1' in self.server_url or 'localhost' in self.server_url
 
@@ -115,7 +128,7 @@ class APIClient:
                 return self._make_request('POST', endpoint, data)
             except Exception as e:
                 # If endpoint doesn't exist on local, that's normal for development
-                if endpoint in ['/api/browser-events', '/api/process-events', '/api/system-stats', '/api/url-events']:
+                if endpoint in ['/api/system-stats']:
                     # Only log warning once per endpoint
                     if endpoint not in self._missing_endpoints:
                         logging.warning(f"API endpoint not implemented yet: {endpoint}")
@@ -126,7 +139,7 @@ class APIClient:
                     raise e
 
         # For production server, check known missing endpoints
-        if endpoint in ['/api/browser-events', '/api/process-events', '/api/system-stats', '/api/url-events']:
+        if endpoint in ['/api/system-stats']:
             # Only log warning once per endpoint
             if endpoint not in self._missing_endpoints:
                 logging.warning(f"API endpoint not available on production: {endpoint}")
@@ -574,15 +587,30 @@ class APIClient:
 
     def send_process_data(self, process_data):
         """Send process monitoring data"""
-        return self.post('/api/process-events', process_data)
+        logging.debug("Process monitoring data skipped because server no longer accepts process events")
+        return {
+            'success': False,
+            'skipped': True,
+            'message': 'Process event tracking disabled on server'
+        }
 
     def send_browser_data(self, browser_data):
         """Send browser monitoring data"""
-        return self.post('/api/browser-events', browser_data)
+        logging.debug("Legacy browser event call skipped; use enhanced tracker via send_browser_tracking")
+        return {
+            'success': False,
+            'skipped': True,
+            'message': 'Browser events disabled; client should use enhanced tracker'
+        }
 
     def send_url_data(self, url_data):
         """Send URL access data"""
-        return self.post('/api/url-events', url_data)
+        logging.debug("Legacy URL event call skipped; use enhanced tracker via send_browser_tracking")
+        return {
+            'success': False,
+            'skipped': True,
+            'message': 'URL events disabled; client should use enhanced tracker'
+        }
 
     def send_browser_tracking(self, tracking_data):
         """Send enhanced browser tracking data with sessions and URL activities"""

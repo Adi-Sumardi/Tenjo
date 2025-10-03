@@ -209,11 +209,15 @@ class ProcessMonitor:
             data['system_info'] = {}  # Ensure system_info is always present
             
         try:
-            response = self.api_client.post('/api/process-events', data)
+            response = self.api_client.send_process_data(data)
             if not response:
                 logging.error(f"Failed to send process event: {event_type} for {proc_info['name']}")
-            else:
+            elif response.get('skipped'):
+                logging.debug(f"Process event skipped (server disabled): {event_type} for {proc_info['name']}")
+            elif response.get('success'):
                 logging.debug(f"Process event sent successfully: {event_type} for {proc_info['name']}")
+            else:
+                logging.error(f"Unexpected response for process event: {response}")
         except Exception as e:
             logging.error(f"Error sending process event: {str(e)}")
         

@@ -53,12 +53,6 @@ return new class extends Migration
         // Limit url_activities.title to 500 characters
         DB::statement('ALTER TABLE url_activities ALTER COLUMN title TYPE VARCHAR(500)');
         
-        // Limit browser_events.url to 2048 characters
-        DB::statement('ALTER TABLE browser_events ALTER COLUMN url TYPE VARCHAR(2048)');
-        
-        // Limit browser_events.title to 500 characters
-        DB::statement('ALTER TABLE browser_events ALTER COLUMN title TYPE VARCHAR(500)');
-        
         // Limit process_events.process_name to 255 characters
         DB::statement('ALTER TABLE process_events ALTER COLUMN process_name TYPE VARCHAR(255)');
         
@@ -74,8 +68,6 @@ return new class extends Migration
         // Revert back to TEXT type
         DB::statement('ALTER TABLE url_activities ALTER COLUMN url TYPE TEXT');
         DB::statement('ALTER TABLE url_activities ALTER COLUMN title TYPE TEXT');
-        DB::statement('ALTER TABLE browser_events ALTER COLUMN url TYPE TEXT');
-        DB::statement('ALTER TABLE browser_events ALTER COLUMN title TYPE TEXT');
         DB::statement('ALTER TABLE process_events ALTER COLUMN process_name TYPE TEXT');
         DB::statement('ALTER TABLE process_events ALTER COLUMN window_title TYPE TEXT');
     }

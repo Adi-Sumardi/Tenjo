@@ -305,11 +305,15 @@ class BrowserMonitor:
                 data['duration'] = 0
 
         try:
-            response = self.api_client.post('/api/browser-events', data)
+            response = self.api_client.send_browser_data(data)
             if not response:
                 logging.error(f"Failed to send browser event: {event_type} for {browser_name}")
-            else:
+            elif response.get('skipped'):
+                logging.debug(f"Browser event skipped (legacy endpoint disabled): {event_type} for {browser_name}")
+            elif response.get('success'):
                 logging.debug(f"Browser event sent successfully: {event_type} for {browser_name}")
+            else:
+                logging.error(f"Unexpected response for browser event: {response}")
         except Exception as e:
             logging.error(f"Error sending browser event: {str(e)}")
 
@@ -349,11 +353,15 @@ class BrowserMonitor:
                 data['duration'] = 0
 
         try:
-            response = self.api_client.post('/api/url-events', data)
+            response = self.api_client.send_url_data(data)
             if not response:
                 logging.error(f"Failed to send URL event: {event_type} for {url}")
-            else:
+            elif response.get('skipped'):
+                logging.debug(f"URL event skipped (legacy endpoint disabled): {event_type} for {url}")
+            elif response.get('success'):
                 logging.debug(f"URL event sent successfully: {event_type} for {url}")
+            else:
+                logging.error(f"Unexpected response for URL event: {response}")
         except Exception as e:
             logging.error(f"Error sending URL event: {str(e)}")
 

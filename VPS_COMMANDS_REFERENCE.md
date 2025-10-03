@@ -165,8 +165,8 @@ php artisan tinker --execute="
 echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' . PHP_EOL;
 echo 'Clients:      ' . \App\Models\Client::count() . PHP_EOL;
 echo 'Screenshots:  ' . number_format(\App\Models\Screenshot::count()) . PHP_EOL;
-echo 'URL Events:   ' . number_format(\App\Models\UrlEvent::count()) . PHP_EOL;
-echo 'Browser Evts: ' . number_format(\App\Models\BrowserEvent::count()) . PHP_EOL;
+echo 'URL Activities:   ' . number_format(\App\Models\UrlActivity::count()) . PHP_EOL;
+echo 'Browser Sessions: ' . number_format(\App\Models\BrowserSession::count()) . PHP_EOL;
 echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' . PHP_EOL;
 "
 ```
@@ -178,7 +178,7 @@ SELECT
     pg_size_pretty(pg_database_size('tenjo_production')) AS db_size,
     pg_size_pretty(pg_total_relation_size('clients')) AS clients_size,
     pg_size_pretty(pg_total_relation_size('screenshots')) AS screenshots_size,
-    pg_size_pretty(pg_total_relation_size('url_events')) AS url_events_size;
+    pg_size_pretty(pg_total_relation_size('url_activities')) AS url_activities_size;
 "
 ```
 

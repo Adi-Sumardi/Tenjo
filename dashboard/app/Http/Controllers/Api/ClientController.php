@@ -5,15 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Traits\ClientValidation;
 use App\Models\Client;
-use App\Models\BrowserEvent;
-use App\Models\ProcessEvent;
-use App\Models\UrlEvent;
 use App\Models\Screenshot;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 
 class ClientController extends Controller
 {
@@ -311,9 +309,9 @@ class ClientController extends Controller
             ],
             'total_clients' => $clients->count(),
             'summary' => [
-                'browser_events' => $clients->sum(fn($c) => $c->browserSessions->count()),
+                'browser_sessions' => $clients->sum(fn($c) => $c->browserSessions->count()),
                 'process_events' => 0, // Process events not implemented yet
-                'url_events' => $clients->sum(fn($c) => $c->urlActivities->count()),
+                'url_activities' => $clients->sum(fn($c) => $c->urlActivities->count()),
                 'screenshots' => $clients->sum(fn($c) => $c->screenshots->count()),
             ],
             'clients' => $clients->map(function($client) {
@@ -325,7 +323,7 @@ class ClientController extends Controller
                     'custom_username' => $client->custom_username,
                     'ip_address' => $client->ip_address,
                     'os_info' => $client->os_info,
-                    'browser_events' => $client->browserSessions->map(function($session) {
+                    'browser_sessions' => $client->browserSessions->map(function($session) {
                         return [
                             'id' => $session->id,
                             'browser_name' => $session->browser_name,
@@ -334,7 +332,7 @@ class ClientController extends Controller
                         ];
                     }),
                     'process_events' => [], // Process events not implemented yet
-                    'url_events' => $client->urlActivities->map(function($activity) {
+                    'url_activities' => $client->urlActivities->map(function($activity) {
                         return [
                             'id' => $activity->id,
                             'url' => $activity->url,
@@ -455,8 +453,16 @@ class ClientController extends Controller
      */
     public function deleteClient(Request $request, string $clientId): JsonResponse
     {
-        if (!Str::isUuid($clientId)) {
-            return response()->json(['success' => false, 'message' => 'Invalid Client ID format'], 400);
+        $validator = Validator::make(['client_id' => $clientId], [
+            'client_id' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client ID must be a non-empty string.',
+                'errors' => $validator->errors()
+            ], 400);
         }
 
         try {
@@ -483,9 +489,6 @@ class ClientController extends Controller
             DB::transaction(function () use ($client, $clientInfo) {
                 // Delete associated data using relationships for consistency and safety
                 $screenshotCount = $client->screenshots()->count();
-                $browserEventCount = 0; // Browser events deprecated
-                $processEventCount = 0; // Process events not implemented yet
-                $urlEventCount = 0; // URL events deprecated
                 $browserSessionCount = $client->browserSessions()->count();
                 $urlActivityCount = $client->urlActivities()->count();
 
@@ -498,9 +501,6 @@ class ClientController extends Controller
 
                 Log::info('Client deleted successfully', array_merge($clientInfo, [
                     'deleted_screenshots' => $screenshotCount,
-                    'deleted_browser_events' => $browserEventCount,
-                    'deleted_process_events' => $processEventCount,
-                    'deleted_url_events' => $urlEventCount,
                     'deleted_browser_sessions' => $browserSessionCount,
                     'deleted_url_activities' => $urlActivityCount,
                     'deleted_by_ip' => request()->ip()

