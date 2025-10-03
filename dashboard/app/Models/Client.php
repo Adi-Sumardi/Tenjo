@@ -78,16 +78,15 @@ class Client extends Model
 
     public function getTodayBrowserActivity()
     {
-        return $this->browserEvents()
+        return $this->browserSessions()
             ->whereDate('created_at', today())
-            ->orderBy('start_time', 'desc');
+            ->orderBy('created_at', 'desc');
     }
 
     public function getTodayProcessActivity()
     {
-        return $this->processEvents()
-            ->whereDate('created_at', today())
-            ->orderBy('start_time', 'desc');
+        // Process events not implemented yet
+        return collect([]);
     }
 
     public function getOsDisplayName(): string
