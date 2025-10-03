@@ -44,6 +44,16 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
+        // Return JSON for authentication errors (401)
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'error' => 'Authentication required',
+                    'message' => 'Unauthenticated.',
+                ], 401);
+            }
+        });
+
         // Return JSON for general API errors
         $exceptions->render(function (\Throwable $e, Request $request) {
             if ($request->is('api/*') && !config('app.debug')) {
