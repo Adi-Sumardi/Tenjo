@@ -528,29 +528,28 @@ class APIClient:
                 'timezone': client_info.get('timezone')
             }
 
-            # Convert os_info to correct format expected by production
+            # Convert os_info to array format as required by Laravel validation
             os_info = client_info.get('os_info', client_info.get('os'))
             if isinstance(os_info, dict):
-                # Keep as dict but with simple structure
-                production_data['os_info'] = {
-                    'name': os_info.get('name', ''),
-                    'version': os_info.get('version', ''),
-                    'architecture': os_info.get('architecture', '')
-                }
+                # Convert dict to array: [name, version, architecture]
+                production_data['os_info'] = [
+                    os_info.get('name', 'Unknown'),
+                    os_info.get('version', ''),
+                    os_info.get('architecture', '')
+                ]
             elif isinstance(os_info, str):
-                # Convert string to dict
-                parts = os_info.split(' ', 1)
-                production_data['os_info'] = {
-                    'name': parts[0] if len(parts) > 0 else 'Unknown',
-                    'version': parts[1] if len(parts) > 1 else '',
-                    'architecture': ''
-                }
+                # Convert string to array
+                parts = os_info.split(' ', 2)  # Split into max 3 parts
+                production_data['os_info'] = [
+                    parts[0] if len(parts) > 0 else 'Unknown',
+                    parts[1] if len(parts) > 1 else '',
+                    parts[2] if len(parts) > 2 else ''
+                ]
+            elif isinstance(os_info, list):
+                # Already array, ensure 3 elements
+                production_data['os_info'] = (os_info + ['', '', ''])[:3]
             else:
-                production_data['os_info'] = {
-                    'name': 'Unknown',
-                    'version': '',
-                    'architecture': ''
-                }
+                production_data['os_info'] = ['Unknown', '', '']
 
             # Use production headers
             headers = {
