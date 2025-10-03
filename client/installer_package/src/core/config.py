@@ -191,7 +191,7 @@ class Config:
 
     # Logging
     LOG_LEVEL = os.getenv("TENJO_LOG_LEVEL", "ERROR")
-    LOG_FILE = os.path.join(LOG_DIR, f"tenjo_client_{datetime.now().strftime('%Y%m%d')}.log")
+    LOG_FILE = None  # Will be set in init_directories()
 
     @classmethod
     def init_directories(cls):

