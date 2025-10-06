@@ -34,12 +34,19 @@ class StreamHandler:
 
     def start_streaming(self):
         """
-        SUPER SIMPLE streaming loop - MANUAL START ONLY
+        SUPER SIMPLE streaming loop - AUTO START based on config
         """
         self.logger.info("=== SUPER SIMPLE STREAM HANDLER START ===")
         
-        # NO AUTO-START - hanya manual dari server request
-        self.logger.info("Waiting for manual server requests...")
+        # Check if auto-start is enabled
+        auto_start = getattr(Config, 'AUTO_START_VIDEO_STREAMING', False)
+        if auto_start:
+            self.logger.info("AUTO-START enabled - streaming will begin automatically")
+            self.is_streaming = True
+            self.video_streaming = True
+            self._start_simple_worker()
+        else:
+            self.logger.info("Waiting for manual server requests...")
 
         # Super simple main loop
         loop_count = 0

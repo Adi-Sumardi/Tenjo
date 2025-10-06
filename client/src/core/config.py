@@ -1,4 +1,5 @@
 # Tenjo Client Configuration for Yayasans-MacBook-Air.local
+import json
 import os
 import uuid
 import socket
@@ -30,9 +31,17 @@ def get_local_ip():
     return '127.0.0.1'
 
 class Config:
-    # Server Configuration - PRODUCTION MODE
-    SERVER_URL = os.getenv('TENJO_SERVER_URL', "https://tenjo.adilabs.id")  # Production domain
-    # SERVER_URL = "http://127.0.0.1:8000"  # Development server (COMMENTED FOR PRODUCTION)
+    # Server Configuration - AUTO-DETECT MODE
+    # Priority: ENV VAR > server_override.json > local dev > production
+    DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://127.0.0.1:8000")  # Local development default
+    PRODUCTION_SERVER_URL = "https://tenjo.adilabs.id"  # Production domain
+    LEGACY_SERVER_URLS = [
+        "http://103.129.149.67",
+        "https://103.129.149.67",
+    ]
+    SERVER_OVERRIDE_FILE = 'server_override.json'
+
+    SERVER_URL = DEFAULT_SERVER_URL.rstrip('/')
     API_ENDPOINT = f"{SERVER_URL}/api"
     API_KEY = os.getenv('TENJO_API_KEY', "tenjo-api-key-2024")
 
@@ -204,12 +213,74 @@ class Config:
         os.makedirs(cls.LOG_DIR, exist_ok=True)
         os.makedirs(cls.DATA_DIR, exist_ok=True)
         
+        # Refresh server settings based on overrides (if available)
+        cls.refresh_server_settings()
+
         # Update LOG_FILE path after LOG_DIR is set
         cls.LOG_FILE = os.path.join(cls.LOG_DIR, f"tenjo_client_{datetime.now().strftime('%Y%m%d')}.log")
         
         # Initialize CLIENT_ID after directories are ready
         if cls.CLIENT_ID is None:
             cls.CLIENT_ID = cls.get_persistent_client_id()
+
+    @classmethod
+    def refresh_server_settings(cls, server_url=None, persist=False):
+        """Refresh server URL and API endpoint, optionally persisting override."""
+        candidate_url = server_url or cls._load_server_override() or cls.DEFAULT_SERVER_URL
+        sanitized = cls._sanitize_server_url(candidate_url)
+
+        cls.SERVER_URL = sanitized
+        cls.API_ENDPOINT = f"{cls.SERVER_URL}/api"
+
+        if persist:
+            cls.persist_server_override(cls.SERVER_URL)
+
+        return cls.SERVER_URL
+
+    @classmethod
+    def persist_server_override(cls, server_url):
+        """Persist preferred server URL to override file."""
+        try:
+            override_path = cls._resolve_override_path()
+            os.makedirs(os.path.dirname(override_path), exist_ok=True)
+            with open(override_path, 'w', encoding='utf-8') as fh:
+                json.dump({'server_url': cls._sanitize_server_url(server_url)}, fh)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def _load_server_override(cls):
+        override_path = cls._resolve_override_path()
+        if not os.path.exists(override_path):
+            return None
+
+        try:
+            with open(override_path, 'r', encoding='utf-8') as fh:
+                data = json.load(fh)
+                override_url = data.get('server_url')
+                if override_url:
+                    return override_url
+        except Exception:
+            return None
+
+        return None
+
+    @classmethod
+    def _resolve_override_path(cls):
+        base_dir = cls.DATA_DIR or cls.get_data_directory()
+        return os.path.join(base_dir, cls.SERVER_OVERRIDE_FILE)
+
+    @staticmethod
+    def _sanitize_server_url(url):
+        if not url:
+            return Config.DEFAULT_SERVER_URL.rstrip('/')
+
+        sanitized = url.strip()
+        if not sanitized.startswith(('http://', 'https://')):
+            sanitized = f"https://{sanitized.lstrip('/')}"
+
+        return sanitized.rstrip('/')
 
 # Initialize directories and CLIENT_ID
 Config.init_directories()

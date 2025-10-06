@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'tenjo' => [
+        'client_server_url' => rtrim(env('TENJO_CLIENT_SERVER_URL', env('APP_URL', 'https://tenjo.adilabs.id')), '/'),
+    ],
+
 ];

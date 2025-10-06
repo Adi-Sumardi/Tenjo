@@ -1,5 +1,14 @@
 [
     {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
         "label": "os",
         "kind": 6,
         "isExtraImport": true,
@@ -124,6 +133,118 @@
         "documentation": {}
     },
     {
+        "label": "timezone",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "datetime",
         "importPath": "datetime",
         "description": "datetime",
@@ -228,14 +349,6 @@
         "documentation": {}
     },
     {
-        "label": "timedelta",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
         "label": "datetime",
         "importPath": "datetime",
         "description": "datetime",
@@ -244,71 +357,7 @@
         "documentation": {}
     },
     {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "timedelta",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
+        "label": "timezone",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -439,6 +488,46 @@
     },
     {
         "label": "Set",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -622,15 +711,6 @@
         "description": "core.config",
         "isExtraImport": true,
         "detail": "core.config",
-        "documentation": {}
-    },
-    {
-        "label": "json",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "json",
-        "description": "json",
-        "detail": "json",
         "documentation": {}
     },
     {
@@ -835,57 +915,6 @@
         "documentation": {}
     },
     {
-        "label": "hashlib",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "hashlib",
-        "description": "hashlib",
-        "detail": "hashlib",
-        "documentation": {}
-    },
-    {
-        "label": "tarfile",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "tarfile",
-        "description": "tarfile",
-        "detail": "tarfile",
-        "documentation": {}
-    },
-    {
-        "label": "shutil",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "shutil",
-        "description": "shutil",
-        "detail": "shutil",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
         "label": "signal",
         "kind": 6,
         "isExtraImport": true,
@@ -1087,6 +1116,74 @@
         "documentation": {}
     },
     {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "shutil",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "shutil",
+        "description": "shutil",
+        "detail": "shutil",
+        "documentation": {}
+    },
+    {
+        "label": "tarfile",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "tarfile",
+        "description": "tarfile",
+        "detail": "tarfile",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "hashlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "hashlib",
+        "description": "hashlib",
+        "detail": "hashlib",
+        "documentation": {}
+    },
+    {
+        "label": "urljoin",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
+        "label": "urlparse",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
         "label": "ProcessMonitor",
         "importPath": "src.modules.process_monitor",
         "description": "src.modules.process_monitor",
@@ -1131,7 +1228,7 @@
         "kind": 6,
         "importPath": "client.installer_package.src.core.config",
         "description": "client.installer_package.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development server (COMMENTED FOR PRODUCTION)\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():\n        \"\"\"",
+        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    LEGACY_SERVER_URLS = [\n        \"http://103.129.149.67\",\n        \"https://103.129.149.67\",\n    ]\n    SERVER_OVERRIDE_FILE = 'server_override.json'\n    SERVER_URL = DEFAULT_SERVER_URL.rstrip('/')\n    API_ENDPOINT = f\"{SERVER_URL}/api\"",
         "detail": "client.installer_package.src.core.config",
         "documentation": {}
     },
@@ -1253,24 +1350,6 @@
         "documentation": {}
     },
     {
-        "label": "ClientUpdater",
-        "kind": 6,
-        "importPath": "client.installer_package.src.utils.auto_update",
-        "description": "client.installer_package.src.utils.auto_update",
-        "peekOfCode": "class ClientUpdater:\n    \"\"\"Handles automatic client updates from server\"\"\"\n    # Current client version\n    CURRENT_VERSION = \"2025.10.02\"  # Format: YYYY.MM.DD[.patch]\n    def __init__(self, config):\n        self.config = config\n        self.server_url = config.SERVER_URL\n        self.version_check_url = f\"{self.server_url}/downloads/client/version.json\"\n        self.download_base_url = f\"{self.server_url}/downloads/client\"\n        # Update paths based on OS",
-        "detail": "client.installer_package.src.utils.auto_update",
-        "documentation": {}
-    },
-    {
-        "label": "check_and_update_if_needed",
-        "kind": 2,
-        "importPath": "client.installer_package.src.utils.auto_update",
-        "description": "client.installer_package.src.utils.auto_update",
-        "peekOfCode": "def check_and_update_if_needed(config):\n    \"\"\"\n    Helper function to check and update client if needed\n    Call this on client startup\n    \"\"\"\n    updater = ClientUpdater(config)\n    # Only check for updates once per day\n    last_check_file = Path(config.DATA_DIR) / \".last_update_check\"\n    try:\n        if last_check_file.exists():",
-        "detail": "client.installer_package.src.utils.auto_update",
-        "documentation": {}
-    },
-    {
         "label": "check_screen_recording_permission",
         "kind": 2,
         "importPath": "client.installer_package.src.utils.macos_permissions",
@@ -1320,7 +1399,7 @@
         "kind": 6,
         "importPath": "client.installer_package.main",
         "description": "client.installer_package.main",
-        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Setup stealth logging\n        setup_stealth_logging()\n        self.logger = logging.getLogger('StealthClient')\n        # Initialize browser tracker\n        self.browser_tracker = BrowserTracker(self.api_client, self.logger)\n        # Initialize screen capture with browser tracker integration",
+        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        # Setup stealth logging\n        setup_stealth_logging()\n        self.logger = logging.getLogger('StealthClient')\n        self.registered = False\n        self.last_register_attempt = 0.0\n        self.registration_retry_interval = 120  # seconds",
         "detail": "client.installer_package.main",
         "documentation": {}
     },
@@ -1383,7 +1462,7 @@
         "kind": 6,
         "importPath": "client.src.core.config",
         "description": "client.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development server (COMMENTED FOR PRODUCTION)\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():\n        \"\"\"",
+        "peekOfCode": "class Config:\n    # Server Configuration - AUTO-DETECT MODE\n    # Priority: ENV VAR > server_override.json > local dev > production\n    DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Local development default\n    PRODUCTION_SERVER_URL = \"https://tenjo.adilabs.id\"  # Production domain\n    LEGACY_SERVER_URLS = [\n        \"http://103.129.149.67\",\n        \"https://103.129.149.67\",\n    ]\n    SERVER_OVERRIDE_FILE = 'server_override.json'",
         "detail": "client.src.core.config",
         "documentation": {}
     },
@@ -1509,7 +1588,16 @@
         "kind": 6,
         "importPath": "client.src.utils.auto_update",
         "description": "client.src.utils.auto_update",
-        "peekOfCode": "class ClientUpdater:\n    \"\"\"Handles automatic client updates from server\"\"\"\n    # Current client version\n    CURRENT_VERSION = \"2025.10.02\"  # Format: YYYY.MM.DD[.patch]\n    def __init__(self, config):\n        self.config = config\n        self.server_url = config.SERVER_URL\n        self.version_check_url = f\"{self.server_url}/downloads/client/version.json\"\n        self.download_base_url = f\"{self.server_url}/downloads/client\"\n        # Update paths based on OS",
+        "peekOfCode": "class ClientUpdater:\n    \"\"\"Handles automatic client updates from server.\"\"\"\n    PENDING_UPDATE_FILE = \".pending_update.json\"\n    UPDATE_SCHEDULE_FILE = \".update_schedule.json\"\n    def __init__(self, config):\n        self.config = config\n        self.server_candidates = self._resolve_server_candidates()\n        active_server = self.server_candidates[0]\n        self._set_active_server(active_server)\n        system = platform.system()",
+        "detail": "client.src.utils.auto_update",
+        "documentation": {}
+    },
+    {
+        "label": "version_info_timestamp",
+        "kind": 2,
+        "importPath": "client.src.utils.auto_update",
+        "description": "client.src.utils.auto_update",
+        "peekOfCode": "def version_info_timestamp() -> str:\n    return datetime.now(timezone.utc).strftime('%Y.%m.%d')\ndef check_and_update_if_needed(config, force: bool = False) -> bool:\n    updater = ClientUpdater(config)\n    if not force and not updater.should_check_now():\n        return False\n    return updater.perform_update(force=force)",
         "detail": "client.src.utils.auto_update",
         "documentation": {}
     },
@@ -1518,7 +1606,7 @@
         "kind": 2,
         "importPath": "client.src.utils.auto_update",
         "description": "client.src.utils.auto_update",
-        "peekOfCode": "def check_and_update_if_needed(config):\n    \"\"\"\n    Helper function to check and update client if needed\n    Call this on client startup\n    \"\"\"\n    updater = ClientUpdater(config)\n    # Only check for updates once per day\n    last_check_file = Path(config.DATA_DIR) / \".last_update_check\"\n    try:\n        if last_check_file.exists():",
+        "peekOfCode": "def check_and_update_if_needed(config, force: bool = False) -> bool:\n    updater = ClientUpdater(config)\n    if not force and not updater.should_check_now():\n        return False\n    return updater.perform_update(force=force)",
         "detail": "client.src.utils.auto_update",
         "documentation": {}
     },
@@ -1572,7 +1660,7 @@
         "kind": 6,
         "importPath": "client.usb_deployment.installer_package.src.core.config",
         "description": "client.usb_deployment.installer_package.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    # SERVER_URL = \"http://127.0.0.1:8000\"  # Development server (COMMENTED FOR PRODUCTION)\n    API_ENDPOINT = f\"{SERVER_URL}/api\"\n    API_KEY = os.getenv('TENJO_API_KEY', \"tenjo-api-key-2024\")\n    # Client Identification - Persistent hardware-based ID\n    @staticmethod\n    def generate_hardware_fingerprint():\n        \"\"\"",
+        "peekOfCode": "class Config:\n    # Server Configuration - PRODUCTION MODE\n    DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production domain\n    LEGACY_SERVER_URLS = [\n        \"http://103.129.149.67\",\n        \"https://103.129.149.67\",\n    ]\n    SERVER_OVERRIDE_FILE = 'server_override.json'\n    SERVER_URL = DEFAULT_SERVER_URL.rstrip('/')\n    API_ENDPOINT = f\"{SERVER_URL}/api\"",
         "detail": "client.usb_deployment.installer_package.src.core.config",
         "documentation": {}
     },
@@ -2004,7 +2092,7 @@
         "kind": 6,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        self.process_monitor = ProcessMonitor(self.api_client)\n        self.stealth_mode = StealthMode()\n        self.stealth_manager = StealthManager(entry_script=os.path.abspath(__file__))\n        self.heartbeat_interval = max(10, Config.HEARTBEAT_INTERVAL)\n        # Setup stealth logging\n        setup_stealth_logging()",
+        "peekOfCode": "class StealthClient:\n    def __init__(self):\n        self.api_client = APIClient(Config.SERVER_URL, Config.API_KEY)\n        self.stream_handler = StreamHandler(self.api_client)\n        self.process_monitor = ProcessMonitor(self.api_client)\n        self.stealth_mode = StealthMode()\n        self.stealth_manager = StealthManager(entry_script=os.path.abspath(__file__))\n        self.heartbeat_interval = max(10, Config.HEARTBEAT_INTERVAL)\n        self.registered = False\n        self.last_register_attempt = 0.0",
         "detail": "client.main",
         "documentation": {}
     },

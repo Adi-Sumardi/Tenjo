@@ -20,13 +20,32 @@ class Client extends Model
         'status',
         'last_seen',
         'first_seen',
-        'timezone'
+        'timezone',
+        'pending_update',
+        'update_version',
+        'update_url',
+        'update_changes',
+        'update_triggered_at',
+        'update_completed_at',
+        'current_version',
+        'update_checksum',
+        'update_package_size',
+        'update_signature',
+        'update_priority',
+        'update_window_start',
+        'update_window_end'
     ];
 
     protected $casts = [
         'os_info' => 'array',
         'last_seen' => 'datetime',
-        'first_seen' => 'datetime'
+        'first_seen' => 'datetime',
+        'pending_update' => 'boolean',
+        'update_changes' => 'array',
+        'update_triggered_at' => 'datetime',
+        'update_completed_at' => 'datetime',
+        'update_window_start' => 'datetime:H:i:s',
+        'update_window_end' => 'datetime:H:i:s'
     ];
 
     public function screenshots(): HasMany

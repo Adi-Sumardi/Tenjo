@@ -47,6 +47,9 @@ Route::prefix('clients')->group(function () {
         Route::get('/{clientId}/settings', [ClientController::class, 'getSettings']);
         Route::get('/{clientId}/latest-screenshot', [ClientController::class, 'getLatestScreenshot']);
         Route::put('/{clientId}/status', [ClientController::class, 'updateStatus']);
+        Route::post('/{clientId}/trigger-update', [ClientController::class, 'triggerUpdate']);
+        Route::post('/{clientId}/cancel-update', [ClientController::class, 'cancelUpdate']);
+        Route::post('/schedule-update', [ClientController::class, 'scheduleUpdate']);
     });
 });
 

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class ClientController extends Controller
 {
@@ -543,25 +544,49 @@ class ClientController extends Controller
     {
         try {
             $client = Client::where('client_id', $clientId)->first();
+            $preferredServerUrl = rtrim(config('services.tenjo.client_server_url', config('app.url')), '/');
 
             if (!$client) {
                 return response()->json([
-                    'has_update' => false
+                    'has_update' => false,
+                    'server_url' => $preferredServerUrl,
                 ]);
             }
 
             // Check if there's a pending update
             if ($client->pending_update) {
+                $timezone = $client->timezone ?? config('app.timezone', 'UTC');
+                $now = Carbon::now($timezone);
+
+                $windowStart = $client->update_window_start ? $client->update_window_start->setTimezone($timezone) : null;
+                $windowEnd = $client->update_window_end ? $client->update_window_end->setTimezone($timezone) : null;
+                $withinWindow = $this->isWithinUpdateWindow($client, $now);
+                $secondsUntilWindow = $this->secondsUntilWindow($client, $now);
+
                 return response()->json([
                     'has_update' => true,
+                    'current_version' => $client->current_version,
+                    'execute_now' => $withinWindow || $client->update_priority === 'critical',
                     'version' => $client->update_version,
                     'update_url' => $client->update_url,
-                    'changes' => $client->update_changes ? json_decode($client->update_changes) : []
+                    'changes' => $client->update_changes ?? [],
+                    'checksum' => $client->update_checksum,
+                    'package_size' => $client->update_package_size,
+                    'signature' => $client->update_signature,
+                    'priority' => $client->update_priority,
+                    'window_start' => $windowStart ? $windowStart->format('H:i:s') : null,
+                    'window_end' => $windowEnd ? $windowEnd->format('H:i:s') : null,
+                    'triggered_at' => $client->update_triggered_at ? $client->update_triggered_at->toIso8601String() : null,
+                    'defer_seconds' => $client->update_priority === 'critical' ? 0 : $secondsUntilWindow,
+                    'requires_stealth' => true,
+                    'quarantine' => false,
+                    'server_url' => $preferredServerUrl,
                 ]);
             }
 
             return response()->json([
-                'has_update' => false
+                'has_update' => false,
+                'server_url' => $preferredServerUrl,
             ]);
 
         } catch (\Exception $e) {
@@ -571,7 +596,8 @@ class ClientController extends Controller
             ]);
 
             return response()->json([
-                'has_update' => false
+                'has_update' => false,
+                'server_url' => rtrim(config('services.tenjo.client_server_url', config('app.url')), '/'),
             ]);
         }
     }
@@ -592,10 +618,19 @@ class ClientController extends Controller
             }
 
             // Update client record
-            $client->pending_update = false;
-            $client->current_version = $request->input('version');
-            $client->update_completed_at = now();
-            $client->save();
+            $client->forceFill([
+                'pending_update' => false,
+                'current_version' => $request->input('version'),
+                'update_completed_at' => now(),
+                'update_url' => null,
+                'update_checksum' => null,
+                'update_package_size' => null,
+                'update_signature' => null,
+                'update_changes' => null,
+                'update_priority' => 'normal',
+                'update_window_start' => null,
+                'update_window_end' => null,
+            ])->save();
 
             Log::info('Client update completed', [
                 'client_id' => $clientId,
@@ -619,5 +654,237 @@ class ClientController extends Controller
                 'message' => 'Error recording update completion'
             ], 500);
         }
+    }
+
+    /**
+     * Schedule a stealth update for a specific client.
+     */
+    public function triggerUpdate(Request $request, string $clientId): JsonResponse
+    {
+        $client = Client::where('client_id', $clientId)->first();
+
+        if (!$client) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client not found'
+            ], 404);
+        }
+
+        $payload = $this->validateUpdatePayload($request);
+
+        $this->applyUpdatePayload($client, $payload, $request->ip());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Update scheduled for client',
+            'client_id' => $client->client_id,
+            'version' => $client->update_version
+        ]);
+    }
+
+    /**
+     * Schedule stealth update for multiple clients at once.
+     */
+    public function scheduleUpdate(Request $request): JsonResponse
+    {
+        $payload = $this->validateUpdatePayload($request, true);
+
+        $clientQuery = Client::query();
+
+        if (!empty($payload['client_ids'])) {
+            $clientQuery->whereIn('client_id', $payload['client_ids']);
+        }
+
+        $clients = $clientQuery->get();
+
+        if ($clients->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No clients matched the provided criteria'
+            ], 404);
+        }
+
+        $updated = 0;
+
+        foreach ($clients as $client) {
+            $this->applyUpdatePayload($client, $payload, $request->ip());
+            $updated++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Update scheduled',
+            'targets' => $updated,
+            'version' => $payload['version']
+        ]);
+    }
+
+    /**
+     * Cancel a pending update for a client.
+     */
+    public function cancelUpdate(Request $request, string $clientId): JsonResponse
+    {
+        $client = Client::where('client_id', $clientId)->first();
+
+        if (!$client) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client not found'
+            ], 404);
+        }
+
+        $client->forceFill([
+            'pending_update' => false,
+            'update_version' => null,
+            'update_url' => null,
+            'update_checksum' => null,
+            'update_package_size' => null,
+            'update_signature' => null,
+            'update_changes' => null,
+            'update_priority' => 'normal',
+            'update_triggered_at' => null,
+            'update_window_start' => null,
+            'update_window_end' => null,
+        ])->save();
+
+        Log::info('Pending update cancelled', [
+            'client_id' => $clientId,
+            'ip_address' => $request->ip()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pending update cancelled'
+        ]);
+    }
+
+    /**
+     * Validate update payload.
+     */
+    protected function validateUpdatePayload(Request $request, bool $allowBulk = false): array
+    {
+        $rules = [
+            'version' => 'required|string|max:50',
+            'update_url' => 'required|url',
+            'checksum' => 'nullable|string|max:128',
+            'signature' => 'nullable|string|max:256',
+            'package_size' => 'nullable|integer|min:0',
+            'changes' => 'nullable|array',
+            'priority' => 'nullable|in:low,normal,high,critical',
+            'window_start' => 'nullable|date_format:H:i',
+            'window_end' => 'nullable|date_format:H:i',
+        ];
+
+        if ($allowBulk) {
+            $rules['client_ids'] = 'nullable|array|min:1';
+            $rules['client_ids.*'] = 'string|max:255';
+        }
+
+        $validated = $request->validate($rules);
+
+        if (!empty($validated['window_start']) && empty($validated['window_end'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'window_end' => 'Window end time is required when start time is provided.'
+            ]);
+        }
+
+        if (!empty($validated['window_end']) && empty($validated['window_start'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'window_start' => 'Window start time is required when end time is provided.'
+            ]);
+        }
+
+        return $validated;
+    }
+
+    /**
+     * Apply update payload to a client record.
+     */
+    protected function applyUpdatePayload(Client $client, array $payload, ?string $ipAddress = null): void
+    {
+        $changes = $payload['changes'] ?? null;
+
+        $client->forceFill([
+            'pending_update' => true,
+            'update_version' => $payload['version'],
+            'update_url' => $payload['update_url'],
+            'update_checksum' => $payload['checksum'] ?? null,
+            'update_signature' => $payload['signature'] ?? null,
+            'update_package_size' => $payload['package_size'] ?? null,
+            'update_changes' => $changes,
+            'update_priority' => $payload['priority'] ?? 'normal',
+            'update_triggered_at' => now(),
+            'update_window_start' => array_key_exists('window_start', $payload) && $payload['window_start'] !== null
+                ? Carbon::createFromFormat('H:i', $payload['window_start'], $client->timezone ?? config('app.timezone', 'UTC'))
+                : null,
+            'update_window_end' => array_key_exists('window_end', $payload) && $payload['window_end'] !== null
+                ? Carbon::createFromFormat('H:i', $payload['window_end'], $client->timezone ?? config('app.timezone', 'UTC'))
+                : null,
+        ])->save();
+
+        Log::info('Stealth update scheduled', [
+            'client_id' => $client->client_id,
+            'hostname' => $client->hostname,
+            'version' => $payload['version'],
+            'priority' => $client->update_priority,
+            'window_start' => $payload['window_start'] ?? null,
+            'window_end' => $payload['window_end'] ?? null,
+            'ip_address' => $ipAddress,
+        ]);
+    }
+
+    /**
+     * Determine if current time is within the desired update window.
+     */
+    protected function isWithinUpdateWindow(Client $client, Carbon $now): bool
+    {
+        if (!$client->update_window_start || !$client->update_window_end) {
+            return true;
+        }
+
+        $timezone = $client->timezone ?? config('app.timezone', 'UTC');
+
+        $start = Carbon::createFromTimeString($client->update_window_start->format('H:i:s'), $timezone)
+            ->setDate($now->year, $now->month, $now->day);
+        $end = Carbon::createFromTimeString($client->update_window_end->format('H:i:s'), $timezone)
+            ->setDate($now->year, $now->month, $now->day);
+
+        if ($end->lessThanOrEqualTo($start)) {
+            $end->addDay();
+            if ($now->lessThan($start)) {
+                $start->subDay();
+            }
+        }
+
+        return $now->betweenIncluded($start, $end);
+    }
+
+    /**
+     * Seconds until next allowed update window.
+     */
+    protected function secondsUntilWindow(Client $client, Carbon $now): ?int
+    {
+        if (!$client->update_window_start || !$client->update_window_end) {
+            return null;
+        }
+
+        $timezone = $client->timezone ?? config('app.timezone', 'UTC');
+
+        $start = Carbon::createFromTimeString($client->update_window_start->format('H:i:s'), $timezone)
+            ->setDate($now->year, $now->month, $now->day);
+        $end = Carbon::createFromTimeString($client->update_window_end->format('H:i:s'), $timezone)
+            ->setDate($now->year, $now->month, $now->day);
+
+        if ($now->betweenIncluded($start, $end)) {
+            return 0;
+        }
+
+        if ($now->lessThan($start)) {
+            return (int) $now->diffInSeconds($start, false);
+        }
+
+        $start->addDay();
+
+        return (int) $now->diffInSeconds($start, false);
     }
 }

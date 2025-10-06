@@ -298,7 +298,7 @@ class DashboardController extends Controller
             ->get()->keyBy('client_id')
             ->pluck('count', 'client_id');
 
-        $sessionStats = BrowserSession::whereBetween('created_at', [$from, $to])
+        $sessionStats = BrowserSession::whereBetween('session_start', [$from, $to])
             ->select('client_id', DB::raw('count(*) as count'))
             ->groupBy('client_id')
             ->get()->keyBy('client_id');
