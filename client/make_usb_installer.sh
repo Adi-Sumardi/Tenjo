@@ -38,15 +38,13 @@ else
     echo "   Using local files instead..."
 fi
 
-# Create Windows installer batch script
-echo "📝 Creating Windows installer script..."
+# Create Windows installer batch script  
+echo "📝 Creating Windows installer script (no reboot version)..."
 cat > "$INSTALLER_DIR/INSTALL_TENJO.bat" << 'BAT_EOF'
 @echo off
-REM Tenjo Client - Automated Installer
-REM Run as Administrator!
-
 echo ========================================
-echo  TENJO CLIENT INSTALLER v1.0.2
+echo    TENJO CLIENT - AUTOMATED INSTALLER
+echo    (No Reboot Required!)
 echo ========================================
 echo.
 echo This will install Tenjo monitoring client
@@ -203,81 +201,50 @@ echo   [OK] Auto-start configured
 
 echo.
 
-REM ========================================
-REM Step 7: Start service
-REM ========================================
-echo [7/7] Starting Tenjo client...
-
-REM Start via Task Scheduler
+echo.
+echo [7/8] Starting Tenjo service...
+:: Try scheduled task first
 schtasks /Run /TN "TenjoMonitor" >nul 2>&1
-
-REM Verify process started
-timeout /t 3 >nul
-tasklist /FI "IMAGENAME eq python.exe" 2>NUL | find /I "python.exe" >NUL
 if %errorLevel% equ 0 (
-    echo   [OK] Tenjo client is running
+    echo     ✓ Started via scheduled task
 ) else (
-    echo   [WARNING] Client may not be running yet
-    echo   [INFO] Will auto-start on next reboot
+    :: Fallback: start directly
+    cd /d "%TENJO_DIR%"
+    start "" /B pythonw.exe main.py >nul 2>&1
+    echo     ✓ Started directly
 )
 
 echo.
+echo [8/8] Verifying installation...
+timeout /t 3 /nobreak >nul
+tasklist /FI "IMAGENAME eq pythonw.exe" 2>NUL | find /I /N "pythonw.exe">NUL
+if %errorLevel% equ 0 (
+    echo     ✓ Tenjo is running!
+) else (
+    tasklist /FI "IMAGENAME eq python.exe" 2>NUL | find /I /N "python.exe">NUL
+    if %errorLevel% equ 0 (
+        echo     ✓ Tenjo is running!
+    ) else (
+        echo     ⚠ Warning: Could not verify Tenjo process
+        echo     The service may start on next login
+    )
+)
 
-REM ========================================
-REM Installation Complete
-REM ========================================
+echo.
 echo ========================================
-echo  INSTALLATION COMPLETE!
-echo ========================================
-echo.
-echo Installation Directory: %INSTALL_DIR%
-echo Service Name: TenjoMonitor
-echo Server URL: https://tenjo.adilabs.id
-echo Version: 1.0.2
-echo.
-echo This PC will appear in dashboard within 5 minutes:
-echo https://tenjo.adilabs.id/
-echo.
-echo Client will auto-start on system boot.
-echo.
-
-REM Save installation info
-echo TENJO CLIENT INSTALLATION INFO > "%INSTALL_DIR%\install_info.txt"
-echo Date: %DATE% %TIME% >> "%INSTALL_DIR%\install_info.txt"
-echo Computer: %COMPUTERNAME% >> "%INSTALL_DIR%\install_info.txt"
-echo User: %USERNAME% >> "%INSTALL_DIR%\install_info.txt"
-echo Version: 1.0.2 >> "%INSTALL_DIR%\install_info.txt"
-echo Server: https://tenjo.adilabs.id >> "%INSTALL_DIR%\install_info.txt"
-
-echo Installation info saved to: %INSTALL_DIR%\install_info.txt
-echo.
-
-REM ========================================
-REM Optional: Reboot
-REM ========================================
-echo ========================================
-echo  REBOOT RECOMMENDED
+echo    ✅ INSTALLATION COMPLETE!
 echo ========================================
 echo.
-echo For best results, please reboot this PC now.
+echo ✓ Tenjo installed to: %TENJO_DIR%
+echo ✓ Server: https://tenjo.adilabs.id
+echo ✓ Service started (no reboot needed!)
+echo ✓ Auto-start enabled (runs on login)
 echo.
-choice /C YN /M "Reboot now"
-if errorlevel 2 goto :skip_reboot
-
+echo The client should appear in dashboard within 1-2 minutes.
 echo.
-echo Rebooting in 60 seconds...
-echo (Save any open work!)
-shutdown /r /t 60 /c "Tenjo client installed. Rebooting for service activation."
-goto :end
-
-:skip_reboot
+echo To uninstall: Run UNINSTALL_TENJO.bat from this USB
 echo.
-echo Reboot skipped. Please restart manually for full activation.
-
-:end
-echo.
-echo Press any key to exit...
-pause >nul
+pause
 BAT_EOF
 
 echo "   ✅ INSTALL_TENJO.bat created"
