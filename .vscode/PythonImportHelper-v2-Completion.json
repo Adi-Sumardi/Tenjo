@@ -543,6 +543,22 @@
         "documentation": {}
     },
     {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Dict",
         "importPath": "typing",
         "description": "typing",
@@ -1199,6 +1215,14 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "hashlib",
         "kind": 6,
         "isExtraImport": true,
@@ -1675,6 +1699,24 @@
         "description": "client.src.utils.macos_permissions",
         "peekOfCode": "def get_macos_info():\n    \"\"\"Get macOS version and system info\"\"\"\n    if platform.system() != 'Darwin':\n        return None\n    try:\n        import subprocess\n        result = subprocess.run(['sw_vers'], capture_output=True, text=True)\n        return result.stdout.strip()\n    except Exception as e:\n        logging.error(f\"Error getting macOS info: {e}\")",
         "detail": "client.src.utils.macos_permissions",
+        "documentation": {}
+    },
+    {
+        "label": "PasswordProtection",
+        "kind": 6,
+        "importPath": "client.src.utils.password_protection",
+        "description": "client.src.utils.password_protection",
+        "peekOfCode": "class PasswordProtection:\n    \"\"\"Manages password protection for uninstall operations\"\"\"\n    def __init__(self, config_dir: Optional[Path] = None):\n        \"\"\"\n        Initialize password protection\n        Args:\n            config_dir: Directory to store password config (default: C:\\\\ProgramData\\\\Tenjo on Windows)\n        \"\"\"\n        if config_dir is None:\n            if os.name == 'nt':",
+        "detail": "client.src.utils.password_protection",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.src.utils.password_protection",
+        "description": "client.src.utils.password_protection",
+        "peekOfCode": "def main():\n    \"\"\"Test password protection\"\"\"\n    import sys\n    pp = PasswordProtection()\n    if len(sys.argv) < 2:\n        print(\"Usage:\")\n        print(\"  python password_protection.py set <password>\")\n        print(\"  python password_protection.py verify <password>\")\n        print(\"  python password_protection.py change <old_password> <new_password>\")\n        print(\"  python password_protection.py reset <new_password>\")",
+        "detail": "client.src.utils.password_protection",
         "documentation": {}
     },
     {

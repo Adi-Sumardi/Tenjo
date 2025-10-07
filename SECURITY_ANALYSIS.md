@@ -260,57 +260,38 @@ $task | Set-ScheduledTask
 
 ---
 
-## 🎯 REKOMENDASI IMPLEMENTASI
+## 🎯 SECURITY SCORE
 
-### Phase 1 - CRITICAL (Implementasi Sekarang)
-1. ✅ Hapus uninstall scripts dari production
-2. ✅ Implement watchdog service
-3. ✅ Multiple autostart methods
-4. ✅ Process name obfuscation
+**Before Fixes:**  
+⚠️ **4/10** - Multiple critical vulnerabilities
 
-### Phase 2 - HIGH (Implementasi Minggu Depan)
-1. ⏳ Task & Registry protection
-2. ⏳ File permissions hardening
-3. ⏳ Better stealth mode
+**After Critical Fixes (Watchdog + Password):**  
+✅ **8/10** - Major vulnerabilities addressed + Password protection
 
-### Phase 3 - MEDIUM (Future Enhancement)
-1. 📋 Log encryption
-2. 📋 Network obfuscation
-3. 📋 Anti-tampering checks
-
----
-
-## 📊 Security Score
-
-**Current:** 4/10 ⚠️
-- ✅ Hardware fingerprint
-- ✅ Stealth mode basic
-- ❌ Easy uninstall
-- ❌ No watchdog
-- ❌ Weak protection
-
-**Target:** 9/10 ✅
-- ✅ Hardware fingerprint
-- ✅ Advanced stealth
-- ✅ Watchdog protection
-- ✅ Multi-layer persistence
-- ✅ File protection
-- ⚠️ (Some vulnerabilities unavoidable on user-level install)
+**Target (with all improvements):**  
+🎯 **9/10** - Enterprise-grade security
 
 ---
 
 ## ⚡ Quick Fixes (Bisa Diterapkan Sekarang)
 
-### Fix 1: Hapus Uninstall Files
-```bash
-cd /Users/yapi/Adi/App-Dev/Tenjo/client
-rm uninstall_autostart.ps1
-rm uninstall_autostart.sh
-git commit -am "Remove uninstall scripts for production security"
-git push
+### ✅ Fix 1: Password Protection for Uninstall ⭐ IMPLEMENTED
+```
+✓ Password required to uninstall (3 attempts max)
+✓ SHA256 password hashing
+✓ Default password: admin123 (customizable during install)
+✓ Change password utility: change_password.ps1 / change_password.bat
+✓ Uninstall script: uninstall_with_password.ps1 / uninstall_with_password.bat
 ```
 
-### Fix 2: Update Installer - Add Process Name Change
+### ✅ Fix 2: Watchdog Service ⭐ IMPLEMENTED
+```
+✓ Auto-restart client if killed
+✓ 30-second check interval
+✓ Dual scheduled tasks (Main + Watchdog)
+```
+
+### Fix 3: Update Installer - Add Process Name Change
 ```python
 # Di main.py, tambah di awal:
 try:
@@ -320,30 +301,42 @@ except:
     pass
 ```
 
-### Fix 3: Update Installer - Multiple Autostart
-Installer sudah pakai 2 metode (Registry + Scheduled Task). OK.
+### ✅ Fix 4: Multiple Autostart
+Installer sudah pakai 3 metode (Registry + 2 Scheduled Tasks). OK.
 
 ---
 
 ## 🔒 Kesimpulan
 
-**Celah Terbesar:**
-1. User bisa uninstall dengan mudah ⚠️⚠️⚠️
-2. Tidak ada watchdog untuk restart ⚠️⚠️⚠️
-3. Process visible di Task Manager ⚠️⚠️
+**Celah Yang Sudah Diperbaiki:**
+1. ✅ Uninstall sekarang butuh password (3 attempts max)
+2. ✅ Watchdog service untuk auto-restart
+3. ✅ Multiple autostart methods
 
-**Prioritas Fix:**
-1. Hapus uninstall scripts
-2. Tambah watchdog service
-3. Obfuscate process name
+**Celah Yang Masih Ada:**
+1. Process visible di Task Manager ⚠️
+2. User dengan admin bisa kill process ⚠️ (tapi akan auto-restart)
+3. Logs tidak terenkripsi ⚠️
+
+**Prioritas Fix Berikutnya:**
+1. Obfuscate process name (setproctitle)
+2. Log encryption (optional)
+3. File permissions hardening (optional)
 
 **Catatan:**
 Karena ini user-level install (bukan kernel driver), ada batasan:
-- User dengan admin rights tetap bisa uninstall
-- Tidak bisa truly "undetectable"
-- Best effort: make it hard, not impossible
+- User dengan admin rights bisa kill process (tapi watchdog akan restart)
+- User tanpa password TIDAK bisa uninstall
+- Best effort: make it hard + password protection
 
-Untuk monitoring karyawan, ini sudah cukup asalkan:
-- ✅ Karyawan tidak tech-savvy
+Untuk monitoring karyawan, ini sudah sangat baik asalkan:
+- ✅ Karyawan tidak tahu password uninstall
+- ✅ Password disimpan aman oleh admin
 - ✅ Ada policy perusahaan (legal)
 - ✅ Kombinasi technical + policy enforcement
+- ✅ Watchdog akan restart jika client di-kill
+
+**Security Level:**
+- Before: 4/10 (banyak celah)
+- After: 8/10 (password protection + watchdog + multiple autostart)
+- Target: 9/10 (tambah process obfuscation + log encryption)

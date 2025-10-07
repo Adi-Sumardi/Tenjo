@@ -5,7 +5,8 @@ REM Tenjo Remote Installer for Windows
 REM One-liner: curl -L -o install.bat https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows.bat && install.bat
 
 echo ========================================
-echo    TENJO - REMOTE INSTALLER v1.0.3
+echo    TENJO - REMOTE INSTALLER v1.0.4
+echo    With Password Protection
 echo ========================================
 echo.
 
@@ -168,8 +169,36 @@ schtasks /Create /TN "TenjoWatchdog" /XML "%WATCHDOG_XML%" /F >nul 2>&1
 del "%WATCHDOG_XML%" >nul 2>&1
 echo [OK] Service configured (with watchdog)
 
+REM Set password protection
+echo.
+echo [5/6] Setting up password protection...
+set "DEFAULT_PASSWORD=admin123"
+
+echo.
+echo Password default: admin123
+set /p "USE_CUSTOM=Gunakan password custom? (Y/N, default: N): "
+
+if /i "!USE_CUSTOM!"=="Y" (
+    set /p "CUSTOM_PASS=Masukkan password baru (min 6 karakter): "
+    if not "!CUSTOM_PASS!"=="" (
+        set "DEFAULT_PASSWORD=!CUSTOM_PASS!"
+        echo [OK] Password custom diset
+    ) else (
+        echo [!] Password kosong, menggunakan default
+    )
+)
+
+REM Set password using Python module
+python "%TENJO_DIR%\src\utils\password_protection.py" set "!DEFAULT_PASSWORD!" >nul 2>&1
+echo [OK] Password protection aktif
+echo.
+echo PENTING: Simpan password ini untuk uninstall client!
+echo Password: !DEFAULT_PASSWORD!
+echo.
+timeout /t 3 /nobreak >nul
+
 REM Start service
-echo [5/5] Starting service...
+echo [6/6] Starting service...
 start "" "%TENJO_DIR%\start_tenjo.bat"
 timeout /t 2 /nobreak >nul
 echo [OK] Service started

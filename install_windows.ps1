@@ -5,7 +5,8 @@ $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "   TENJO - Remote Installer v1.0.3" -ForegroundColor Cyan
+Write-Host "   TENJO - Remote Installer v1.0.4" -ForegroundColor Cyan
+Write-Host "   With Password Protection" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -170,9 +171,38 @@ python.exe main.py
     & schtasks /Create /TN "TenjoWatchdog" /XML $watchdogXmlPath /F | Out-Null
     Remove-Item $watchdogXmlPath -Force
     
-    # Start service
+    # Set password protection
     Write-Host ""
-    Write-Host "[6/6] Starting service..." -ForegroundColor Cyan
+    Write-Host "[6/7] Setting up password protection..." -ForegroundColor Cyan
+    $defaultPassword = "admin123"
+    
+    # Ask if user wants custom password
+    Write-Host ""
+    Write-Host "Password default: admin123" -ForegroundColor Yellow
+    $useCustom = Read-Host "Gunakan password custom? (Y/N, default: N)"
+    
+    if ($useCustom -eq "Y" -or $useCustom -eq "y") {
+        $customPass = Read-Host "Masukkan password baru (min 6 karakter)" -AsSecureString
+        $customPassPlain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($customPass))
+        if ($customPassPlain.Length -ge 6) {
+            $defaultPassword = $customPassPlain
+            Write-Host "[OK] Password custom diset" -ForegroundColor Green
+        } else {
+            Write-Host "[!] Password terlalu pendek, menggunakan default" -ForegroundColor Yellow
+        }
+    }
+    
+    # Set password
+    & python "$InstallDir\src\utils\password_protection.py" set "$defaultPassword" | Out-Null
+    Write-Host "[OK] Password protection aktif" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "PENTING: Simpan password ini untuk uninstall client!" -ForegroundColor Yellow
+    Write-Host "Password: $defaultPassword" -ForegroundColor Yellow
+    Write-Host ""
+    Start-Sleep -Seconds 3
+    
+    # Start service
+    Write-Host "[7/7] Starting service..." -ForegroundColor Cyan
     Start-Process -FilePath "$InstallDir\start_tenjo.bat" -WindowStyle Hidden
     Write-Host "[OK] Service started" -ForegroundColor Green
     
