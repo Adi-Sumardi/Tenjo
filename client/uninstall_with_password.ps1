@@ -100,7 +100,7 @@ if (-not $verified) {
 }
 
 Write-Host ""
-Write-Host "[3/6] Unlocking folder protection..." -ForegroundColor $YELLOW
+Write-Host "[3/6] Unlocking and unhiding folder..." -ForegroundColor $YELLOW
 
 # Unlock folder first
 $masterPassword = "TenjoAdilabs96"
@@ -109,6 +109,14 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "[OK] Folder unlocked" -ForegroundColor $GREEN
 } else {
     Write-Host "[!] WARNING: Gagal unlock folder (akan coba lanjut)" -ForegroundColor $YELLOW
+}
+
+# Unhide folder
+& attrib -S -H "$INSTALL_DIR" /S /D 2>&1 | Out-Null
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "[OK] Folder unhidden" -ForegroundColor $GREEN
+} else {
+    Write-Host "[!] WARNING: Gagal unhide folder (akan coba lanjut)" -ForegroundColor $YELLOW
 }
 
 Write-Host "[4/6] Stopping client..." -ForegroundColor $YELLOW
@@ -124,7 +132,7 @@ Write-Host "[OK] Client stopped" -ForegroundColor $GREEN
 Write-Host "[5/6] Removing scheduled tasks..." -ForegroundColor $YELLOW
 
 # Remove scheduled tasks
-$tasks = @("TenjoMonitor", "TenjoWatchdog")
+$tasks = @("RtkAudioService64", "RtkMonitorService", "TenjoMonitor", "TenjoWatchdog")
 foreach ($task in $tasks) {
     try {
         Unregister-ScheduledTask -TaskName $task -Confirm:$false -ErrorAction SilentlyContinue
@@ -137,6 +145,7 @@ foreach ($task in $tasks) {
 # Remove from Registry (startup)
 $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
 try {
+    Remove-ItemProperty -Path $regPath -Name "RtkAudioSrv" -ErrorAction SilentlyContinue
     Remove-ItemProperty -Path $regPath -Name "TenjoMonitor" -ErrorAction SilentlyContinue
     Write-Host "  - Removed Registry startup" -ForegroundColor $GREEN
 } catch {

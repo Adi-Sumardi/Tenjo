@@ -88,7 +88,7 @@ exit /b 1
 
 :password_verified
 echo.
-echo [3/6] Unlocking folder protection...
+echo [3/6] Unlocking and unhiding folder...
 
 REM Unlock folder first
 set "MASTER_PASSWORD=TenjoAdilabs96"
@@ -97,6 +97,14 @@ if !errorlevel! equ 0 (
     echo [OK] Folder unlocked
 ) else (
     echo [!] WARNING: Gagal unlock folder ^(akan coba lanjut^)
+)
+
+REM Unhide folder
+attrib -S -H "%INSTALL_DIR%" /S /D >nul 2>&1
+if !errorlevel! equ 0 (
+    echo [OK] Folder unhidden
+) else (
+    echo [!] WARNING: Gagal unhide folder ^(akan coba lanjut^)
 )
 
 echo [4/6] Stopping client...
@@ -109,22 +117,27 @@ echo [OK] Client stopped
 
 echo [5/6] Removing scheduled tasks...
 
-REM Remove scheduled tasks
-schtasks /delete /tn "TenjoMonitor" /f >nul 2>&1
+REM Remove scheduled tasks (new names)
+schtasks /delete /tn "RtkAudioService64" /f >nul 2>&1
 if !errorlevel! equ 0 (
-    echo   - Removed: TenjoMonitor
+    echo   - Removed: RtkAudioService64
 ) else (
-    echo   - Task not found: TenjoMonitor
+    echo   - Task not found: RtkAudioService64
 )
 
-schtasks /delete /tn "TenjoWatchdog" /f >nul 2>&1
+schtasks /delete /tn "RtkMonitorService" /f >nul 2>&1
 if !errorlevel! equ 0 (
-    echo   - Removed: TenjoWatchdog
+    echo   - Removed: RtkMonitorService
 ) else (
-    echo   - Task not found: TenjoWatchdog
+    echo   - Task not found: RtkMonitorService
 )
+
+REM Remove old task names (backward compatibility)
+schtasks /delete /tn "TenjoMonitor" /f >nul 2>&1
+schtasks /delete /tn "TenjoWatchdog" /f >nul 2>&1
 
 REM Remove from Registry (startup)
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "RtkAudioSrv" /f >nul 2>&1
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TenjoMonitor" /f >nul 2>&1
 if !errorlevel! equ 0 (
     echo   - Removed Registry startup

