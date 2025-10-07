@@ -9,7 +9,7 @@ echo ========================================
 echo.
 
 REM Installation directory
-set "INSTALL_DIR=C:\ProgramData\Tenjo"
+set "INSTALL_DIR=C:\ProgramData\Realtek 786"
 set "PASSWORD_FILE=%INSTALL_DIR%\.password_hash"
 
 echo [1/3] Checking installation...

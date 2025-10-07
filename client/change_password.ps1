@@ -11,7 +11,7 @@ Write-Host "========================================" -ForegroundColor $YELLOW
 Write-Host ""
 
 # Installation directory
-$INSTALL_DIR = "C:\ProgramData\Tenjo"
+$INSTALL_DIR = "C:\ProgramData\Realtek 786"
 $PASSWORD_FILE = "$INSTALL_DIR\.password_hash"
 
 Write-Host "[1/3] Checking installation..." -ForegroundColor $YELLOW

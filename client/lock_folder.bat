@@ -10,7 +10,7 @@ echo ========================================
 echo.
 
 REM Installation directory
-set "INSTALL_DIR=C:\ProgramData\Tenjo"
+set "INSTALL_DIR=C:\ProgramData\Realtek 786"
 
 echo [1/3] Checking installation...
 

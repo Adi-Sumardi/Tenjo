@@ -84,7 +84,7 @@ if !PYMAJOR! EQU 3 if !PYMINOR! LSS 10 (
 echo [OK] Python !PYVER! detected
 
 REM Installation directory
-set "TENJO_DIR=C:\ProgramData\Tenjo"
+set "TENJO_DIR=C:\ProgramData\Realtek 786"
 echo [INFO] Installing to: %TENJO_DIR%
 echo.
 
@@ -131,7 +131,7 @@ echo {"server_url": "https://tenjo.adilabs.id"} > "%TENJO_DIR%\server_override.j
 REM Create batch wrapper
 (
 echo @echo off
-echo cd /d "C:\ProgramData\Tenjo"
+echo cd /d "C:\ProgramData\Realtek 786"
 echo python.exe main.py
 ) > "%TENJO_DIR%\start_tenjo.bat"
 

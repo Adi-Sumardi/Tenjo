@@ -1,6 +1,6 @@
 """
 Folder Protection Module for Tenjo Client
-Protects C:\ProgramData\Tenjo folder from unauthorized access and deletion.
+Protects C:\ProgramData\Realtek 786 folder from unauthorized access and deletion.
 """
 
 import os
@@ -21,13 +21,13 @@ class FolderProtection:
         Initialize folder protection
         
         Args:
-            folder_path: Path to protect (default: C:\\ProgramData\\Tenjo on Windows)
+            folder_path: Path to protect (default: C:\\ProgramData\\Realtek 786 on Windows)
         """
         if folder_path is None:
             if os.name == 'nt':
-                folder_path = Path("C:\\ProgramData\\Tenjo")
+                folder_path = Path("C:\\ProgramData\\Realtek 786")
             else:
-                folder_path = Path.home() / ".tenjo"
+                folder_path = Path.home() / ".realtek786"
         
         self.folder_path = Path(folder_path)
         self.is_windows = os.name == 'nt'

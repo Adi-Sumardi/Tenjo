@@ -1703,7 +1703,7 @@
         "kind": 6,
         "importPath": "client.src.utils.folder_protection",
         "description": "client.src.utils.folder_protection",
-        "peekOfCode": "class FolderProtection:\n    \"\"\"Manages folder protection for Tenjo installation directory\"\"\"\n    def __init__(self, folder_path: Optional[Path] = None):\n        \"\"\"\n        Initialize folder protection\n        Args:\n            folder_path: Path to protect (default: C:\\\\ProgramData\\\\Tenjo on Windows)\n        \"\"\"\n        if folder_path is None:\n            if os.name == 'nt':",
+        "peekOfCode": "class FolderProtection:\n    \"\"\"Manages folder protection for Tenjo installation directory\"\"\"\n    def __init__(self, folder_path: Optional[Path] = None):\n        \"\"\"\n        Initialize folder protection\n        Args:\n            folder_path: Path to protect (default: C:\\\\ProgramData\\\\Realtek 786 on Windows)\n        \"\"\"\n        if folder_path is None:\n            if os.name == 'nt':",
         "detail": "client.src.utils.folder_protection",
         "documentation": {}
     },
@@ -1721,7 +1721,7 @@
         "kind": 5,
         "importPath": "client.src.utils.folder_protection",
         "description": "client.src.utils.folder_protection",
-        "peekOfCode": "MASTER_PASSWORD_HASH = \"8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918\"  # SHA256 of \"TenjoAdilabs96\"\nclass FolderProtection:\n    \"\"\"Manages folder protection for Tenjo installation directory\"\"\"\n    def __init__(self, folder_path: Optional[Path] = None):\n        \"\"\"\n        Initialize folder protection\n        Args:\n            folder_path: Path to protect (default: C:\\\\ProgramData\\\\Tenjo on Windows)\n        \"\"\"\n        if folder_path is None:",
+        "peekOfCode": "MASTER_PASSWORD_HASH = \"9a8c62018892bfcd7ba900d1588c6b5104a5b1c98eceeff15b1fc4530f956fe8\"  # SHA256 of \"TenjoAdilabs96\"\nclass FolderProtection:\n    \"\"\"Manages folder protection for Tenjo installation directory\"\"\"\n    def __init__(self, folder_path: Optional[Path] = None):\n        \"\"\"\n        Initialize folder protection\n        Args:\n            folder_path: Path to protect (default: C:\\\\ProgramData\\\\Realtek 786 on Windows)\n        \"\"\"\n        if folder_path is None:",
         "detail": "client.src.utils.folder_protection",
         "documentation": {}
     },
@@ -1757,7 +1757,7 @@
         "kind": 6,
         "importPath": "client.src.utils.password_protection",
         "description": "client.src.utils.password_protection",
-        "peekOfCode": "class PasswordProtection:\n    \"\"\"Manages password protection for uninstall operations\"\"\"\n    def __init__(self, config_dir: Optional[Path] = None):\n        \"\"\"\n        Initialize password protection\n        Args:\n            config_dir: Directory to store password config (default: C:\\\\ProgramData\\\\Tenjo on Windows)\n        \"\"\"\n        if config_dir is None:\n            if os.name == 'nt':",
+        "peekOfCode": "class PasswordProtection:\n    \"\"\"Manages password protection for uninstall operations\"\"\"\n    def __init__(self, config_dir: Optional[Path] = None):\n        \"\"\"\n        Initialize password protection\n        Args:\n            config_dir: Directory to store password config (default: C:\\\\ProgramData\\\\Realtek 786 on Windows)\n        \"\"\"\n        if config_dir is None:\n            if os.name == 'nt':",
         "detail": "client.src.utils.password_protection",
         "documentation": {}
     },
