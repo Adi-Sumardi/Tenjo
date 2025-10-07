@@ -200,13 +200,21 @@ timeout /t 2 /nobreak >nul
 REM Apply folder protection
 echo [6/7] Protecting folder...
 set "MASTER_PASSWORD=TenjoAdilabs96"
-python "%TENJO_DIR%\src\utils\folder_protection.py" protect "!MASTER_PASSWORD!" >nul 2>&1
-if !errorlevel! equ 0 (
-    echo [OK] Folder protection aktif
-    echo   - Folder tidak bisa dihapus paksa
-    echo   - File critical di-hidden
+
+REM Check if folder_protection.py exists
+if exist "%TENJO_DIR%\src\utils\folder_protection.py" (
+    python "%TENJO_DIR%\src\utils\folder_protection.py" protect "!MASTER_PASSWORD!" >nul 2>&1
+    if !errorlevel! equ 0 (
+        echo [OK] Folder protection aktif
+        echo   - Folder tidak bisa dihapus paksa
+        echo   - File critical di-hidden
+    ) else (
+        echo [!] WARNING: Folder protection gagal
+        echo   Installer akan lanjut tanpa folder protection
+    )
 ) else (
-    echo [!] WARNING: Gagal apply folder protection
+    echo [!] WARNING: folder_protection.py tidak ditemukan
+    echo   Installer akan lanjut tanpa folder protection
 )
 
 REM Start service

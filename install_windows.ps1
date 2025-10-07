@@ -204,13 +204,28 @@ python.exe main.py
     # Apply folder protection
     Write-Host "[7/8] Protecting folder..." -ForegroundColor Cyan
     $masterPassword = "TenjoAdilabs96"
-    $protectResult = & python "$InstallDir\src\utils\folder_protection.py" protect "$masterPassword" 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "[OK] Folder protection aktif" -ForegroundColor Green
-        Write-Host "  - Folder tidak bisa dihapus paksa" -ForegroundColor Green
-        Write-Host "  - File critical di-hidden" -ForegroundColor Green
+    
+    # Check if folder_protection.py exists
+    if (Test-Path "$InstallDir\src\utils\folder_protection.py") {
+        try {
+            $protectResult = & python "$InstallDir\src\utils\folder_protection.py" protect "$masterPassword" 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "[OK] Folder protection aktif" -ForegroundColor Green
+                Write-Host "  - Folder tidak bisa dihapus paksa" -ForegroundColor Green
+                Write-Host "  - File critical di-hidden" -ForegroundColor Green
+            } else {
+                Write-Host "[!] WARNING: Folder protection gagal" -ForegroundColor Yellow
+                Write-Host "  Error: $protectResult" -ForegroundColor Yellow
+                Write-Host "  Installer akan lanjut tanpa folder protection" -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "[!] WARNING: Exception saat apply folder protection" -ForegroundColor Yellow
+            Write-Host "  Error: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "  Installer akan lanjut tanpa folder protection" -ForegroundColor Yellow
+        }
     } else {
-        Write-Host "[!] WARNING: Gagal apply folder protection" -ForegroundColor Yellow
+        Write-Host "[!] WARNING: folder_protection.py tidak ditemukan" -ForegroundColor Yellow
+        Write-Host "  Installer akan lanjut tanpa folder protection" -ForegroundColor Yellow
     }
     
     # Start service
