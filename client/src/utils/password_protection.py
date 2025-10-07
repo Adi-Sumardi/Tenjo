@@ -175,9 +175,9 @@ def main():
             sys.exit(1)
         password = sys.argv[2]
         if pp.set_password(password):
-            print("✓ Password berhasil diset")
+            print("[OK] Password berhasil diset")
         else:
-            print("✗ Gagal set password")
+            print("[ERROR] Gagal set password")
     
     elif command == "verify":
         if len(sys.argv) < 3:
@@ -185,10 +185,10 @@ def main():
             sys.exit(1)
         password = sys.argv[2]
         if pp.verify_password(password):
-            print("✓ Password benar")
+            print("[OK] Password benar")
             sys.exit(0)
         else:
-            print("✗ Password salah")
+            print("[ERROR] Password salah")
             sys.exit(1)
     
     elif command == "change":
