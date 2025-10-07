@@ -25,36 +25,86 @@ try {
     }
     
     # Check Python
-    Write-Host "[1/5] Checking Python..." -ForegroundColor Cyan
+    Write-Host "[1/6] Checking Python..." -ForegroundColor Cyan
+    $pythonOk = $false
     try {
         $pythonVersion = & python --version 2>&1
         if ($pythonVersion -match "Python (\d+)\.(\d+)") {
             $major = [int]$matches[1]
             $minor = [int]$matches[2]
             if ($major -lt 3 -or ($major -eq 3 -and $minor -lt 10)) {
-                throw "Python $major.$minor too old! Need 3.10+"
+                Write-Host "[!] Python $major.$minor too old! Need 3.10+" -ForegroundColor Yellow
+            } else {
+                Write-Host "[OK] Python $major.$minor detected" -ForegroundColor Green
+                $pythonOk = $true
             }
-            Write-Host "[OK] Python $major.$minor detected" -ForegroundColor Green
-        } else {
-            throw "Python not found"
         }
     } catch {
-        Write-Host "[ERROR] Python 3.10+ required!" -ForegroundColor Red
-        Write-Host "Download from: https://www.python.org/downloads/" -ForegroundColor Yellow
-        Read-Host "Press Enter to exit"
-        exit 1
+        Write-Host "[!] Python not found" -ForegroundColor Yellow
+    }
+    
+    if (-not $pythonOk) {
+        Write-Host ""
+        Write-Host "[AUTO-INSTALL] Installing Python 3.10.11..." -ForegroundColor Cyan
+        
+        # Download Python
+        $pythonUrl = "https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe"
+        $pythonInstaller = "$env:TEMP\python_installer.exe"
+        
+        Write-Host "  Downloading... (this may take 1-2 minutes)" -ForegroundColor Yellow
+        $ProgressPreference = 'SilentlyContinue'
+        try {
+            Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonInstaller -UseBasicParsing
+        } catch {
+            Write-Host "[ERROR] Failed to download Python installer!" -ForegroundColor Red
+            Write-Host "Please install Python 3.10+ manually from python.org" -ForegroundColor Yellow
+            Read-Host "Press Enter to exit"
+            exit 1
+        }
+        
+        # Install Python
+        Write-Host "  Installing... (this may take 2-3 minutes)" -ForegroundColor Yellow
+        $process = Start-Process -FilePath $pythonInstaller -ArgumentList "/quiet","InstallAllUsers=1","PrependPath=1","Include_test=0" -Wait -PassThru
+        
+        if ($process.ExitCode -ne 0) {
+            Write-Host "[ERROR] Python installation failed!" -ForegroundColor Red
+            Read-Host "Press Enter to exit"
+            exit 1
+        }
+        
+        # Refresh PATH
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+        
+        # Cleanup
+        Remove-Item $pythonInstaller -Force -ErrorAction SilentlyContinue
+        
+        # Verify
+        Start-Sleep -Seconds 2
+        try {
+            $pythonVersion = & python --version 2>&1
+            if ($pythonVersion -match "Python (\d+)\.(\d+)") {
+                Write-Host "[OK] Python $($matches[1]).$($matches[2]) installed successfully!" -ForegroundColor Green
+            } else {
+                throw "Verification failed"
+            }
+        } catch {
+            Write-Host "[ERROR] Python installed but not accessible" -ForegroundColor Red
+            Write-Host "Please restart PowerShell and run installer again" -ForegroundColor Yellow
+            Read-Host "Press Enter to exit"
+            exit 1
+        }
     }
     
     # Download
     Write-Host ""
-    Write-Host "[2/5] Downloading from GitHub..." -ForegroundColor Cyan
+    Write-Host "[2/6] Downloading from GitHub..." -ForegroundColor Cyan
     $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Uri $GitHubZip -OutFile $TempZip -UseBasicParsing
     Write-Host "[OK] Downloaded" -ForegroundColor Green
     
     # Extract
     Write-Host ""
-    Write-Host "[3/5] Extracting files..." -ForegroundColor Cyan
+    Write-Host "[3/6] Extracting files..." -ForegroundColor Cyan
     if (Test-Path $TempExtract) { Remove-Item -Path $TempExtract -Recurse -Force }
     Expand-Archive -Path $TempZip -DestinationPath $TempExtract -Force
     
@@ -66,7 +116,7 @@ try {
     
     # Install dependencies
     Write-Host ""
-    Write-Host "[4/5] Installing Python packages..." -ForegroundColor Cyan
+    Write-Host "[4/6] Installing Python packages..." -ForegroundColor Cyan
     Set-Location $InstallDir
     & python -m pip install --upgrade pip --quiet 2>&1 | Out-Null
     & python -m pip install -r requirements.txt --quiet 2>&1 | Out-Null
@@ -74,7 +124,7 @@ try {
     
     # Configure
     Write-Host ""
-    Write-Host "[5/5] Configuring service..." -ForegroundColor Cyan
+    Write-Host "[5/6] Configuring service..." -ForegroundColor Cyan
     
     # Server override
     @{server_url = "https://tenjo.adilabs.id"} | ConvertTo-Json | Set-Content "$InstallDir\server_override.json"
@@ -106,8 +156,10 @@ python.exe main.py
     Remove-Item $taskXmlPath -Force
     
     # Start service
+    Write-Host ""
+    Write-Host "[6/6] Starting service..." -ForegroundColor Cyan
     Start-Process -FilePath "$InstallDir\start_tenjo.bat" -WindowStyle Hidden
-    Write-Host "[OK] Service configured and started" -ForegroundColor Green
+    Write-Host "[OK] Service started" -ForegroundColor Green
     
     # Cleanup
     if (Test-Path $TempZip) { Remove-Item $TempZip -Force }

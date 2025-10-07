@@ -21,10 +21,47 @@ if errorlevel 1 (
 REM Check Python
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Python not found!
-    echo Install Python 3.10+ from python.org
-    pause
-    exit /b 1
+    echo [!] Python not found! Installing Python 3.10...
+    echo.
+    
+    REM Download Python installer
+    echo [1/3] Downloading Python 3.10.11...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe' -OutFile '%TEMP%\python_installer.exe'"
+    if errorlevel 1 (
+        echo [ERROR] Download failed!
+        echo Please install Python manually from python.org
+        pause
+        exit /b 1
+    )
+    
+    REM Install Python silently
+    echo [2/3] Installing Python (this may take 2-3 minutes)...
+    "%TEMP%\python_installer.exe" /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
+    if errorlevel 1 (
+        echo [ERROR] Python installation failed!
+        pause
+        exit /b 1
+    )
+    
+    REM Refresh PATH
+    echo [3/3] Refreshing environment...
+    setx PATH "%PATH%;C:\Program Files\Python310;C:\Program Files\Python310\Scripts" /M >nul 2>&1
+    set "PATH=%PATH%;C:\Program Files\Python310;C:\Program Files\Python310\Scripts"
+    timeout /t 3 /nobreak >nul
+    
+    REM Cleanup
+    del "%TEMP%\python_installer.exe" >nul 2>&1
+    
+    REM Verify installation
+    python --version >nul 2>&1
+    if errorlevel 1 (
+        echo [ERROR] Python installed but not accessible
+        echo Please restart CMD and run installer again
+        pause
+        exit /b 1
+    )
+    echo [OK] Python 3.10 installed successfully!
+    echo.
 )
 
 REM Check Python version
