@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Tuple, Optional
 
 # Master password for folder protection
-MASTER_PASSWORD_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"  # SHA256 of "TenjoAdilabs96"
+MASTER_PASSWORD_HASH = "9a8c62018892bfcd7ba900d1588c6b5104a5b1c98eceeff15b1fc4530f956fe8"  # SHA256 of "TenjoAdilabs96"
 
 class FolderProtection:
     """Manages folder protection for Tenjo installation directory"""
