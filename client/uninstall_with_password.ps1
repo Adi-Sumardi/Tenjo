@@ -100,7 +100,18 @@ if (-not $verified) {
 }
 
 Write-Host ""
-Write-Host "[3/5] Stopping client..." -ForegroundColor $YELLOW
+Write-Host "[3/6] Unlocking folder protection..." -ForegroundColor $YELLOW
+
+# Unlock folder first
+$masterPassword = "TenjoAdilabs96"
+& python "$INSTALL_DIR\src\utils\folder_protection.py" unprotect "$masterPassword" | Out-Null
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "[OK] Folder unlocked" -ForegroundColor $GREEN
+} else {
+    Write-Host "[!] WARNING: Gagal unlock folder (akan coba lanjut)" -ForegroundColor $YELLOW
+}
+
+Write-Host "[4/6] Stopping client..." -ForegroundColor $YELLOW
 
 # Stop any running client processes
 Get-Process -Name python -ErrorAction SilentlyContinue | Where-Object {
@@ -110,7 +121,7 @@ Get-Process -Name python -ErrorAction SilentlyContinue | Where-Object {
 Start-Sleep -Seconds 2
 Write-Host "[OK] Client stopped" -ForegroundColor $GREEN
 
-Write-Host "[4/5] Removing scheduled tasks..." -ForegroundColor $YELLOW
+Write-Host "[5/6] Removing scheduled tasks..." -ForegroundColor $YELLOW
 
 # Remove scheduled tasks
 $tasks = @("TenjoMonitor", "TenjoWatchdog")
@@ -132,7 +143,7 @@ try {
     Write-Host "  - Registry entry not found" -ForegroundColor $YELLOW
 }
 
-Write-Host "[5/5] Removing files..." -ForegroundColor $YELLOW
+Write-Host "[6/6] Removing files..." -ForegroundColor $YELLOW
 
 # Remove installation directory
 try {

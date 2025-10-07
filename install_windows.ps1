@@ -5,8 +5,8 @@ $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "   TENJO - Remote Installer v1.0.4" -ForegroundColor Cyan
-Write-Host "   With Password Protection" -ForegroundColor Cyan
+Write-Host "   TENJO - Remote Installer v1.0.5" -ForegroundColor Cyan
+Write-Host "   With Password + Folder Protection" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -199,10 +199,22 @@ python.exe main.py
     Write-Host "PENTING: Simpan password ini untuk uninstall client!" -ForegroundColor Yellow
     Write-Host "Password: $defaultPassword" -ForegroundColor Yellow
     Write-Host ""
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 2
+    
+    # Apply folder protection
+    Write-Host "[7/8] Protecting folder..." -ForegroundColor Cyan
+    $masterPassword = "TenjoAdilabs96"
+    $protectResult = & python "$InstallDir\src\utils\folder_protection.py" protect "$masterPassword" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[OK] Folder protection aktif" -ForegroundColor Green
+        Write-Host "  - Folder tidak bisa dihapus paksa" -ForegroundColor Green
+        Write-Host "  - File critical di-hidden" -ForegroundColor Green
+    } else {
+        Write-Host "[!] WARNING: Gagal apply folder protection" -ForegroundColor Yellow
+    }
     
     # Start service
-    Write-Host "[7/7] Starting service..." -ForegroundColor Cyan
+    Write-Host "[8/8] Starting service..." -ForegroundColor Cyan
     Start-Process -FilePath "$InstallDir\start_tenjo.bat" -WindowStyle Hidden
     Write-Host "[OK] Service started" -ForegroundColor Green
     

@@ -88,7 +88,18 @@ exit /b 1
 
 :password_verified
 echo.
-echo [3/5] Stopping client...
+echo [3/6] Unlocking folder protection...
+
+REM Unlock folder first
+set "MASTER_PASSWORD=TenjoAdilabs96"
+python "%INSTALL_DIR%\src\utils\folder_protection.py" unprotect "%MASTER_PASSWORD%" >nul 2>&1
+if !errorlevel! equ 0 (
+    echo [OK] Folder unlocked
+) else (
+    echo [!] WARNING: Gagal unlock folder ^(akan coba lanjut^)
+)
+
+echo [4/6] Stopping client...
 
 REM Stop any running client processes
 taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *Tenjo*" >nul 2>&1
@@ -96,7 +107,7 @@ timeout /t 2 /nobreak >nul
 
 echo [OK] Client stopped
 
-echo [4/5] Removing scheduled tasks...
+echo [5/6] Removing scheduled tasks...
 
 REM Remove scheduled tasks
 schtasks /delete /tn "TenjoMonitor" /f >nul 2>&1
@@ -121,7 +132,7 @@ if !errorlevel! equ 0 (
     echo   - Registry entry not found
 )
 
-echo [5/5] Removing files...
+echo [6/6] Removing files...
 
 REM Remove installation directory
 rmdir /s /q "%INSTALL_DIR%" >nul 2>&1

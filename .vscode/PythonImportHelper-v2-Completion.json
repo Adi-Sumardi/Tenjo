@@ -543,6 +543,22 @@
         "documentation": {}
     },
     {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Optional",
         "importPath": "typing",
         "description": "typing",
@@ -1223,6 +1239,14 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "hashlib",
         "kind": 6,
         "isExtraImport": true,
@@ -1672,6 +1696,33 @@
         "description": "client.src.utils.auto_update",
         "peekOfCode": "def check_and_update_if_needed(config, force: bool = False) -> bool:\n    updater = ClientUpdater(config)\n    if not force and not updater.should_check_now():\n        return False\n    return updater.perform_update(force=force)",
         "detail": "client.src.utils.auto_update",
+        "documentation": {}
+    },
+    {
+        "label": "FolderProtection",
+        "kind": 6,
+        "importPath": "client.src.utils.folder_protection",
+        "description": "client.src.utils.folder_protection",
+        "peekOfCode": "class FolderProtection:\n    \"\"\"Manages folder protection for Tenjo installation directory\"\"\"\n    def __init__(self, folder_path: Optional[Path] = None):\n        \"\"\"\n        Initialize folder protection\n        Args:\n            folder_path: Path to protect (default: C:\\\\ProgramData\\\\Tenjo on Windows)\n        \"\"\"\n        if folder_path is None:\n            if os.name == 'nt':",
+        "detail": "client.src.utils.folder_protection",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.src.utils.folder_protection",
+        "description": "client.src.utils.folder_protection",
+        "peekOfCode": "def main():\n    \"\"\"Command-line interface for folder protection\"\"\"\n    if len(sys.argv) < 2:\n        print(\"Usage:\")\n        print(\"  python folder_protection.py protect <password>\")\n        print(\"  python folder_protection.py unprotect <password>\")\n        print(\"  python folder_protection.py check\")\n        print(\"  python folder_protection.py status\")\n        sys.exit(1)\n    fp = FolderProtection()",
+        "detail": "client.src.utils.folder_protection",
+        "documentation": {}
+    },
+    {
+        "label": "MASTER_PASSWORD_HASH",
+        "kind": 5,
+        "importPath": "client.src.utils.folder_protection",
+        "description": "client.src.utils.folder_protection",
+        "peekOfCode": "MASTER_PASSWORD_HASH = \"8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918\"  # SHA256 of \"TenjoAdilabs96\"\nclass FolderProtection:\n    \"\"\"Manages folder protection for Tenjo installation directory\"\"\"\n    def __init__(self, folder_path: Optional[Path] = None):\n        \"\"\"\n        Initialize folder protection\n        Args:\n            folder_path: Path to protect (default: C:\\\\ProgramData\\\\Tenjo on Windows)\n        \"\"\"\n        if folder_path is None:",
+        "detail": "client.src.utils.folder_protection",
         "documentation": {}
     },
     {

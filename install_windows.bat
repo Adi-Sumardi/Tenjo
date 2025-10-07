@@ -5,8 +5,8 @@ REM Tenjo Remote Installer for Windows
 REM One-liner: curl -L -o install.bat https://raw.githubusercontent.com/Adi-Sumardi/Tenjo/master/install_windows.bat && install.bat
 
 echo ========================================
-echo    TENJO - REMOTE INSTALLER v1.0.4
-echo    With Password Protection
+echo    TENJO - REMOTE INSTALLER v1.0.5
+echo    With Password + Folder Protection
 echo ========================================
 echo.
 
@@ -195,10 +195,22 @@ echo.
 echo PENTING: Simpan password ini untuk uninstall client!
 echo Password: !DEFAULT_PASSWORD!
 echo.
-timeout /t 3 /nobreak >nul
+timeout /t 2 /nobreak >nul
+
+REM Apply folder protection
+echo [6/7] Protecting folder...
+set "MASTER_PASSWORD=TenjoAdilabs96"
+python "%TENJO_DIR%\src\utils\folder_protection.py" protect "!MASTER_PASSWORD!" >nul 2>&1
+if !errorlevel! equ 0 (
+    echo [OK] Folder protection aktif
+    echo   - Folder tidak bisa dihapus paksa
+    echo   - File critical di-hidden
+) else (
+    echo [!] WARNING: Gagal apply folder protection
+)
 
 REM Start service
-echo [6/6] Starting service...
+echo [7/7] Starting service...
 start "" "%TENJO_DIR%\start_tenjo.bat"
 timeout /t 2 /nobreak >nul
 echo [OK] Service started
