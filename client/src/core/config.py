@@ -33,11 +33,12 @@ def get_local_ip():
 class Config:
     # Server Configuration - AUTO-DETECT MODE
     # Priority: ENV VAR > server_override.json > local dev > production
-    DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', "http://127.0.0.1:8000")  # Local development default
+    DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', "https://tenjo.adilabs.id")  # Production server (changed from localhost)
     PRODUCTION_SERVER_URL = "https://tenjo.adilabs.id"  # Production domain
     LEGACY_SERVER_URLS = [
-        "http://103.129.149.67",
-        "https://103.129.149.67",
+        "http://127.0.0.1:8000",  # Local development
+        "http://103.129.149.67",  # Legacy IP
+        "https://103.129.149.67",  # Legacy IP HTTPS
     ]
     SERVER_OVERRIDE_FILE = 'server_override.json'
 
