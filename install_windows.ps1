@@ -140,7 +140,7 @@ python.exe main.py
     $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
     Set-ItemProperty -Path $regPath -Name "TenjoMonitor" -Value "$InstallDir\start_tenjo.bat" -Force
     
-    # Scheduled task XML
+    # Scheduled task XML for main client
     $taskXml = @"
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
@@ -154,6 +154,21 @@ python.exe main.py
     $taskXml | Set-Content $taskXmlPath
     & schtasks /Create /TN "TenjoMonitor" /XML $taskXmlPath /F | Out-Null
     Remove-Item $taskXmlPath -Force
+    
+    # Scheduled task XML for watchdog
+    $watchdogXml = @"
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <Triggers><LogonTrigger><Enabled>true</Enabled></LogonTrigger></Triggers>
+  <Principals><Principal><LogonType>InteractiveToken</LogonType><RunLevel>HighestAvailable</RunLevel></Principal></Principals>
+  <Settings><MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries></Settings>
+  <Actions><Exec><Command>python.exe</Command><Arguments>watchdog.py</Arguments><WorkingDirectory>$InstallDir</WorkingDirectory></Exec></Actions>
+</Task>
+"@
+    $watchdogXmlPath = "$env:TEMP\tenjo_watchdog.xml"
+    $watchdogXml | Set-Content $watchdogXmlPath
+    & schtasks /Create /TN "TenjoWatchdog" /XML $watchdogXmlPath /F | Out-Null
+    Remove-Item $watchdogXmlPath -Force
     
     # Start service
     Write-Host ""

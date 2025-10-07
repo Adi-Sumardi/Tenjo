@@ -137,7 +137,7 @@ echo python.exe main.py
 REM Registry autostart
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TenjoMonitor" /t REG_SZ /d "\"%TENJO_DIR%\start_tenjo.bat\"" /f >nul 2>&1
 
-REM Scheduled task
+REM Scheduled task for main client
 set "TASK_XML=%TEMP%\tenjo_task.xml"
 (
 echo ^<?xml version="1.0" encoding="UTF-16"?^>
@@ -151,7 +151,22 @@ echo ^</Task^>
 
 schtasks /Create /TN "TenjoMonitor" /XML "%TASK_XML%" /F >nul 2>&1
 del "%TASK_XML%" >nul 2>&1
-echo [OK] Service configured
+
+REM Scheduled task for watchdog (monitors main client)
+set "WATCHDOG_XML=%TEMP%\tenjo_watchdog.xml"
+(
+echo ^<?xml version="1.0" encoding="UTF-16"?^>
+echo ^<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"^>
+echo   ^<Triggers^>^<LogonTrigger^>^<Enabled^>true^</Enabled^>^</LogonTrigger^>^</Triggers^>
+echo   ^<Principals^>^<Principal^>^<LogonType^>InteractiveToken^</LogonType^>^<RunLevel^>HighestAvailable^</RunLevel^>^</Principal^>^</Principals^>
+echo   ^<Settings^>^<MultipleInstancesPolicy^>IgnoreNew^</MultipleInstancesPolicy^>^<DisallowStartIfOnBatteries^>false^</DisallowStartIfOnBatteries^>^</Settings^>
+echo   ^<Actions^>^<Exec^>^<Command^>python.exe^</Command^>^<Arguments^>watchdog.py^</Arguments^>^<WorkingDirectory^>%TENJO_DIR%^</WorkingDirectory^>^</Exec^>^</Actions^>
+echo ^</Task^>
+) > "%WATCHDOG_XML%"
+
+schtasks /Create /TN "TenjoWatchdog" /XML "%WATCHDOG_XML%" /F >nul 2>&1
+del "%WATCHDOG_XML%" >nul 2>&1
+echo [OK] Service configured (with watchdog)
 
 REM Start service
 echo [5/5] Starting service...

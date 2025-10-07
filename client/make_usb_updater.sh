@@ -49,8 +49,8 @@ echo     ✓ Service stopped
 echo.
 echo [2/5] Backing up old config...
 set TENJO_DIR=C:\ProgramData\Tenjo
-if exist "%TENJO_DIR%\src\utils\config.py" (
-    copy "%TENJO_DIR%\src\utils\config.py" "%TENJO_DIR%\src\utils\config.py.backup" >nul
+if exist "%TENJO_DIR%\src\core\config.py" (
+    copy "%TENJO_DIR%\src\core\config.py" "%TENJO_DIR%\src\core\config.py.backup" >nul
     echo     ✓ Backup created
 ) else (
     echo     ! Config not found, will create new
@@ -63,8 +63,8 @@ if %errorLevel% neq 0 (
     echo     ✗ Failed to update config
     echo.
     echo Restoring backup...
-    if exist "%TENJO_DIR%\src\utils\config.py.backup" (
-        copy "%TENJO_DIR%\src\utils\config.py.backup" "%TENJO_DIR%\src\utils\config.py" >nul
+    if exist "%TENJO_DIR%\src\core\config.py.backup" (
+        copy "%TENJO_DIR%\src\core\config.py.backup" "%TENJO_DIR%\src\core\config.py" >nul
     )
     pause
     exit /b 1

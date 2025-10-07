@@ -357,6 +357,14 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "timezone",
         "importPath": "datetime",
         "description": "datetime",
@@ -956,6 +964,14 @@
         "documentation": {}
     },
     {
+        "label": "Config",
+        "importPath": "src.core.config",
+        "description": "src.core.config",
+        "isExtraImport": true,
+        "detail": "src.core.config",
+        "documentation": {}
+    },
+    {
         "label": "APIClient",
         "importPath": "src.utils.api_client",
         "description": "src.utils.api_client",
@@ -1140,6 +1156,30 @@
         "importPath": "tarfile",
         "description": "tarfile",
         "detail": "tarfile",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
         "documentation": {}
     },
     {
@@ -1462,7 +1502,7 @@
         "kind": 6,
         "importPath": "client.src.core.config",
         "description": "client.src.core.config",
-        "peekOfCode": "class Config:\n    # Server Configuration - AUTO-DETECT MODE\n    # Priority: ENV VAR > server_override.json > local dev > production\n    DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', \"http://127.0.0.1:8000\")  # Local development default\n    PRODUCTION_SERVER_URL = \"https://tenjo.adilabs.id\"  # Production domain\n    LEGACY_SERVER_URLS = [\n        \"http://103.129.149.67\",\n        \"https://103.129.149.67\",\n    ]\n    SERVER_OVERRIDE_FILE = 'server_override.json'",
+        "peekOfCode": "class Config:\n    # Server Configuration - AUTO-DETECT MODE\n    # Priority: ENV VAR > server_override.json > local dev > production\n    DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', \"https://tenjo.adilabs.id\")  # Production server (changed from localhost)\n    PRODUCTION_SERVER_URL = \"https://tenjo.adilabs.id\"  # Production domain\n    LEGACY_SERVER_URLS = [\n        \"http://127.0.0.1:8000\",  # Local development\n        \"http://103.129.149.67\",  # Legacy IP\n        \"https://103.129.149.67\",  # Legacy IP HTTPS\n    ]",
         "detail": "client.src.core.config",
         "documentation": {}
     },
@@ -1908,6 +1948,69 @@
         "documentation": {}
     },
     {
+        "label": "env_vars",
+        "kind": 5,
+        "importPath": "client.check_client_config",
+        "description": "client.check_client_config",
+        "peekOfCode": "env_vars = ['TENJO_SERVER_URL', 'TENJO_API_ENDPOINT', 'TENJO_PREFERRED_SERVER_URL']\nfor var in env_vars:\n    value = os.getenv(var, 'Not set')\n    print(f\"  • {var}: {value}\")\nprint()\nprint(\"=\"*70)\nprint(\"💡 EXPECTED FOR PRODUCTION:\")\nprint(\"=\"*70)\nprint(\"  • SERVER_URL should be: https://tenjo.adilabs.id\")\nprint(\"  • API_ENDPOINT should be: https://tenjo.adilabs.id/api\")",
+        "detail": "client.check_client_config",
+        "documentation": {}
+    },
+    {
+        "label": "is_correct",
+        "kind": 5,
+        "importPath": "client.check_client_config",
+        "description": "client.check_client_config",
+        "peekOfCode": "is_correct = (\n    Config.SERVER_URL == \"https://tenjo.adilabs.id\" or\n    Config.DEFAULT_SERVER_URL == \"https://tenjo.adilabs.id\"\n)\nif is_correct:\n    print(\"✅ Configuration looks CORRECT for production!\")\nelse:\n    print(\"❌ Configuration INCORRECT - Client will not connect to production!\")\n    print()\n    print(\"🔧 FIX:\")",
+        "detail": "client.check_client_config",
+        "documentation": {}
+    },
+    {
+        "label": "get_online_clients",
+        "kind": 2,
+        "importPath": "client.check_server_api",
+        "description": "client.check_server_api",
+        "peekOfCode": "def get_online_clients():\n    \"\"\"Get list of online clients from dashboard API\"\"\"\n    try:\n        # Try to get clients list (if API endpoint available)\n        response = requests.get(f\"{SERVER_URL}/api/clients\", timeout=10)\n        if response.status_code == 200:\n            clients = response.json()\n            return clients\n        else:\n            print(f\"❌ API returned {response.status_code}\")",
+        "detail": "client.check_server_api",
+        "documentation": {}
+    },
+    {
+        "label": "check_client_version",
+        "kind": 2,
+        "importPath": "client.check_server_api",
+        "description": "client.check_server_api",
+        "peekOfCode": "def check_client_version(client_id):\n    \"\"\"Check if client has received update\"\"\"\n    try:\n        response = requests.get(f\"{SERVER_URL}/api/clients/{client_id}\", timeout=10)\n        if response.status_code == 200:\n            data = response.json()\n            return data\n        return None\n    except:\n        return None",
+        "detail": "client.check_server_api",
+        "documentation": {}
+    },
+    {
+        "label": "send_update_command",
+        "kind": 2,
+        "importPath": "client.check_server_api",
+        "description": "client.check_server_api",
+        "peekOfCode": "def send_update_command(client_id):\n    \"\"\"Send update command to client via server\"\"\"\n    try:\n        response = requests.post(\n            f\"{SERVER_URL}/api/clients/{client_id}/update\",\n            json={\"force\": True, \"priority\": \"high\"},\n            timeout=10\n        )\n        return response.status_code == 200\n    except:",
+        "detail": "client.check_server_api",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.check_server_api",
+        "description": "client.check_server_api",
+        "peekOfCode": "def main():\n    print(\"\"\"\n╔═══════════════════════════════════════════════════════════╗\n║       TENJO CLIENT API TUNNEL                             ║\n║       Use server API to communicate with clients          ║\n╚═══════════════════════════════════════════════════════════╝\n    \"\"\")\n    print(\"🔍 Checking server for online clients...\")\n    print()\n    # Try direct API",
+        "detail": "client.check_server_api",
+        "documentation": {}
+    },
+    {
+        "label": "SERVER_URL",
+        "kind": 5,
+        "importPath": "client.check_server_api",
+        "description": "client.check_server_api",
+        "peekOfCode": "SERVER_URL = \"https://tenjo.adilabs.id\"\ndef get_online_clients():\n    \"\"\"Get list of online clients from dashboard API\"\"\"\n    try:\n        # Try to get clients list (if API endpoint available)\n        response = requests.get(f\"{SERVER_URL}/api/clients\", timeout=10)\n        if response.status_code == 200:\n            clients = response.json()\n            return clients\n        else:",
+        "detail": "client.check_server_api",
+        "documentation": {}
+    },
+    {
         "label": "test_dashboard_endpoints",
         "kind": 2,
         "importPath": "client.diagnostic_tool",
@@ -2220,6 +2323,204 @@
         "description": "client.os_detector",
         "peekOfCode": "def main():\n    \"\"\"Test OS detection\"\"\"\n    print(\"🔍 TENJO OS DETECTION TEST\")\n    print(\"=\" * 40)\n    os_info = detect_os()\n    print(\"📋 Detected OS Information:\")\n    for key, value in os_info.items():\n        print(f\"   {key.title()}: {value}\")\n    print(f\"\\n📤 Client Registration Format:\")\n    client_os_info = get_os_info_for_client()",
         "detail": "client.os_detector",
+        "documentation": {}
+    },
+    {
+        "label": "check_port",
+        "kind": 2,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "def check_port(ip: str, port: int, timeout: int = 1) -> bool:\n    \"\"\"Check if port is open on remote host\"\"\"\n    try:\n        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n        sock.settimeout(timeout)\n        result = sock.connect_ex((ip, port))\n        sock.close()\n        return result == 0\n    except:\n        return False",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "ping_host",
+        "kind": 2,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "def ping_host(ip: str) -> bool:\n    \"\"\"Ping host to check if online\"\"\"\n    try:\n        result = subprocess.run(\n            [\"ping\", \"-c\", \"1\", \"-W\", \"1\", ip],\n            stdout=subprocess.DEVNULL,\n            stderr=subprocess.DEVNULL,\n            timeout=2\n        )\n        return result.returncode == 0",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "scan_clients",
+        "kind": 2,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "def scan_clients():\n    \"\"\"Scan all clients for online status and open ports\"\"\"\n    print(\"=\" * 60)\n    print(\"🔍 SCANNING CLIENT NETWORK\")\n    print(\"=\" * 60)\n    print()\n    results = []\n    for ip in CLIENT_IPS:\n        print(f\"Scanning {ip}...\", end=\" \", flush=True)\n        online = ping_host(ip)",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "deploy_via_smb",
+        "kind": 2,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "def deploy_via_smb(ip: str, username: str, password: str):\n    \"\"\"Deploy update script via SMB share\"\"\"\n    print(f\"\\n📁 Deploying to {ip} via SMB...\")\n    # Download update script locally\n    local_script = \"/tmp/update_server_config.py\"\n    print(\"  → Downloading update script...\")\n    result = subprocess.run(\n        [\"curl\", \"-s\", \"-o\", local_script, UPDATE_SCRIPT_URL],\n        capture_output=True\n    )",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "deploy_via_winrm",
+        "kind": 2,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "def deploy_via_winrm(ip: str, port: int, username: str, password: str):\n    \"\"\"Deploy and execute via WinRM\"\"\"\n    try:\n        import winrm\n    except ImportError:\n        print(\"❌ winrm module not installed\")\n        print(\"   Install: pip3 install pywinrm\")\n        return False\n    print(f\"\\n⚡ Deploying to {ip} via WinRM...\")\n    try:",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "def main():\n    print(\"\"\"\n╔═══════════════════════════════════════════════════════════╗\n║       TENJO REMOTE UPDATE DEPLOYER                        ║\n║       Deploy updates via network (SMB/WinRM)              ║\n╚═══════════════════════════════════════════════════════════╝\n    \"\"\")\n    # Scan network\n    results = scan_clients()\n    # Summary",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "CLIENT_IPS",
+        "kind": 5,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "CLIENT_IPS = [\n    \"192.168.1.26\", \"192.168.1.21\", \"192.168.1.25\", \"192.168.1.2\",\n    \"192.168.100.165\", \"192.168.100.216\", \"192.168.100.178\",\n    \"192.168.1.29\", \"192.168.1.8\", \"192.168.1.27\", \"192.168.1.22\",\n    \"192.168.100.158\", \"192.168.100.159\", \"192.168.1.38\",\n    \"192.168.1.30\", \"192.168.1.32\", \"192.168.1.18\"\n]\nUPDATE_SCRIPT_URL = \"https://tenjo.adilabs.id/downloads/client/update_server_config.py\"\nREMOTE_PATH = r\"C:\\ProgramData\\Tenjo\\update_server_config.py\"\ndef check_port(ip: str, port: int, timeout: int = 1) -> bool:",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "UPDATE_SCRIPT_URL",
+        "kind": 5,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "UPDATE_SCRIPT_URL = \"https://tenjo.adilabs.id/downloads/client/update_server_config.py\"\nREMOTE_PATH = r\"C:\\ProgramData\\Tenjo\\update_server_config.py\"\ndef check_port(ip: str, port: int, timeout: int = 1) -> bool:\n    \"\"\"Check if port is open on remote host\"\"\"\n    try:\n        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n        sock.settimeout(timeout)\n        result = sock.connect_ex((ip, port))\n        sock.close()\n        return result == 0",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "REMOTE_PATH",
+        "kind": 5,
+        "importPath": "client.remote_network_deploy",
+        "description": "client.remote_network_deploy",
+        "peekOfCode": "REMOTE_PATH = r\"C:\\ProgramData\\Tenjo\\update_server_config.py\"\ndef check_port(ip: str, port: int, timeout: int = 1) -> bool:\n    \"\"\"Check if port is open on remote host\"\"\"\n    try:\n        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n        sock.settimeout(timeout)\n        result = sock.connect_ex((ip, port))\n        sock.close()\n        return result == 0\n    except:",
+        "detail": "client.remote_network_deploy",
+        "documentation": {}
+    },
+    {
+        "label": "get_config_path",
+        "kind": 2,
+        "importPath": "client.update_server_config",
+        "description": "client.update_server_config",
+        "peekOfCode": "def get_config_path():\n    \"\"\"Get the client configuration file path based on OS\"\"\"\n    system = platform.system()\n    if system == 'Windows':\n        base_path = Path(\"C:/ProgramData/Tenjo\")\n    elif system == 'Darwin':\n        base_path = Path(\"/usr/local/tenjo\")\n    else:  # Linux\n        base_path = Path(\"/opt/tenjo\")\n    config_file = base_path / \"src\" / \"core\" / \"config.py\"",
+        "detail": "client.update_server_config",
+        "documentation": {}
+    },
+    {
+        "label": "create_server_override",
+        "kind": 2,
+        "importPath": "client.update_server_config",
+        "description": "client.update_server_config",
+        "peekOfCode": "def create_server_override(server_url):\n    \"\"\"Create server_override.json to force production server\"\"\"\n    _, override_file = get_config_path()\n    override_data = {\n        \"server_url\": server_url,\n        \"api_endpoint\": f\"{server_url}/api\",\n        \"updated_at\": \"2025-10-07T00:00:00Z\",\n        \"reason\": \"Production server migration\"\n    }\n    try:",
+        "detail": "client.update_server_config",
+        "documentation": {}
+    },
+    {
+        "label": "update_config_file",
+        "kind": 2,
+        "importPath": "client.update_server_config",
+        "description": "client.update_server_config",
+        "peekOfCode": "def update_config_file(server_url):\n    \"\"\"Update DEFAULT_SERVER_URL in config.py\"\"\"\n    config_file, _ = get_config_path()\n    if not config_file.exists():\n        print(f\"❌ Config file not found: {config_file}\")\n        return False\n    try:\n        # Read current config\n        with open(config_file, 'r') as f:\n            content = f.read()",
+        "detail": "client.update_server_config",
+        "documentation": {}
+    },
+    {
+        "label": "restart_client_service",
+        "kind": 2,
+        "importPath": "client.update_server_config",
+        "description": "client.update_server_config",
+        "peekOfCode": "def restart_client_service():\n    \"\"\"Restart the Tenjo client service\"\"\"\n    system = platform.system()\n    print(\"\\n🔄 Restarting client service...\")\n    try:\n        if system == 'Windows':\n            os.system('net stop \"Tenjo Client\" >nul 2>&1')\n            os.system('net start \"Tenjo Client\" >nul 2>&1')\n        elif system == 'Darwin':\n            os.system('launchctl unload ~/Library/LaunchAgents/com.tenjo.client.plist 2>/dev/null')",
+        "detail": "client.update_server_config",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.update_server_config",
+        "description": "client.update_server_config",
+        "peekOfCode": "def main():\n    print(\"=\"*70)\n    print(\"🔧 TENJO CLIENT - SERVER URL UPDATE TOOL\")\n    print(\"=\"*70)\n    print()\n    # Target production server\n    production_url = \"https://tenjo.adilabs.id\"\n    print(f\"📡 Target Server: {production_url}\")\n    print(f\"💻 Operating System: {platform.system()}\")\n    print()",
+        "detail": "client.update_server_config",
+        "documentation": {}
+    },
+    {
+        "label": "is_client_running",
+        "kind": 2,
+        "importPath": "client.watchdog",
+        "description": "client.watchdog",
+        "peekOfCode": "def is_client_running():\n    \"\"\"Check if Tenjo client is running\"\"\"\n    try:\n        for proc in psutil.process_iter(['name', 'cmdline', 'cwd']):\n            try:\n                name = proc.info['name']\n                if not name:\n                    continue\n                # Check if it's Python process\n                if 'python' in name.lower():",
+        "detail": "client.watchdog",
+        "documentation": {}
+    },
+    {
+        "label": "start_client",
+        "kind": 2,
+        "importPath": "client.watchdog",
+        "description": "client.watchdog",
+        "peekOfCode": "def start_client():\n    \"\"\"Start Tenjo client\"\"\"\n    try:\n        if not CLIENT_SCRIPT.exists():\n            logging.error(f\"Client script not found: {CLIENT_SCRIPT}\")\n            return False\n        logging.info(f\"Starting Tenjo client from {CLIENT_DIR}\")\n        if os.name == 'nt':\n            # Windows: Start hidden\n            subprocess.Popen(",
+        "detail": "client.watchdog",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.watchdog",
+        "description": "client.watchdog",
+        "peekOfCode": "def main():\n    \"\"\"Main watchdog loop\"\"\"\n    logging.info(\"=\" * 50)\n    logging.info(\"Tenjo Watchdog Service Started\")\n    logging.info(f\"Client directory: {CLIENT_DIR}\")\n    logging.info(f\"Check interval: {CHECK_INTERVAL}s\")\n    logging.info(\"=\" * 50)\n    consecutive_failures = 0\n    max_failures = 5\n    while True:",
+        "detail": "client.watchdog",
+        "documentation": {}
+    },
+    {
+        "label": "CLIENT_DIR",
+        "kind": 5,
+        "importPath": "client.watchdog",
+        "description": "client.watchdog",
+        "peekOfCode": "CLIENT_DIR = Path(\"C:/ProgramData/Tenjo\") if os.name == 'nt' else Path.home() / \".tenjo\"\nCLIENT_SCRIPT = CLIENT_DIR / \"main.py\"\nCHECK_INTERVAL = 30  # seconds\nRESTART_DELAY = 10  # seconds\nLOG_FILE = CLIENT_DIR / \"logs\" / \"watchdog.log\"\n# Setup logging\nLOG_FILE.parent.mkdir(parents=True, exist_ok=True)\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s',",
+        "detail": "client.watchdog",
+        "documentation": {}
+    },
+    {
+        "label": "CLIENT_SCRIPT",
+        "kind": 5,
+        "importPath": "client.watchdog",
+        "description": "client.watchdog",
+        "peekOfCode": "CLIENT_SCRIPT = CLIENT_DIR / \"main.py\"\nCHECK_INTERVAL = 30  # seconds\nRESTART_DELAY = 10  # seconds\nLOG_FILE = CLIENT_DIR / \"logs\" / \"watchdog.log\"\n# Setup logging\nLOG_FILE.parent.mkdir(parents=True, exist_ok=True)\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s',\n    handlers=[",
+        "detail": "client.watchdog",
+        "documentation": {}
+    },
+    {
+        "label": "CHECK_INTERVAL",
+        "kind": 5,
+        "importPath": "client.watchdog",
+        "description": "client.watchdog",
+        "peekOfCode": "CHECK_INTERVAL = 30  # seconds\nRESTART_DELAY = 10  # seconds\nLOG_FILE = CLIENT_DIR / \"logs\" / \"watchdog.log\"\n# Setup logging\nLOG_FILE.parent.mkdir(parents=True, exist_ok=True)\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s',\n    handlers=[\n        logging.FileHandler(LOG_FILE),",
+        "detail": "client.watchdog",
+        "documentation": {}
+    },
+    {
+        "label": "RESTART_DELAY",
+        "kind": 5,
+        "importPath": "client.watchdog",
+        "description": "client.watchdog",
+        "peekOfCode": "RESTART_DELAY = 10  # seconds\nLOG_FILE = CLIENT_DIR / \"logs\" / \"watchdog.log\"\n# Setup logging\nLOG_FILE.parent.mkdir(parents=True, exist_ok=True)\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s',\n    handlers=[\n        logging.FileHandler(LOG_FILE),\n        logging.StreamHandler()",
+        "detail": "client.watchdog",
+        "documentation": {}
+    },
+    {
+        "label": "LOG_FILE",
+        "kind": 5,
+        "importPath": "client.watchdog",
+        "description": "client.watchdog",
+        "peekOfCode": "LOG_FILE = CLIENT_DIR / \"logs\" / \"watchdog.log\"\n# Setup logging\nLOG_FILE.parent.mkdir(parents=True, exist_ok=True)\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s',\n    handlers=[\n        logging.FileHandler(LOG_FILE),\n        logging.StreamHandler()\n    ]",
+        "detail": "client.watchdog",
         "documentation": {}
     },
     {

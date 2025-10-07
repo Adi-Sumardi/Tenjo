@@ -163,16 +163,27 @@ REM Step 5: Configure server URL
 REM ========================================
 echo [5/7] Configuring server connection...
 
-REM Create server override config
-echo {"server_url": "https://tenjo.adilabs.id"} > "%INSTALL_DIR%\server_override.json"
+echo.
+echo [5/8] Configuring production server...
+:: Create server override config
+(
+echo {
+echo     "server_url": "https://tenjo.adilabs.id",
+echo     "api_endpoint": "/api",
+echo     "update_interval": 60
+echo }
+) > "%TENJO_DIR%\server_override.json"
 
-REM Update config.py
-if exist "%INSTALL_DIR%\src\core\config.py" (
-    powershell -Command "(Get-Content '%INSTALL_DIR%\src\core\config.py') -replace 'http://127.0.0.1:8000', 'https://tenjo.adilabs.id' | Set-Content '%INSTALL_DIR%\src\core\config.py'"
-    echo   [OK] Server URL configured: https://tenjo.adilabs.id
+:: Update config.py if exists (CORRECT PATH: src/core/config.py)
+if exist "%TENJO_DIR%\src\core\config.py" (
+    powershell -Command "(Get-Content '%TENJO_DIR%\src\core\config.py') -replace 'http://127.0.0.1:8000', 'https://tenjo.adilabs.id' | Set-Content '%TENJO_DIR%\src\core\config.py'"
+    powershell -Command "(Get-Content '%TENJO_DIR%\src\core\config.py') -replace 'http://localhost:8000', 'https://tenjo.adilabs.id' | Set-Content '%TENJO_DIR%\src\core\config.py'"
+    powershell -Command "(Get-Content '%TENJO_DIR%\src\core\config.py') -replace 'DEFAULT_SERVER_URL = os.getenv\([^)]+\)', 'DEFAULT_SERVER_URL = os.getenv(\"TENJO_SERVER_URL\", \"https://tenjo.adilabs.id\")' | Set-Content '%TENJO_DIR%\src\core\config.py'"
+    echo     ✓ Config.py updated
 ) else (
-    echo   [WARNING] config.py not found
+    echo     ! Warning: config.py not found at expected location
 )
+echo     ✓ Server configured: https://tenjo.adilabs.id
 
 echo.
 
@@ -203,15 +214,17 @@ echo.
 
 echo.
 echo [7/8] Starting Tenjo service...
+:: Create logs directory
+if not exist "%TENJO_DIR%\logs" mkdir "%TENJO_DIR%\logs"
+
 :: Try scheduled task first
 schtasks /Run /TN "TenjoMonitor" >nul 2>&1
 if %errorLevel% equ 0 (
     echo     ✓ Started via scheduled task
 ) else (
-    :: Fallback: start directly
-    cd /d "%TENJO_DIR%"
-    start "" /B pythonw.exe main.py >nul 2>&1
-    echo     ✓ Started directly
+    :: Fallback: start with PowerShell for proper working directory
+    powershell -Command "Start-Process -FilePath 'pythonw.exe' -ArgumentList 'main.py' -WorkingDirectory '%TENJO_DIR%' -WindowStyle Hidden" >nul 2>&1
+    echo     ✓ Started directly with proper working directory
 )
 
 echo.
