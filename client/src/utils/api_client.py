@@ -263,38 +263,6 @@ class APIClient:
         logging.error(f"Failed to complete {method} request to {endpoint} after {self.max_retries} attempts")
         raise Exception(f"API request failed: {method} {endpoint} after {self.max_retries} attempts")
 
-    def upload_screenshot(self, screenshot_data):
-        """Upload screenshot to production API with proper format"""
-        # Production API expects specific format
-        headers = {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-
-        # Use form data for screenshot upload (not JSON)
-        url = f"{self.server_url}/api/screenshots"
-
-        try:
-            response = requests.post(
-                url,
-                data=screenshot_data,  # Send as form data
-                headers=headers,
-                timeout=self.timeout
-            )
-
-            if response.status_code in [200, 201]:
-                try:
-                    return response.json()
-                except ValueError:
-                    return {'success': True, 'message': 'Screenshot uploaded'}
-            else:
-                logging.warning(f"Screenshot upload failed: HTTP {response.status_code}")
-                return None
-
-        except Exception as e:
-            logging.error(f"Screenshot upload error: {str(e)}")
-            return None
-
     def _store_pending_data(self, endpoint, data):
         """Store data locally when endpoint is not available"""
         import json

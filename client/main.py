@@ -30,13 +30,20 @@ except Exception as e:
     # Don't let disguise failure stop the client
     pass
 
-# Global flag for graceful shutdown
+# Global flag for graceful shutdown with thread safety
 shutdown_flag = False
+shutdown_lock = threading.Lock()
 
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully"""
     global shutdown_flag
-    shutdown_flag = True
+    with shutdown_lock:
+        shutdown_flag = True
+
+def is_shutdown_requested():
+    """Thread-safe check for shutdown flag"""
+    with shutdown_lock:
+        return shutdown_flag
 
 def setup_stealth_logging():
     """Setup logging for stealth mode - minimal output"""
@@ -231,7 +238,7 @@ class StealthClient:
         last_heartbeat_at = time.time()
         last_status_log = time.time()
         loop_counter = 0
-        while not shutdown_flag:
+        while not is_shutdown_requested():
             try:
                 loop_counter += 1
                 current_time = time.time()

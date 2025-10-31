@@ -7,6 +7,7 @@ use App\Models\Screenshot;
 use App\Models\BrowserSession;
 use App\Models\UrlActivity;
 use App\Exports\ClientSummaryExport;
+use App\Exports\EnhancedClientSummaryExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
@@ -355,6 +356,18 @@ class DashboardController extends Controller
         // Handle export requests
         if ($request->has('export')) {
             if ($request->export === 'excel') {
+                // Use enhanced export with KPI metrics
+                return Excel::download(
+                    new EnhancedClientSummaryExport($clients, $overallStats, [
+                        'from' => $from->format('Y-m-d'),
+                        'to' => $to->format('Y-m-d')
+                    ]),
+                    'Employee_KPI_Report_' . now()->format('Y-m-d') . '.xlsx'
+                );
+            }
+
+            if ($request->export === 'excel_simple') {
+                // Keep simple export as fallback option
                 return Excel::download(
                     new ClientSummaryExport($clients, $overallStats, [
                         'from' => $from->format('Y-m-d'),

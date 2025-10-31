@@ -55,7 +55,11 @@ class BrowserTracker:
         self.api_client = api_client
         self.logger = logger
         self.running = False
-        
+
+        # Thread safety locks
+        self._sessions_lock = threading.Lock()
+        self._activities_lock = threading.Lock()
+
         # Browser sessions tracking
         self.active_sessions: Dict[str, BrowserSession] = {}
         self.url_activities: Dict[str, Dict] = {}  # url -> activity data
@@ -79,6 +83,27 @@ class BrowserTracker:
         self.tracker_thread = None
         self.last_check = datetime.now()
         
+    def _get_active_sessions_copy(self) -> Dict:
+        """Thread-safe way to get a copy of active sessions"""
+        with self._sessions_lock:
+            return dict(self.active_sessions)
+
+    def _add_session(self, session_id: str, session: 'BrowserSession'):
+        """Thread-safe way to add a session"""
+        with self._sessions_lock:
+            self.active_sessions[session_id] = session
+
+    def _remove_session(self, session_id: str):
+        """Thread-safe way to remove a session"""
+        with self._sessions_lock:
+            if session_id in self.active_sessions:
+                del self.active_sessions[session_id]
+
+    def _get_session(self, session_id: str) -> Optional['BrowserSession']:
+        """Thread-safe way to get a session"""
+        with self._sessions_lock:
+            return self.active_sessions.get(session_id)
+
     def start_tracking(self):
         """Start browser tracking with activity detection"""
         self.logger.info("Starting enhanced browser tracking with smart activity detection...")
@@ -113,9 +138,9 @@ class BrowserTracker:
             
         if self.tracker_thread:
             self.tracker_thread.join(timeout=5)
-            
-        # End all active sessions
-        for session in self.active_sessions.values():
+
+        # End all active sessions (thread-safe)
+        for session in self._get_active_sessions_copy().values():
             self._end_browser_session(session)
     
     def _on_tracking_paused(self):
