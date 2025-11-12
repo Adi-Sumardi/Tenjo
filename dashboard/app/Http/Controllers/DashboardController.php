@@ -246,9 +246,15 @@ class DashboardController extends Controller
     public function clientSummary(Request $request)
     {
         // Get date range filter with validation
-        $dateRange = $request->get('date_range', 'today');
         $customFrom = $request->get('from');
         $customTo = $request->get('to');
+
+        // If from/to parameters are provided, use custom date range
+        if ($customFrom && $customTo) {
+            $dateRange = 'custom';
+        } else {
+            $dateRange = $request->get('date_range', 'today');
+        }
 
         // Set date filters based on range
         switch ($dateRange) {
