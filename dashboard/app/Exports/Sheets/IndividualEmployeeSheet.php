@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Screenshot;
 use App\Models\BrowserSession;
 use App\Models\UrlActivity;
+use App\Services\ActivityCategorizerService;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -78,6 +79,168 @@ class IndividualEmployeeSheet implements FromCollection, WithHeadings, WithStyle
         $data->push(['Average Session Duration', $sessions->count() > 0 ? gmdate('H:i:s', $totalDuration / $sessions->count()) : '00:00:00']);
         $data->push(['']);
         $data->push(['']);
+
+        // Activity Category Breakdown
+        $data->push(['ACTIVITY CATEGORY BREAKDOWN']);
+        $data->push(['']);
+        $data->push(['Category', 'Percentage', 'Duration', 'Visit Count']);
+
+        $categorizer = new ActivityCategorizerService();
+
+        // Calculate category statistics
+        $workDuration = 0;
+        $socialDuration = 0;
+        $suspiciousDuration = 0;
+        $workCount = 0;
+        $socialCount = 0;
+        $suspiciousCount = 0;
+
+        foreach ($urlActivities as $activity) {
+            $duration = floatval($activity->duration);
+
+            switch ($activity->activity_category) {
+                case ActivityCategorizerService::CATEGORY_WORK:
+                    $workDuration += $duration;
+                    $workCount++;
+                    break;
+                case ActivityCategorizerService::CATEGORY_SOCIAL:
+                    $socialDuration += $duration;
+                    $socialCount++;
+                    break;
+                case ActivityCategorizerService::CATEGORY_SUSPICIOUS:
+                    $suspiciousDuration += $duration;
+                    $suspiciousCount++;
+                    break;
+            }
+        }
+
+        $totalCategoryDuration = $workDuration + $socialDuration + $suspiciousDuration;
+
+        if ($totalCategoryDuration > 0) {
+            $workPercentage = round(($workDuration / $totalCategoryDuration) * 100, 1);
+            $socialPercentage = round(($socialDuration / $totalCategoryDuration) * 100, 1);
+            $suspiciousPercentage = round(($suspiciousDuration / $totalCategoryDuration) * 100, 1);
+        } else {
+            $workPercentage = $socialPercentage = $suspiciousPercentage = 0;
+        }
+
+        $data->push([
+            '🟢 Pekerjaan (Work)',
+            $workPercentage . '%',
+            gmdate('H:i:s', $workDuration),
+            $workCount
+        ]);
+        $data->push([
+            '🔴 Media Sosial (Social Media)',
+            $socialPercentage . '%',
+            gmdate('H:i:s', $socialDuration),
+            $socialCount
+        ]);
+        $data->push([
+            '⚫ Tidak Teridentifikasi (Suspicious)',
+            $suspiciousPercentage . '%',
+            gmdate('H:i:s', $suspiciousDuration),
+            $suspiciousCount
+        ]);
+
+        $data->push(['']);
+        $data->push(['']);
+
+        // Top Work Activities
+        $workActivities = $urlActivities->filter(function($activity) {
+            return $activity->activity_category === ActivityCategorizerService::CATEGORY_WORK;
+        });
+
+        if ($workActivities->count() > 0) {
+            $data->push(['TOP 10 WORK ACTIVITIES 🟢']);
+            $data->push(['']);
+
+            $topWorkUrls = $workActivities->groupBy('url')->map(function($activities, $url) {
+                $first = $activities->first();
+                return [
+                    'url' => $url,
+                    'domain' => $first->domain ?? 'Unknown',
+                    'visits' => $activities->count(),
+                    'total_duration' => $activities->sum('duration'),
+                ];
+            })->sortByDesc('total_duration')->take(10)->values();
+
+            foreach ($topWorkUrls as $urlData) {
+                $data->push([
+                    $urlData['domain'],
+                    $urlData['url'],
+                    $urlData['visits'],
+                    gmdate('H:i:s', $urlData['total_duration']),
+                ]);
+            }
+
+            $data->push(['']);
+            $data->push(['']);
+        }
+
+        // Top Social Media Activities
+        $socialActivities = $urlActivities->filter(function($activity) {
+            return $activity->activity_category === ActivityCategorizerService::CATEGORY_SOCIAL;
+        });
+
+        if ($socialActivities->count() > 0) {
+            $data->push(['TOP 10 SOCIAL MEDIA ACTIVITIES 🔴']);
+            $data->push(['']);
+
+            $topSocialUrls = $socialActivities->groupBy('url')->map(function($activities, $url) {
+                $first = $activities->first();
+                return [
+                    'url' => $url,
+                    'domain' => $first->domain ?? 'Unknown',
+                    'visits' => $activities->count(),
+                    'total_duration' => $activities->sum('duration'),
+                ];
+            })->sortByDesc('total_duration')->take(10)->values();
+
+            foreach ($topSocialUrls as $urlData) {
+                $data->push([
+                    $urlData['domain'],
+                    $urlData['url'],
+                    $urlData['visits'],
+                    gmdate('H:i:s', $urlData['total_duration']),
+                ]);
+            }
+
+            $data->push(['']);
+            $data->push(['']);
+        }
+
+        // Suspicious Activities
+        $suspiciousActivities = $urlActivities->filter(function($activity) {
+            return $activity->activity_category === ActivityCategorizerService::CATEGORY_SUSPICIOUS;
+        });
+
+        if ($suspiciousActivities->count() > 0) {
+            $data->push(['SUSPICIOUS ACTIVITIES ⚫ (Requires Review)']);
+            $data->push(['']);
+
+            $suspiciousUrls = $suspiciousActivities->groupBy('url')->map(function($activities, $url) {
+                $first = $activities->first();
+                return [
+                    'url' => $url,
+                    'domain' => $first->domain ?? 'Unknown',
+                    'visits' => $activities->count(),
+                    'total_duration' => $activities->sum('duration'),
+                ];
+            })->sortByDesc('total_duration')->values();
+
+            foreach ($suspiciousUrls as $urlData) {
+                $data->push([
+                    $urlData['domain'],
+                    $urlData['url'],
+                    $urlData['visits'],
+                    gmdate('H:i:s', $urlData['total_duration']),
+                ]);
+            }
+
+            $data->push(['']);
+            $data->push(['']);
+        }
 
         // Browser usage breakdown
         $data->push(['BROWSER USAGE BREAKDOWN']);
