@@ -1,2 +1,7 @@
 node_modules/
 .env
+
+# Client test data
+client/src/data/screenshots/
+client/src/data/hls/
+client/src/data/pending/_api_system_stats_pending.jsonl
