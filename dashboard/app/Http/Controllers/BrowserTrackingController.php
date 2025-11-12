@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\BrowserSession;
 use App\Models\UrlActivity;
 use App\Models\Client;
+use App\Services\ActivityCategorizerService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -259,6 +260,11 @@ class BrowserTrackingController extends Controller
         // Extract domain
         $domain = $this->extractDomain($url);
 
+        // Categorize the activity
+        $categorizer = new ActivityCategorizerService();
+        $pageTitle = $data['title'] ?? null;
+        $category = $categorizer->categorize($url, $domain, $pageTitle);
+
         // Find or create browser session
         $browserSession = BrowserSession::where('client_id', $clientId)
             ->where('browser_name', $browserName)
@@ -290,7 +296,8 @@ class BrowserTrackingController extends Controller
                 'scroll_depth' => $data['scroll_depth'] ?? $existingActivity->scroll_depth,
                 'clicks' => $data['clicks'] ?? $existingActivity->clicks,
                 'keystrokes' => $data['keystrokes'] ?? $existingActivity->keystrokes,
-                'is_active' => $data['is_active'] ?? true
+                'is_active' => $data['is_active'] ?? true,
+                'activity_category' => $category
             ];
 
             // Set end time if activity is no longer active
@@ -317,7 +324,8 @@ class BrowserTrackingController extends Controller
                 'keystrokes' => $data['keystrokes'] ?? 0,
                 'is_active' => $data['is_active'] ?? true,
                 'referrer_url' => $data['referrer_url'] ?? null,
-                'metadata' => $data['metadata'] ?? null
+                'metadata' => $data['metadata'] ?? null,
+                'activity_category' => $category
             ]);
 
             return $activity;
