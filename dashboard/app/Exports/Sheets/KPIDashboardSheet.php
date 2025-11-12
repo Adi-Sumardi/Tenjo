@@ -40,6 +40,20 @@ class KPIDashboardSheet implements FromCollection, WithHeadings, WithStyles, Wit
         $data->push(['Period', $this->period['from'] . ' to ' . $this->period['to']]);
         $data->push(['']);
 
+        // Add headers manually (row 4)
+        $data->push([
+            'Rank',
+            'Employee',
+            'Active Hours',
+            'Work % 🟢',
+            'Social % 🔴',
+            'Suspicious % ⚫',
+            'Productivity Score',
+            'Engagement Score',
+            'Status',
+            'Performance Rating'
+        ]);
+
         // Calculate KPIs for each employee
         $kpiData = [];
         $totalMinutes = 0;
