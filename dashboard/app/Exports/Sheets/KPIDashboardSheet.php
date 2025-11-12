@@ -189,11 +189,13 @@ class KPIDashboardSheet implements FromCollection, WithHeadings, WithStyles, Wit
      */
     protected function calculateCategoryPercentages($clientId): array
     {
-        $categorizer = new ActivityCategorizerService();
-
         // Get all URL activities for this client in the period
+        // Convert date strings to proper datetime range
+        $fromDate = \Carbon\Carbon::parse($this->period['from'])->startOfDay();
+        $toDate = \Carbon\Carbon::parse($this->period['to'])->endOfDay();
+
         $activities = UrlActivity::where('client_id', $clientId)
-            ->whereBetween('visit_start', [$this->period['from'], $this->period['to']])
+            ->whereBetween('visit_start', [$fromDate, $toDate])
             ->get();
 
         if ($activities->isEmpty()) {

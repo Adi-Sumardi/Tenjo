@@ -22,8 +22,8 @@ class EnhancedClientSummaryExport implements WithMultipleSheets
         $this->clients = $clients;
         $this->overallStats = $overallStats;
         $this->period = $period;
-        $this->from = Carbon::parse($period['from']);
-        $this->to = Carbon::parse($period['to']);
+        $this->from = Carbon::parse($period['from'])->startOfDay();
+        $this->to = Carbon::parse($period['to'])->endOfDay();
     }
 
     public function sheets(): array
