@@ -133,18 +133,8 @@ class KPIDashboardSheet implements FromCollection, WithHeadings, WithStyles, Wit
 
     public function headings(): array
     {
-        return [
-            'Rank',
-            'Employee',
-            'Active Hours',
-            'Work % 🟢',
-            'Social % 🔴',
-            'Suspicious % ⚫',
-            'Productivity Score',
-            'Engagement Score',
-            'Status',
-            'Performance Rating'
-        ];
+        // Headers are added manually in collection() method
+        return [];
     }
 
     protected function calculateProductivityScore($stats): float
