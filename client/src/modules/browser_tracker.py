@@ -181,9 +181,9 @@ class BrowserTracker:
                 
                 # Clean up old activities to prevent memory leaks
                 self._cleanup_old_activities(current_time)
-                
+
                 self.last_check = current_time
-                time.sleep(300)  # Check every 5 minutes (optimized from 60s to reduce 80% database growth)
+                time.sleep(60)  # Check every 1 minute (balanced: catches minimize/quick activities without excessive DB growth)
                 
             except Exception as e:
                 self.logger.error(f"Error in browser tracking loop: {e}")
@@ -282,7 +282,7 @@ class BrowserTracker:
                 return tabInfo
             end tell
             '''
-            
+
             title_script = '''
             tell application "Google Chrome"
                 set tabInfo to {}
@@ -294,21 +294,21 @@ class BrowserTracker:
                 return tabInfo
             end tell
             '''
-            
+
             # Get URLs
             url_result = subprocess.run(
                 ['osascript', '-e', url_script],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=30  # Increased from 10s to handle many tabs (minimized windows included)
             )
-            
+
             # Get titles
             title_result = subprocess.run(
                 ['osascript', '-e', title_script],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=30  # Increased from 10s to handle many tabs (minimized windows included)
             )
             
             if url_result.returncode == 0 and url_result.stdout.strip():
@@ -363,24 +363,24 @@ class BrowserTracker:
                 ['osascript', '-e', url_script],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=30  # Increased from 10s to handle many tabs (minimized windows included)
             )
-            
+
             # Get titles
             title_result = subprocess.run(
                 ['osascript', '-e', title_script],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=30  # Increased from 10s to handle many tabs (minimized windows included)
             )
-            
+
             if url_result.returncode == 0 and url_result.stdout.strip():
                 urls = [url.strip() for url in url_result.stdout.split(',') if url.strip()]
                 titles = []
-                
+
                 if title_result.returncode == 0 and title_result.stdout.strip():
                     titles = [title.strip() for title in title_result.stdout.split(',') if title.strip()]
-                
+
                 # Match URLs with titles
                 current_time = datetime.now()
                 for i, url in enumerate(urls):
@@ -389,7 +389,7 @@ class BrowserTracker:
                         title = titles[i] if i < len(titles) else self._extract_title_from_url(clean_url)
                         title = title.strip().strip('"').strip("'")
                         self._track_url_activity('Safari', clean_url, title, current_time)
-                
+
         except Exception as e:
             self.logger.debug(f"Safari tabs not accessible: {e}")
             
@@ -659,7 +659,7 @@ class BrowserTracker:
             # Prepare URL activities data
             url_data = []
             for activity in self.url_activities.values():
-                if activity['total_time'] > 30:  # Only send activities > 30 seconds (optimized from 0 to reduce 60% database growth)
+                if activity['total_time'] > 5:  # Only send activities > 5 seconds (catches quick YouTube/game opens while avoiding noise)
                     url_activity = {
                         'browser_name': activity['browser_name'],
                         'url': activity['url'],
