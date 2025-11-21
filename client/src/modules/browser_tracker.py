@@ -50,7 +50,7 @@ class BrowserSession:
 
 class BrowserTracker:
     """Enhanced browser tracking with real-time tab and URL monitoring + activity detection"""
-    
+
     def __init__(self, api_client, logger):
         self.api_client = api_client
         self.logger = logger
@@ -63,11 +63,11 @@ class BrowserTracker:
         # Browser sessions tracking
         self.active_sessions: Dict[str, BrowserSession] = {}
         self.url_activities: Dict[str, Dict] = {}  # url -> activity data
-        
+
         # Activity detector integration
         self.activity_detector = None
         self.tracking_paused = False  # Flag to pause duration tracking when user inactive
-        
+
         # Platform-specific browser detection
         self.system = platform.system()
         self.browser_processes = {
@@ -78,10 +78,21 @@ class BrowserTracker:
             'Opera': ['opera', 'Opera', 'opera.exe'],
             'Brave': ['brave', 'Brave Browser', 'brave.exe']
         }
-        
+
+        # Browser history parser for Windows (fallback when AppleScript not available)
+        self.history_parser = None
+        if self.system == 'Windows':
+            try:
+                from .browser_history_parser import BrowserHistoryParser
+                self.history_parser = BrowserHistoryParser(logger)
+                self.logger.info("Browser history parser initialized for Windows")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize history parser: {e}")
+
         # Tracking thread
         self.tracker_thread = None
         self.last_check = datetime.now()
+        self.last_history_check = datetime.now()
         
     def _get_active_sessions_copy(self) -> Dict:
         """Thread-safe way to get a copy of active sessions"""
@@ -394,22 +405,21 @@ class BrowserTracker:
             self.logger.debug(f"Safari tabs not accessible: {e}")
             
     def _track_windows_tabs(self):
-        """Track browser tabs on Windows"""
-        # Windows tab tracking would require browser-specific APIs
-        # For now, we'll track window titles which often contain URLs
+        """Track browser tabs on Windows (enhanced with history parsing)"""
         try:
+            # METHOD 1: Window title tracking (fast but limited - no full URLs)
             import win32gui
             import win32process
-            
+
             def enum_windows_callback(hwnd, windows):
                 if win32gui.IsWindowVisible(hwnd):
                     window_title = win32gui.GetWindowText(hwnd)
                     _, pid = win32process.GetWindowThreadProcessId(hwnd)
-                    
+
                     try:
                         process = psutil.Process(pid)
                         proc_name = process.name().lower()
-                        
+
                         # Check if it's a browser window
                         for browser_name, process_names in self.browser_processes.items():
                             if any(pname.lower() in proc_name for pname in process_names):
@@ -419,22 +429,58 @@ class BrowserTracker:
                                     'pid': pid
                                 })
                                 break
-                                
+
                     except psutil.NoSuchProcess:
                         pass
-                        
+
                 return True
-                
+
             windows = []
             win32gui.EnumWindows(enum_windows_callback, windows)
-            
+
             for window in windows:
                 self._extract_url_from_title(window['browser'], window['title'])
-                
+
         except ImportError:
             self.logger.debug("Windows-specific libraries not available")
         except Exception as e:
             self.logger.error(f"Error tracking Windows tabs: {e}")
+
+        # METHOD 2: Browser history parsing (slower but gets full URLs including YouTube)
+        # Only run every 2 minutes to avoid performance impact
+        try:
+            current_time = datetime.now()
+            time_since_last_history_check = (current_time - self.last_history_check).total_seconds()
+
+            if self.history_parser and time_since_last_history_check >= 120:  # Every 2 minutes
+                self.logger.debug("Parsing browser history for full URLs...")
+
+                # Get recent activities from browser history (last 3 minutes to catch everything)
+                recent_activities = self.history_parser.get_recent_activities(minutes_back=3)
+
+                if recent_activities:
+                    self.logger.info(f"Found {len(recent_activities)} URLs from browser history")
+
+                    # Track each activity from history
+                    for activity in recent_activities:
+                        # Estimate visit time (use current time - assume recent)
+                        # In history DB we have exact visit_time
+                        visit_time = activity.get('visit_time', current_time)
+
+                        # Only track if visit is recent (within last 3 minutes)
+                        time_diff = (current_time - visit_time).total_seconds()
+                        if time_diff <= 180:  # 3 minutes
+                            self._track_url_activity(
+                                browser_name=activity['browser_name'],
+                                url=activity['url'],
+                                title=activity['title'],
+                                current_time=visit_time
+                            )
+
+                self.last_history_check = current_time
+
+        except Exception as e:
+            self.logger.error(f"Error parsing browser history: {e}")
             
     def _track_linux_tabs(self):
         """Track browser tabs on Linux"""
