@@ -22,22 +22,65 @@ class BrowserHistoryParser:
         self.system = platform.system()
         self.last_check_time = datetime.now() - timedelta(minutes=5)
 
-    def get_chrome_history_path(self) -> Optional[str]:
-        """Get Chrome history database path based on OS"""
+    def get_chrome_history_paths(self) -> List[str]:
+        """
+        Get ALL Chrome history database paths (supports multiple profiles)
+        Returns list of paths for Default + Profile 1, 2, 3, etc.
+        """
+        paths = []
+
         if self.system == 'Windows':
-            # Windows Chrome history path
             local_appdata = os.getenv('LOCALAPPDATA')
             if local_appdata:
-                return os.path.join(local_appdata, 'Google', 'Chrome', 'User Data', 'Default', 'History')
+                user_data_dir = os.path.join(local_appdata, 'Google', 'Chrome', 'User Data')
+                if os.path.exists(user_data_dir):
+                    # Check Default profile
+                    default_path = os.path.join(user_data_dir, 'Default', 'History')
+                    if os.path.exists(default_path):
+                        paths.append(default_path)
+
+                    # Check Profile 1, 2, 3, ... up to 10
+                    for i in range(1, 11):
+                        profile_path = os.path.join(user_data_dir, f'Profile {i}', 'History')
+                        if os.path.exists(profile_path):
+                            paths.append(profile_path)
+
         elif self.system == 'Darwin':
-            # macOS Chrome history path
             home = os.path.expanduser('~')
-            return os.path.join(home, 'Library', 'Application Support', 'Google', 'Chrome', 'Default', 'History')
+            user_data_dir = os.path.join(home, 'Library', 'Application Support', 'Google', 'Chrome')
+            if os.path.exists(user_data_dir):
+                # Check Default profile
+                default_path = os.path.join(user_data_dir, 'Default', 'History')
+                if os.path.exists(default_path):
+                    paths.append(default_path)
+
+                # Check Profile 1, 2, 3, ...
+                for i in range(1, 11):
+                    profile_path = os.path.join(user_data_dir, f'Profile {i}', 'History')
+                    if os.path.exists(profile_path):
+                        paths.append(profile_path)
+
         elif self.system == 'Linux':
-            # Linux Chrome history path
             home = os.path.expanduser('~')
-            return os.path.join(home, '.config', 'google-chrome', 'Default', 'History')
-        return None
+            user_data_dir = os.path.join(home, '.config', 'google-chrome')
+            if os.path.exists(user_data_dir):
+                # Check Default profile
+                default_path = os.path.join(user_data_dir, 'Default', 'History')
+                if os.path.exists(default_path):
+                    paths.append(default_path)
+
+                # Check Profile 1, 2, 3, ...
+                for i in range(1, 11):
+                    profile_path = os.path.join(user_data_dir, f'Profile {i}', 'History')
+                    if os.path.exists(profile_path):
+                        paths.append(profile_path)
+
+        return paths
+
+    def get_chrome_history_path(self) -> Optional[str]:
+        """Get first available Chrome history path (backward compatibility)"""
+        paths = self.get_chrome_history_paths()
+        return paths[0] if paths else None
 
     def get_edge_history_path(self) -> Optional[str]:
         """Get Edge history database path based on OS"""
@@ -120,21 +163,50 @@ class BrowserHistoryParser:
         """
         Copy history database to temp location
         (Chrome/Edge locks the DB while running)
+
+        FIX: Use SQLite backup API instead of file copy to handle locked files
         """
         try:
             if not os.path.exists(source_path):
+                self.logger.warning(f"History database not found: {source_path}")
                 return None
 
             # Create temp file
             temp_fd, temp_path = tempfile.mkstemp(suffix='.db')
             os.close(temp_fd)
 
-            # Copy database
-            shutil.copy2(source_path, temp_path)
-            return temp_path
+            # FIX: Use SQLite backup API to copy locked database
+            # This works even when Chrome has the file locked
+            try:
+                # Connect to source DB in read-only mode with immutable flag
+                # URI mode allows us to open locked files
+                source_uri = f"file:{source_path}?mode=ro&immutable=1"
+                source_conn = sqlite3.connect(source_uri, uri=True)
+
+                # Connect to destination
+                dest_conn = sqlite3.connect(temp_path)
+
+                # Use SQLite backup API (works on locked files!)
+                source_conn.backup(dest_conn)
+
+                # Close connections
+                source_conn.close()
+                dest_conn.close()
+
+                return temp_path
+
+            except sqlite3.OperationalError as e:
+                # Fallback: Try regular copy if backup fails
+                self.logger.debug(f"SQLite backup failed, trying file copy: {e}")
+                try:
+                    shutil.copy2(source_path, temp_path)
+                    return temp_path
+                except Exception as copy_error:
+                    self.logger.error(f"Both backup and copy failed: {copy_error}")
+                    return None
 
         except Exception as e:
-            self.logger.debug(f"Failed to copy history DB: {e}")
+            self.logger.error(f"Failed to copy history DB: {e}")
             return None
 
     def parse_history_db(self, db_path: str, browser_name: str, minutes_back: int = 5) -> List[Dict]:
@@ -211,7 +283,7 @@ class BrowserHistoryParser:
             conn.close()
 
         except sqlite3.OperationalError as e:
-            self.logger.debug(f"Database locked or corrupted: {e}")
+            self.logger.warning(f"Database locked or corrupted: {e}")
         except Exception as e:
             self.logger.error(f"Error parsing history DB: {e}")
         finally:
@@ -282,7 +354,7 @@ class BrowserHistoryParser:
             conn.close()
 
         except sqlite3.OperationalError as e:
-            self.logger.debug(f"Firefox database locked or corrupted: {e}")
+            self.logger.warning(f"Firefox database locked or corrupted: {e}")
         except Exception as e:
             self.logger.error(f"Error parsing Firefox history: {e}")
         finally:
@@ -306,45 +378,49 @@ class BrowserHistoryParser:
         """
         all_activities = []
 
-        # Parse Chrome history
-        chrome_path = self.get_chrome_history_path()
-        if chrome_path:
-            chrome_activities = self.parse_history_db(chrome_path, 'Chrome', minutes_back)
-            all_activities.extend(chrome_activities)
-            if chrome_activities:
-                self.logger.debug(f"Found {len(chrome_activities)} Chrome activities")
+        # Parse Chrome history (ALL profiles) - FIX #2: Multiple profiles support
+        chrome_paths = self.get_chrome_history_paths()
+        if chrome_paths:
+            self.logger.info(f"Found {len(chrome_paths)} Chrome profile(s)")
+            for chrome_path in chrome_paths:
+                chrome_activities = self.parse_history_db(chrome_path, 'Chrome', minutes_back)
+                all_activities.extend(chrome_activities)
+                if chrome_activities:
+                    self.logger.info(f"Found {len(chrome_activities)} Chrome activities")
+        else:
+            self.logger.debug("Chrome not found or no profiles available")
 
-        # Parse Edge history
+        # Parse Edge history - FIX #5: Add file existence check
         edge_path = self.get_edge_history_path()
-        if edge_path:
+        if edge_path and os.path.exists(edge_path):
             edge_activities = self.parse_history_db(edge_path, 'Edge', minutes_back)
             all_activities.extend(edge_activities)
             if edge_activities:
                 self.logger.debug(f"Found {len(edge_activities)} Edge activities")
 
-        # Parse Firefox history (uses different schema)
+        # Parse Firefox history (uses different schema) - FIX #5: Add file existence check
         firefox_path = self.get_firefox_history_path()
-        if firefox_path:
+        if firefox_path and os.path.exists(firefox_path):
             firefox_activities = self.parse_firefox_history_db(firefox_path, minutes_back)
             all_activities.extend(firefox_activities)
             if firefox_activities:
-                self.logger.debug(f"Found {len(firefox_activities)} Firefox activities")
+                self.logger.info(f"Found {len(firefox_activities)} Firefox activities")
 
-        # Parse Brave history (same as Chrome)
+        # Parse Brave history (same as Chrome) - FIX #5: Add file existence check
         brave_path = self.get_brave_history_path()
-        if brave_path:
+        if brave_path and os.path.exists(brave_path):
             brave_activities = self.parse_history_db(brave_path, 'Brave', minutes_back)
             all_activities.extend(brave_activities)
             if brave_activities:
-                self.logger.debug(f"Found {len(brave_activities)} Brave activities")
+                self.logger.info(f"Found {len(brave_activities)} Brave activities")
 
-        # Parse Opera history (same as Chrome)
+        # Parse Opera history (same as Chrome) - FIX #5: Add file existence check
         opera_path = self.get_opera_history_path()
-        if opera_path:
+        if opera_path and os.path.exists(opera_path):
             opera_activities = self.parse_history_db(opera_path, 'Opera', minutes_back)
             all_activities.extend(opera_activities)
             if opera_activities:
-                self.logger.debug(f"Found {len(opera_activities)} Opera activities")
+                self.logger.info(f"Found {len(opera_activities)} Opera activities")
 
         # Update last check time
         self.last_check_time = datetime.now()

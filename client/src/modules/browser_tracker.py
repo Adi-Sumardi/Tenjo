@@ -455,8 +455,9 @@ class BrowserTracker:
             if self.history_parser and time_since_last_history_check >= 120:  # Every 2 minutes
                 self.logger.debug("Parsing browser history for full URLs...")
 
-                # Get recent activities from browser history (last 3 minutes to catch everything)
-                recent_activities = self.history_parser.get_recent_activities(minutes_back=3)
+                # FIX #3: Get recent activities from browser history (last 5 minutes to ensure no gaps)
+                # Parse interval = 2min, so lookback should be at least 5min for safety
+                recent_activities = self.history_parser.get_recent_activities(minutes_back=5)
 
                 if recent_activities:
                     self.logger.info(f"Found {len(recent_activities)} URLs from browser history")
@@ -467,9 +468,9 @@ class BrowserTracker:
                         # In history DB we have exact visit_time
                         visit_time = activity.get('visit_time', current_time)
 
-                        # Only track if visit is recent (within last 3 minutes)
+                        # FIX #3: Only track if visit is recent (within last 5 minutes)
                         time_diff = (current_time - visit_time).total_seconds()
-                        if time_diff <= 180:  # 3 minutes
+                        if time_diff <= 300:  # 5 minutes (300 seconds)
                             self._track_url_activity(
                                 browser_name=activity['browser_name'],
                                 url=activity['url'],
