@@ -52,6 +52,70 @@ class BrowserHistoryParser:
             return os.path.join(home, 'Library', 'Application Support', 'Microsoft Edge', 'Default', 'History')
         return None
 
+    def get_firefox_history_path(self) -> Optional[str]:
+        """Get Firefox history database path based on OS"""
+        if self.system == 'Windows':
+            # Windows Firefox history path (places.sqlite)
+            appdata = os.getenv('APPDATA')
+            if appdata:
+                firefox_dir = os.path.join(appdata, 'Mozilla', 'Firefox', 'Profiles')
+                if os.path.exists(firefox_dir):
+                    # Find default profile directory (ends with .default or .default-release)
+                    for profile in os.listdir(firefox_dir):
+                        if '.default' in profile:
+                            return os.path.join(firefox_dir, profile, 'places.sqlite')
+        elif self.system == 'Darwin':
+            # macOS Firefox history path
+            home = os.path.expanduser('~')
+            firefox_dir = os.path.join(home, 'Library', 'Application Support', 'Firefox', 'Profiles')
+            if os.path.exists(firefox_dir):
+                for profile in os.listdir(firefox_dir):
+                    if '.default' in profile:
+                        return os.path.join(firefox_dir, profile, 'places.sqlite')
+        elif self.system == 'Linux':
+            # Linux Firefox history path
+            home = os.path.expanduser('~')
+            firefox_dir = os.path.join(home, '.mozilla', 'firefox')
+            if os.path.exists(firefox_dir):
+                for profile in os.listdir(firefox_dir):
+                    if '.default' in profile:
+                        return os.path.join(firefox_dir, profile, 'places.sqlite')
+        return None
+
+    def get_brave_history_path(self) -> Optional[str]:
+        """Get Brave history database path based on OS"""
+        if self.system == 'Windows':
+            # Windows Brave history path (same structure as Chrome)
+            local_appdata = os.getenv('LOCALAPPDATA')
+            if local_appdata:
+                return os.path.join(local_appdata, 'BraveSoftware', 'Brave-Browser', 'User Data', 'Default', 'History')
+        elif self.system == 'Darwin':
+            # macOS Brave history path
+            home = os.path.expanduser('~')
+            return os.path.join(home, 'Library', 'Application Support', 'BraveSoftware', 'Brave-Browser', 'Default', 'History')
+        elif self.system == 'Linux':
+            # Linux Brave history path
+            home = os.path.expanduser('~')
+            return os.path.join(home, '.config', 'BraveSoftware', 'Brave-Browser', 'Default', 'History')
+        return None
+
+    def get_opera_history_path(self) -> Optional[str]:
+        """Get Opera history database path based on OS"""
+        if self.system == 'Windows':
+            # Windows Opera history path (same structure as Chrome)
+            appdata = os.getenv('APPDATA')
+            if appdata:
+                return os.path.join(appdata, 'Opera Software', 'Opera Stable', 'History')
+        elif self.system == 'Darwin':
+            # macOS Opera history path
+            home = os.path.expanduser('~')
+            return os.path.join(home, 'Library', 'Application Support', 'com.operasoftware.Opera', 'History')
+        elif self.system == 'Linux':
+            # Linux Opera history path
+            home = os.path.expanduser('~')
+            return os.path.join(home, '.config', 'opera', 'History')
+        return None
+
     def copy_history_db(self, source_path: str) -> Optional[str]:
         """
         Copy history database to temp location
@@ -160,6 +224,76 @@ class BrowserHistoryParser:
 
         return activities
 
+    def parse_firefox_history_db(self, db_path: str, minutes_back: int = 5) -> List[Dict]:
+        """
+        Parse Firefox history database (places.sqlite)
+        Firefox uses different schema and Unix timestamps (not webkit)
+        """
+        activities = []
+        temp_db = None
+
+        try:
+            temp_db = self.copy_history_db(db_path)
+            if not temp_db:
+                return activities
+
+            conn = sqlite3.connect(temp_db)
+            cursor = conn.cursor()
+
+            # Firefox uses Unix timestamps (microseconds since 1970-01-01)
+            current_time = datetime.now()
+            cutoff_time = current_time - timedelta(minutes=minutes_back)
+            cutoff_firefox_time = int(cutoff_time.timestamp() * 1000000)  # Microseconds
+
+            # Firefox schema: moz_places (url, title) + moz_historyvisits (visit_date)
+            query = """
+                SELECT
+                    p.url,
+                    p.title,
+                    p.visit_count,
+                    h.visit_date
+                FROM moz_places p
+                JOIN moz_historyvisits h ON p.id = h.place_id
+                WHERE h.visit_date > ?
+                ORDER BY h.visit_date DESC
+            """
+
+            cursor.execute(query, (cutoff_firefox_time,))
+            rows = cursor.fetchall()
+
+            for row in rows:
+                url, title, visit_count, visit_date = row
+
+                # Convert Firefox time to Python datetime
+                visit_timestamp = datetime.fromtimestamp(visit_date / 1000000)
+
+                # Extract domain
+                domain = self._extract_domain(url)
+
+                activities.append({
+                    'browser_name': 'Firefox',
+                    'url': url,
+                    'title': title or self._extract_title_from_url(url),
+                    'domain': domain,
+                    'visit_time': visit_timestamp,
+                    'visit_count': visit_count
+                })
+
+            conn.close()
+
+        except sqlite3.OperationalError as e:
+            self.logger.debug(f"Firefox database locked or corrupted: {e}")
+        except Exception as e:
+            self.logger.error(f"Error parsing Firefox history: {e}")
+        finally:
+            if temp_db and os.path.exists(temp_db):
+                try:
+                    os.remove(temp_db)
+                except:
+                    pass
+
+        return activities
+
     def get_recent_activities(self, minutes_back: int = 5) -> List[Dict]:
         """
         Get recent browser activities from all supported browsers
@@ -187,6 +321,30 @@ class BrowserHistoryParser:
             all_activities.extend(edge_activities)
             if edge_activities:
                 self.logger.debug(f"Found {len(edge_activities)} Edge activities")
+
+        # Parse Firefox history (uses different schema)
+        firefox_path = self.get_firefox_history_path()
+        if firefox_path:
+            firefox_activities = self.parse_firefox_history_db(firefox_path, minutes_back)
+            all_activities.extend(firefox_activities)
+            if firefox_activities:
+                self.logger.debug(f"Found {len(firefox_activities)} Firefox activities")
+
+        # Parse Brave history (same as Chrome)
+        brave_path = self.get_brave_history_path()
+        if brave_path:
+            brave_activities = self.parse_history_db(brave_path, 'Brave', minutes_back)
+            all_activities.extend(brave_activities)
+            if brave_activities:
+                self.logger.debug(f"Found {len(brave_activities)} Brave activities")
+
+        # Parse Opera history (same as Chrome)
+        opera_path = self.get_opera_history_path()
+        if opera_path:
+            opera_activities = self.parse_history_db(opera_path, 'Opera', minutes_back)
+            all_activities.extend(opera_activities)
+            if opera_activities:
+                self.logger.debug(f"Found {len(opera_activities)} Opera activities")
 
         # Update last check time
         self.last_check_time = datetime.now()

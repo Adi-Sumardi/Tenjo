@@ -284,9 +284,11 @@ class BrowserTrackingController extends Controller
 
         // Check if this URL activity already exists and is RECENTLY active (within last 60 seconds)
         // This prevents duplicate entries while still allowing multiple visits to same URL
+        // IMPORTANT: Also check browser_session_id to distinguish same URL in different browsers
         $recentCutoff = Carbon::now()->subSeconds(60);
         $existingActivity = UrlActivity::where('client_id', $clientId)
             ->where('url', $url)
+            ->where('browser_session_id', $browserSession->id)  // ✅ Distinguish by browser
             ->where('is_active', true)
             ->where('visit_start', '>=', $recentCutoff)  // Only consider recent activities
             ->orderBy('visit_start', 'desc')
