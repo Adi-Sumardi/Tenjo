@@ -183,12 +183,13 @@ class BrowserTracker:
                     self._track_windows_tabs()
                 elif self.system == "Linux":
                     self._track_linux_tabs()
-                
-                # Send data to server
-                self._send_tracking_data()
-                
+
                 # Update URL activity durations
                 self._update_url_durations(current_time)
+
+                # FIX #6: Send data to server AFTER tab tracking (so history parser data is included!)
+                # Previously sent BEFORE _track_windows_tabs() which caused 1-2min delay
+                self._send_tracking_data()
                 
                 # Clean up old activities to prevent memory leaks
                 self._cleanup_old_activities(current_time)
@@ -228,11 +229,13 @@ class BrowserTracker:
     def _update_browser_sessions(self, active_browsers: Dict[str, List[psutil.Process]]):
         """Update browser sessions based on active processes"""
         current_time = datetime.now()
-        
+
         # Track new sessions
         for browser_name, processes in active_browsers.items():
-            session_id = f"{browser_name}_{len(processes)}"
-            
+            # FIX #8: Use browser name only (not process count) for consistent session ID
+            # Process count changes when Chrome spawns/kills helper processes
+            session_id = browser_name
+
             if session_id not in self.active_sessions:
                 # Create new session
                 try:
@@ -257,7 +260,8 @@ class BrowserTracker:
         # End inactive sessions
         active_session_ids = set()
         for browser_name, processes in active_browsers.items():
-            session_id = f"{browser_name}_{len(processes)}"
+            # FIX #8: Use consistent session ID (browser name only)
+            session_id = browser_name
             active_session_ids.add(session_id)
             
         for session_id in list(self.active_sessions.keys()):
@@ -441,8 +445,9 @@ class BrowserTracker:
             for window in windows:
                 self._extract_url_from_title(window['browser'], window['title'])
 
-        except ImportError:
-            self.logger.debug("Windows-specific libraries not available")
+        except ImportError as e:
+            # FIX #10: Log ImportError as warning (not debug) so we know about missing dependencies
+            self.logger.warning(f"Windows-specific libraries not available: {e}. Install with: pip install pywin32")
         except Exception as e:
             self.logger.error(f"Error tracking Windows tabs: {e}")
 
@@ -658,13 +663,23 @@ class BrowserTracker:
     def _cleanup_old_activities(self, current_time: datetime):
         """Remove old activities to prevent memory leaks"""
         try:
-            cutoff_time = current_time - timedelta(hours=1)
-            
-            # Clean old URL activities (keep only last 1 hour)
+            # FIX #7 & #9: Cleanup activities < 5s AND older than 5 minutes
+            # This matches the history parser lookback window
+            cutoff_time = current_time - timedelta(minutes=5)
+
+            # Clean URL activities that are:
+            # 1. Inactive AND too short (< 5s) - immediate cleanup for noise
+            # 2. Inactive AND older than 5 min - cleanup after send window
             self.url_activities = {
-                key: activity 
+                key: activity
                 for key, activity in self.url_activities.items()
-                if activity.get('last_seen', activity['start_time']) > cutoff_time
+                if not (
+                    # Remove if inactive AND (too short OR too old)
+                    not activity['is_active'] and (
+                        activity['total_time'] < 5 or  # Too short (noise)
+                        (current_time - activity.get('last_seen', activity['start_time'])).total_seconds() > 300  # Too old (>5min)
+                    )
+                )
             }
             
             # Clean old browser sessions that have ended
@@ -704,23 +719,23 @@ class BrowserTracker:
                 sessions_data.append(session_data)
                 
             # Prepare URL activities data
+            # FIX #7: Remove filter here, filter happens in cleanup to prevent memory leak
             url_data = []
             for activity in self.url_activities.values():
-                if activity['total_time'] > 5:  # Only send activities > 5 seconds (catches quick YouTube/game opens while avoiding noise)
-                    url_activity = {
-                        'browser_name': activity['browser_name'],
-                        'url': activity['url'],
-                        'domain': activity['domain'],
-                        'title': activity['title'],
-                        'start_time': activity['start_time'].isoformat(),
-                        'duration': activity['total_time'],
-                        'is_active': activity['is_active']
-                    }
-                    
-                    if not activity['is_active'] and 'end_time' in activity:
-                        url_activity['end_time'] = activity['end_time'].isoformat()
-                        
-                    url_data.append(url_activity)
+                url_activity = {
+                    'browser_name': activity['browser_name'],
+                    'url': activity['url'],
+                    'domain': activity['domain'],
+                    'title': activity['title'],
+                    'start_time': activity['start_time'].isoformat(),
+                    'duration': activity['total_time'],
+                    'is_active': activity['is_active']
+                }
+
+                if not activity['is_active'] and 'end_time' in activity:
+                    url_activity['end_time'] = activity['end_time'].isoformat()
+
+                url_data.append(url_activity)
                     
             # Send to server
             if sessions_data or url_data:

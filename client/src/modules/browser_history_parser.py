@@ -22,10 +22,11 @@ class BrowserHistoryParser:
         self.system = platform.system()
         self.last_check_time = datetime.now() - timedelta(minutes=5)
 
-    def get_chrome_history_paths(self) -> List[str]:
+    def get_chrome_history_paths(self) -> List[tuple]:
         """
         Get ALL Chrome history database paths (supports multiple profiles)
-        Returns list of paths for Default + Profile 1, 2, 3, etc.
+        Returns list of tuples: (path, profile_name) for Default + Profile 1, 2, 3, etc.
+        FIX #11: Now returns profile names for better tracking
         """
         paths = []
 
@@ -37,13 +38,13 @@ class BrowserHistoryParser:
                     # Check Default profile
                     default_path = os.path.join(user_data_dir, 'Default', 'History')
                     if os.path.exists(default_path):
-                        paths.append(default_path)
+                        paths.append((default_path, 'Default'))
 
                     # Check Profile 1, 2, 3, ... up to 10
                     for i in range(1, 11):
                         profile_path = os.path.join(user_data_dir, f'Profile {i}', 'History')
                         if os.path.exists(profile_path):
-                            paths.append(profile_path)
+                            paths.append((profile_path, f'Profile {i}'))
 
         elif self.system == 'Darwin':
             home = os.path.expanduser('~')
@@ -52,13 +53,13 @@ class BrowserHistoryParser:
                 # Check Default profile
                 default_path = os.path.join(user_data_dir, 'Default', 'History')
                 if os.path.exists(default_path):
-                    paths.append(default_path)
+                    paths.append((default_path, 'Default'))
 
                 # Check Profile 1, 2, 3, ...
                 for i in range(1, 11):
                     profile_path = os.path.join(user_data_dir, f'Profile {i}', 'History')
                     if os.path.exists(profile_path):
-                        paths.append(profile_path)
+                        paths.append((profile_path, f'Profile {i}'))
 
         elif self.system == 'Linux':
             home = os.path.expanduser('~')
@@ -67,20 +68,20 @@ class BrowserHistoryParser:
                 # Check Default profile
                 default_path = os.path.join(user_data_dir, 'Default', 'History')
                 if os.path.exists(default_path):
-                    paths.append(default_path)
+                    paths.append((default_path, 'Default'))
 
                 # Check Profile 1, 2, 3, ...
                 for i in range(1, 11):
                     profile_path = os.path.join(user_data_dir, f'Profile {i}', 'History')
                     if os.path.exists(profile_path):
-                        paths.append(profile_path)
+                        paths.append((profile_path, f'Profile {i}'))
 
         return paths
 
     def get_chrome_history_path(self) -> Optional[str]:
         """Get first available Chrome history path (backward compatibility)"""
         paths = self.get_chrome_history_paths()
-        return paths[0] if paths else None
+        return paths[0][0] if paths else None  # Return path only, not tuple
 
     def get_edge_history_path(self) -> Optional[str]:
         """Get Edge history database path based on OS"""
@@ -378,15 +379,17 @@ class BrowserHistoryParser:
         """
         all_activities = []
 
-        # Parse Chrome history (ALL profiles) - FIX #2: Multiple profiles support
+        # Parse Chrome history (ALL profiles) - FIX #2 & #11: Multiple profiles with names
         chrome_paths = self.get_chrome_history_paths()
         if chrome_paths:
             self.logger.info(f"Found {len(chrome_paths)} Chrome profile(s)")
-            for chrome_path in chrome_paths:
-                chrome_activities = self.parse_history_db(chrome_path, 'Chrome', minutes_back)
+            for chrome_path, profile_name in chrome_paths:
+                # FIX #11: Include profile name in browser_name for tracking
+                browser_name = f"Chrome ({profile_name})" if profile_name != 'Default' else 'Chrome'
+                chrome_activities = self.parse_history_db(chrome_path, browser_name, minutes_back)
                 all_activities.extend(chrome_activities)
                 if chrome_activities:
-                    self.logger.info(f"Found {len(chrome_activities)} Chrome activities")
+                    self.logger.info(f"Found {len(chrome_activities)} activities from {browser_name}")
         else:
             self.logger.debug("Chrome not found or no profiles available")
 
