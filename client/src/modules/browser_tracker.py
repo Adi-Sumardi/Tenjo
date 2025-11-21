@@ -469,18 +469,20 @@ class BrowserTracker:
 
                     # Track each activity from history
                     for activity in recent_activities:
-                        # Estimate visit time (use current time - assume recent)
-                        # In history DB we have exact visit_time
-                        visit_time = activity.get('visit_time', current_time)
+                        # FIX #13: Use current_time (not visit_time) to avoid inflated durations
+                        # visit_time from history is historical, if we use it as start_time,
+                        # duration calculation will be inflated (current_time - old_visit_time)
 
-                        # FIX #3: Only track if visit is recent (within last 5 minutes)
+                        # Only track if visit is recent (within last 5 minutes)
+                        visit_time = activity.get('visit_time', current_time)
                         time_diff = (current_time - visit_time).total_seconds()
+
                         if time_diff <= 300:  # 5 minutes (300 seconds)
                             self._track_url_activity(
                                 browser_name=activity['browser_name'],
                                 url=activity['url'],
                                 title=activity['title'],
-                                current_time=visit_time
+                                current_time=current_time  # FIX #13: Use NOW, not historical time
                             )
 
                 self.last_history_check = current_time
@@ -626,7 +628,17 @@ class BrowserTracker:
                 activity = self.url_activities[url_key]
                 activity['last_seen'] = current_time
                 activity['title'] = title  # Update title in case it changed
-                
+
+                # FIX #12: Reactivate if was inactive (user came back to same URL)
+                if not activity['is_active']:
+                    activity['is_active'] = True
+                    # Reset start_time for new active session
+                    activity['start_time'] = current_time
+                    activity['total_time'] = 0  # Reset duration
+                    # FIX #14: Reset sent flag so reactivated activity is sent again
+                    activity['sent_as_inactive'] = False
+                    self.logger.debug(f"Reactivated URL activity: {url}")
+
         except Exception as e:
             self.logger.error(f"Error tracking URL activity: {e}")
             
@@ -719,23 +731,31 @@ class BrowserTracker:
                 sessions_data.append(session_data)
                 
             # Prepare URL activities data
-            # FIX #7: Remove filter here, filter happens in cleanup to prevent memory leak
+            # FIX #14: Only send activities that are active OR just became inactive (not sent yet)
             url_data = []
-            for activity in self.url_activities.values():
-                url_activity = {
-                    'browser_name': activity['browser_name'],
-                    'url': activity['url'],
-                    'domain': activity['domain'],
-                    'title': activity['title'],
-                    'start_time': activity['start_time'].isoformat(),
-                    'duration': activity['total_time'],
-                    'is_active': activity['is_active']
-                }
+            for url_key, activity in self.url_activities.items():
+                # Send if:
+                # 1. Active (ongoing activity, need duration updates)
+                # 2. Inactive BUT not sent yet (final update with end_time)
+                should_send = activity['is_active'] or not activity.get('sent_as_inactive', False)
 
-                if not activity['is_active'] and 'end_time' in activity:
-                    url_activity['end_time'] = activity['end_time'].isoformat()
+                if should_send:
+                    url_activity = {
+                        'browser_name': activity['browser_name'],
+                        'url': activity['url'],
+                        'domain': activity['domain'],
+                        'title': activity['title'],
+                        'start_time': activity['start_time'].isoformat(),
+                        'duration': activity['total_time'],
+                        'is_active': activity['is_active']
+                    }
 
-                url_data.append(url_activity)
+                    if not activity['is_active'] and 'end_time' in activity:
+                        url_activity['end_time'] = activity['end_time'].isoformat()
+                        # Mark as sent so we don't send again
+                        activity['sent_as_inactive'] = True
+
+                    url_data.append(url_activity)
                     
             # Send to server
             if sessions_data or url_data:
