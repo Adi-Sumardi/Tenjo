@@ -24,9 +24,19 @@ def get_local_ip_ifconfig():
     """Get local IP using ifconfig (macOS/Linux)"""
     try:
         if platform.system() == "Darwin":  # macOS
-            result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+            # FIX #58: Add timeout to prevent hanging during startup
+            result = subprocess.run(
+                ['ifconfig'],
+                capture_output=True,
+                text=True,
+                timeout=5  # 5 second timeout
+            )
+
+            if result.returncode != 0:
+                return None
+
             lines = result.stdout.split('\n')
-            
+
             for line in lines:
                 if 'inet ' in line and '127.0.0.1' not in line and 'inet 169.254' not in line:
                     parts = line.strip().split()
@@ -37,20 +47,37 @@ def get_local_ip_ifconfig():
                             if '.' in ip and len(ip.split('.')) == 4:
                                 return ip
         return None
+    except subprocess.TimeoutExpired:
+        # Timeout - return None to try fallback method
+        return None
     except Exception:
         return None
 
 def get_local_ip_windows():
     """Get local IP for Windows"""
     try:
-        result = subprocess.run(['ipconfig'], capture_output=True, text=True)
+        # FIX #58: Add timeout and CREATE_NO_WINDOW for stealth
+        creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+        result = subprocess.run(
+            ['ipconfig'],
+            capture_output=True,
+            text=True,
+            timeout=5,  # 5 second timeout
+            creationflags=creation_flags
+        )
+
+        if result.returncode != 0:
+            return None
+
         lines = result.stdout.split('\n')
-        
+
         for line in lines:
             if 'IPv4 Address' in line and '127.0.0.1' not in line:
                 ip = line.split(':')[-1].strip()
                 if '.' in ip and len(ip.split('.')) == 4:
                     return ip
+        return None
+    except subprocess.TimeoutExpired:
         return None
     except Exception:
         return None
@@ -88,12 +115,22 @@ def get_best_local_ip():
 def get_all_network_interfaces():
     """Get all network interfaces and their IPs"""
     interfaces = {}
-    
+
     try:
         if platform.system() == "Darwin":  # macOS
-            result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+            # FIX #58: Add timeout to prevent hanging
+            result = subprocess.run(
+                ['ifconfig'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            if result.returncode != 0:
+                return interfaces
+
             current_interface = None
-            
+
             for line in result.stdout.split('\n'):
                 line = line.strip()
                 if line and not line.startswith(' ') and ':' in line:
@@ -106,9 +143,11 @@ def get_all_network_interfaces():
                             ip = parts[i+1]
                             if '.' in ip and len(ip.split('.')) == 4:
                                 interfaces[current_interface].append(ip)
+    except subprocess.TimeoutExpired:
+        print("Timeout getting network interfaces")
     except Exception as e:
         print(f"Error getting interfaces: {e}")
-    
+
     return interfaces
 
 def main():

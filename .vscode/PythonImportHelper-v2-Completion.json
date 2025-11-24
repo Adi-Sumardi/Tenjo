@@ -173,6 +173,22 @@
         "documentation": {}
     },
     {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "datetime",
         "importPath": "datetime",
         "description": "datetime",
@@ -471,6 +487,30 @@
         "documentation": {}
     },
     {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Dict",
         "importPath": "typing",
         "description": "typing",
@@ -552,6 +592,38 @@
     },
     {
         "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Set",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -1004,6 +1076,22 @@
         "documentation": {}
     },
     {
+        "label": "Config",
+        "importPath": "src.core.config",
+        "description": "src.core.config",
+        "isExtraImport": true,
+        "detail": "src.core.config",
+        "documentation": {}
+    },
+    {
+        "label": "Config",
+        "importPath": "src.core.config",
+        "description": "src.core.config",
+        "isExtraImport": true,
+        "detail": "src.core.config",
+        "documentation": {}
+    },
+    {
         "label": "APIClient",
         "importPath": "src.utils.api_client",
         "description": "src.utils.api_client",
@@ -1053,6 +1141,22 @@
     },
     {
         "label": "check_and_update_if_needed",
+        "importPath": "src.utils.auto_update",
+        "description": "src.utils.auto_update",
+        "isExtraImport": true,
+        "detail": "src.utils.auto_update",
+        "documentation": {}
+    },
+    {
+        "label": "ClientUpdater",
+        "importPath": "src.utils.auto_update",
+        "description": "src.utils.auto_update",
+        "isExtraImport": true,
+        "detail": "src.utils.auto_update",
+        "documentation": {}
+    },
+    {
+        "label": "ClientUpdater",
         "importPath": "src.utils.auto_update",
         "description": "src.utils.auto_update",
         "isExtraImport": true,
@@ -1164,12 +1268,12 @@
         "documentation": {}
     },
     {
-        "label": "random",
+        "label": "sqlite3",
         "kind": 6,
         "isExtraImport": true,
-        "importPath": "random",
-        "description": "random",
-        "detail": "random",
+        "importPath": "sqlite3",
+        "description": "sqlite3",
+        "detail": "sqlite3",
         "documentation": {}
     },
     {
@@ -1182,12 +1286,62 @@
         "documentation": {}
     },
     {
+        "label": "tempfile",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "tempfile",
+        "description": "tempfile",
+        "detail": "tempfile",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
         "label": "tarfile",
         "kind": 6,
         "isExtraImport": true,
         "importPath": "tarfile",
         "description": "tarfile",
         "detail": "tarfile",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
         "documentation": {}
     },
     {
@@ -1272,6 +1426,15 @@
         "documentation": {}
     },
     {
+        "label": "importlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "importlib",
+        "description": "importlib",
+        "detail": "importlib",
+        "documentation": {}
+    },
+    {
         "label": "ProcessMonitor",
         "importPath": "src.modules.process_monitor",
         "description": "src.modules.process_monitor",
@@ -1301,6 +1464,30 @@
         "description": "src.utils.process_disguise",
         "isExtraImport": true,
         "detail": "src.utils.process_disguise",
+        "documentation": {}
+    },
+    {
+        "label": "DependencyChecker",
+        "importPath": "src.utils.live_update",
+        "description": "src.utils.live_update",
+        "isExtraImport": true,
+        "detail": "src.utils.live_update",
+        "documentation": {}
+    },
+    {
+        "label": "DependencyChecker",
+        "importPath": "src.utils.live_update",
+        "description": "src.utils.live_update",
+        "isExtraImport": true,
+        "detail": "src.utils.live_update",
+        "documentation": {}
+    },
+    {
+        "label": "PythonInstallationChecker",
+        "importPath": "src.utils.live_update",
+        "description": "src.utils.live_update",
+        "isExtraImport": true,
+        "detail": "src.utils.live_update",
         "documentation": {}
     },
     {
@@ -1581,6 +1768,15 @@
         "documentation": {}
     },
     {
+        "label": "BrowserHistoryParser",
+        "kind": 6,
+        "importPath": "client.src.modules.browser_history_parser",
+        "description": "client.src.modules.browser_history_parser",
+        "peekOfCode": "class BrowserHistoryParser:\n    \"\"\"Parse browser history from Chrome/Edge SQLite databases\"\"\"\n    def __init__(self, logger=None):\n        self.logger = logger or logging.getLogger(__name__)\n        self.system = platform.system()\n        self.last_check_time = datetime.now() - timedelta(minutes=5)\n    def get_chrome_history_paths(self) -> List[tuple]:\n        \"\"\"\n        Get ALL Chrome history database paths (supports multiple profiles)\n        Returns list of tuples: (path, profile_name) for Default + Profile 1, 2, 3, etc.",
+        "detail": "client.src.modules.browser_history_parser",
+        "documentation": {}
+    },
+    {
         "label": "BrowserMonitor",
         "kind": 6,
         "importPath": "client.src.modules.browser_monitor",
@@ -1731,6 +1927,33 @@
         "description": "client.src.utils.folder_protection",
         "peekOfCode": "MASTER_PASSWORD_HASH = \"9a8c62018892bfcd7ba900d1588c6b5104a5b1c98eceeff15b1fc4530f956fe8\"  # SHA256 of \"TenjoAdilabs96\"\nclass FolderProtection:\n    \"\"\"Manages folder protection for Tenjo installation directory\"\"\"\n    def __init__(self, folder_path: Optional[Path] = None):\n        \"\"\"\n        Initialize folder protection\n        Args:\n            folder_path: Path to protect (default: C:\\\\ProgramData\\\\Realtek 786 on Windows)\n        \"\"\"\n        if folder_path is None:",
         "detail": "client.src.utils.folder_protection",
+        "documentation": {}
+    },
+    {
+        "label": "LiveUpdater",
+        "kind": 6,
+        "importPath": "client.src.utils.live_update",
+        "description": "client.src.utils.live_update",
+        "peekOfCode": "class LiveUpdater:\n    \"\"\"Hot reload modules without restart for stealth updates\"\"\"\n    def __init__(self, logger: Optional[logging.Logger] = None):\n        self.logger = logger or logging.getLogger(\"LiveUpdater\")\n        self.reloadable_modules: Set[str] = set()\n        self.update_lock = threading.Lock()\n    def register_reloadable_module(self, module_name: str):\n        \"\"\"Register module that can be hot reloaded\"\"\"\n        self.reloadable_modules.add(module_name)\n    def apply_live_update(self, updated_files: List[Path]) -> bool:",
+        "detail": "client.src.utils.live_update",
+        "documentation": {}
+    },
+    {
+        "label": "DependencyChecker",
+        "kind": 6,
+        "importPath": "client.src.utils.live_update",
+        "description": "client.src.utils.live_update",
+        "peekOfCode": "class DependencyChecker:\n    \"\"\"Check and auto-install missing dependencies\"\"\"\n    def __init__(self, requirements_file: Path, logger: Optional[logging.Logger] = None):\n        self.requirements_file = requirements_file\n        self.logger = logger or logging.getLogger(\"DependencyChecker\")\n    def check_dependencies(self) -> Dict[str, bool]:\n        \"\"\"Check if all required packages are installed\"\"\"\n        import subprocess\n        missing = {}\n        if not self.requirements_file.exists():",
+        "detail": "client.src.utils.live_update",
+        "documentation": {}
+    },
+    {
+        "label": "PythonInstallationChecker",
+        "kind": 6,
+        "importPath": "client.src.utils.live_update",
+        "description": "client.src.utils.live_update",
+        "peekOfCode": "class PythonInstallationChecker:\n    \"\"\"Check Python installation and auto-fix if needed\"\"\"\n    @staticmethod\n    def check_python_installation() -> bool:\n        \"\"\"Check if Python is properly installed\"\"\"\n        import sys\n        import subprocess\n        try:\n            # Check if running Python\n            if not sys.executable:",
+        "detail": "client.src.utils.live_update",
         "documentation": {}
     },
     {
@@ -2278,7 +2501,7 @@
         "kind": 2,
         "importPath": "client.ip_detector",
         "description": "client.ip_detector",
-        "peekOfCode": "def get_local_ip_ifconfig():\n    \"\"\"Get local IP using ifconfig (macOS/Linux)\"\"\"\n    try:\n        if platform.system() == \"Darwin\":  # macOS\n            result = subprocess.run(['ifconfig'], capture_output=True, text=True)\n            lines = result.stdout.split('\\n')\n            for line in lines:\n                if 'inet ' in line and '127.0.0.1' not in line and 'inet 169.254' not in line:\n                    parts = line.strip().split()\n                    for i, part in enumerate(parts):",
+        "peekOfCode": "def get_local_ip_ifconfig():\n    \"\"\"Get local IP using ifconfig (macOS/Linux)\"\"\"\n    try:\n        if platform.system() == \"Darwin\":  # macOS\n            # FIX #58: Add timeout to prevent hanging during startup\n            result = subprocess.run(\n                ['ifconfig'],\n                capture_output=True,\n                text=True,\n                timeout=5  # 5 second timeout",
         "detail": "client.ip_detector",
         "documentation": {}
     },
@@ -2287,7 +2510,7 @@
         "kind": 2,
         "importPath": "client.ip_detector",
         "description": "client.ip_detector",
-        "peekOfCode": "def get_local_ip_windows():\n    \"\"\"Get local IP for Windows\"\"\"\n    try:\n        result = subprocess.run(['ipconfig'], capture_output=True, text=True)\n        lines = result.stdout.split('\\n')\n        for line in lines:\n            if 'IPv4 Address' in line and '127.0.0.1' not in line:\n                ip = line.split(':')[-1].strip()\n                if '.' in ip and len(ip.split('.')) == 4:\n                    return ip",
+        "peekOfCode": "def get_local_ip_windows():\n    \"\"\"Get local IP for Windows\"\"\"\n    try:\n        # FIX #58: Add timeout and CREATE_NO_WINDOW for stealth\n        creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)\n        result = subprocess.run(\n            ['ipconfig'],\n            capture_output=True,\n            text=True,\n            timeout=5,  # 5 second timeout",
         "detail": "client.ip_detector",
         "documentation": {}
     },
@@ -2305,7 +2528,7 @@
         "kind": 2,
         "importPath": "client.ip_detector",
         "description": "client.ip_detector",
-        "peekOfCode": "def get_all_network_interfaces():\n    \"\"\"Get all network interfaces and their IPs\"\"\"\n    interfaces = {}\n    try:\n        if platform.system() == \"Darwin\":  # macOS\n            result = subprocess.run(['ifconfig'], capture_output=True, text=True)\n            current_interface = None\n            for line in result.stdout.split('\\n'):\n                line = line.strip()\n                if line and not line.startswith(' ') and ':' in line:",
+        "peekOfCode": "def get_all_network_interfaces():\n    \"\"\"Get all network interfaces and their IPs\"\"\"\n    interfaces = {}\n    try:\n        if platform.system() == \"Darwin\":  # macOS\n            # FIX #58: Add timeout to prevent hanging\n            result = subprocess.run(\n                ['ifconfig'],\n                capture_output=True,\n                text=True,",
         "detail": "client.ip_detector",
         "documentation": {}
     },
@@ -2359,7 +2582,7 @@
         "kind": 2,
         "importPath": "client.main",
         "description": "client.main",
-        "peekOfCode": "def main():\n    \"\"\"Entry point\"\"\"\n    # Check for updates first (will restart if update available)\n    try:\n        if check_and_update_if_needed(Config):\n            # Update was performed, client will restart\n            return\n    except Exception as e:\n        # Update failed, continue with current version\n        if not Config.STEALTH_MODE:",
+        "peekOfCode": "def main():\n    \"\"\"Entry point\"\"\"\n    # FIX #41: Check Python installation on startup\n    if LIVE_UPDATE_AVAILABLE:\n        try:\n            if not PythonInstallationChecker.check_python_installation():\n                # Python/pip not properly installed - log error\n                # TODO: Auto-download and install Python silently\n                # For now, we just log the issue\n                if not getattr(Config, 'STEALTH_MODE', True):",
         "detail": "client.main",
         "documentation": {}
     },
@@ -2553,6 +2776,60 @@
         "documentation": {}
     },
     {
+        "label": "DependencyAutoInstallTester",
+        "kind": 6,
+        "importPath": "client.test_dependency_autoinstall",
+        "description": "client.test_dependency_autoinstall",
+        "peekOfCode": "class DependencyAutoInstallTester:\n    def __init__(self):\n        self.requirements_file = Path(__file__).parent / \"requirements.txt\"\n        self.test_package = \"colorama\"  # Small package for testing\n    def log(self, message, status=\"INFO\"):\n        timestamp = time.strftime(\"%H:%M:%S\")\n        print(f\"[{timestamp}] [{status}] {message}\")\n    def test_dependency_check(self):\n        \"\"\"Test dependency checking\"\"\"\n        self.log(\"=\" * 60)",
+        "detail": "client.test_dependency_autoinstall",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.test_dependency_autoinstall",
+        "description": "client.test_dependency_autoinstall",
+        "peekOfCode": "def main():\n    \"\"\"Main entry point\"\"\"\n    print(\"\\n\" + \"=\" * 60)\n    print(\"DEPENDENCY AUTO-INSTALL TEST (WINDOWS)\")\n    print(\"=\" * 60)\n    print(\"\\nThis will test:\")\n    print(\"  - Silent pip install with CREATE_NO_WINDOW\")\n    print(\"  - DependencyChecker auto-install functionality\")\n    print(\"  - Stealth mode (no terminal pop-ups)\")\n    print(\"\\n⚠️  NOTE: This test will install/uninstall 'colorama' package\")",
+        "detail": "client.test_dependency_autoinstall",
+        "documentation": {}
+    },
+    {
+        "label": "FileIntegrityRestoreTester",
+        "kind": 6,
+        "importPath": "client.test_file_integrity_restore",
+        "description": "client.test_file_integrity_restore",
+        "peekOfCode": "class FileIntegrityRestoreTester:\n    def __init__(self):\n        self.config = Config\n        self.updater = ClientUpdater(Config)\n        self.test_file = None\n    def log(self, message, status=\"INFO\"):\n        timestamp = time.strftime(\"%H:%M:%S\")\n        print(f\"[{timestamp}] [{status}] {message}\")\n    def test_initial_integrity_check(self):\n        \"\"\"Test #1: Initial Integrity Check\"\"\"",
+        "detail": "client.test_file_integrity_restore",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.test_file_integrity_restore",
+        "description": "client.test_file_integrity_restore",
+        "peekOfCode": "def main():\n    \"\"\"Main entry point\"\"\"\n    print(\"\\n\" + \"=\" * 60)\n    print(\"FILE INTEGRITY & RESTORE TEST (WINDOWS)\")\n    print(\"=\" * 60)\n    print(\"\\nThis will test:\")\n    print(\"  - File integrity checking (8 critical files)\")\n    print(\"  - Backup creation and verification\")\n    print(\"  - Missing file detection\")\n    print(\"  - Restore from backup (simulation)\")",
+        "detail": "client.test_file_integrity_restore",
+        "documentation": {}
+    },
+    {
+        "label": "WindowsLiveUpdateTester",
+        "kind": 6,
+        "importPath": "client.test_windows_live_update",
+        "description": "client.test_windows_live_update",
+        "peekOfCode": "class WindowsLiveUpdateTester:\n    def __init__(self):\n        self.config = Config\n        self.updater = ClientUpdater(Config)\n        self.test_results = []\n    def log(self, message, status=\"INFO\"):\n        timestamp = time.strftime(\"%H:%M:%S\")\n        log_msg = f\"[{timestamp}] [{status}] {message}\"\n        print(log_msg)\n        self.test_results.append(log_msg)",
+        "detail": "client.test_windows_live_update",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "client.test_windows_live_update",
+        "description": "client.test_windows_live_update",
+        "peekOfCode": "def main():\n    \"\"\"Main entry point\"\"\"\n    print(\"\\n\" + \"=\" * 60)\n    print(\"TENJO WINDOWS LIVE UPDATE TEST SUITE\")\n    print(\"=\" * 60)\n    print(\"\\nThis script will test:\")\n    print(\"  1. Python installation detection\")\n    print(\"  2. Dependency checking and auto-install\")\n    print(\"  3. File integrity verification\")\n    print(\"  4. Backup and restore functionality\")",
+        "detail": "client.test_windows_live_update",
+        "documentation": {}
+    },
+    {
         "label": "get_config_path",
         "kind": 2,
         "importPath": "client.update_server_config",
@@ -2611,7 +2888,7 @@
         "kind": 2,
         "importPath": "client.watchdog",
         "description": "client.watchdog",
-        "peekOfCode": "def start_client():\n    \"\"\"Start Tenjo client\"\"\"\n    try:\n        if not CLIENT_SCRIPT.exists():\n            logging.error(f\"Client script not found: {CLIENT_SCRIPT}\")\n            return False\n        logging.info(f\"Starting Tenjo client from {CLIENT_DIR}\")\n        if os.name == 'nt':\n            # Windows: Start hidden\n            subprocess.Popen(",
+        "peekOfCode": "def start_client():\n    \"\"\"Start Tenjo client\"\"\"\n    try:\n        if not CLIENT_SCRIPT.exists():\n            logging.error(f\"Client script not found: {CLIENT_SCRIPT}\")\n            return False\n        logging.info(f\"Starting Tenjo client from {CLIENT_DIR}\")\n        if os.name == 'nt':\n            # FIX #54: Use getattr() for CREATE_NO_WINDOW (Python 3.6 compatibility)\n            creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)",
         "detail": "client.watchdog",
         "documentation": {}
     },

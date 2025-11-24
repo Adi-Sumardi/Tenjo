@@ -71,11 +71,14 @@ def start_client():
         logging.info(f"Starting Tenjo client from {CLIENT_DIR}")
         
         if os.name == 'nt':
+            # FIX #54: Use getattr() for CREATE_NO_WINDOW (Python 3.6 compatibility)
+            creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
             # Windows: Start hidden
             subprocess.Popen(
                 [sys.executable, str(CLIENT_SCRIPT)],
                 cwd=str(CLIENT_DIR),
-                creationflags=subprocess.CREATE_NO_WINDOW,
+                creationflags=creation_flags,
+                start_new_session=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )

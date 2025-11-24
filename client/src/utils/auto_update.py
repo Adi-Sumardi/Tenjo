@@ -821,10 +821,13 @@ class ClientUpdater:
                     # FIX #27: Small delay before exit to ensure process starts
                     time.sleep(1)
                 except Exception:
+                    # FIX #56: Add CREATE_NO_WINDOW to powershell fallback for full stealth
+                    creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
                     subprocess.Popen(
                         ['powershell', '-WindowStyle', 'Hidden', '-Command',
                          f"Start-Process -WindowStyle Hidden -FilePath '{sys.executable}' -ArgumentList '{main_py}'"],
                         cwd=str(self.install_path),
+                        creationflags=creation_flags,
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
                     )
