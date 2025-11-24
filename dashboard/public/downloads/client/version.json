@@ -1,0 +1,19 @@
+{
+    "version": "1.0.3",
+    "download_url": "/downloads/client/tenjo_client_1.0.3.tar.gz",
+    "checksum": "placeholder_sha256_checksum_will_be_generated_when_package_created",
+    "package_size": 0,
+    "changes": [
+        "Fixed browser tracking for YouTube and game URLs",
+        "Enhanced Windows history parsing with SQLite backup API",
+        "Added support for multiple Chrome profiles",
+        "Fixed activity categorization and tracking",
+        "Improved session end time tracking"
+    ],
+    "priority": "normal",
+    "window_start": null,
+    "window_end": null,
+    "server_url": "https://tenjo.adilabs.id",
+    "release_date": "2025-11-24",
+    "min_client_version": "1.0.0"
+}
