@@ -775,9 +775,15 @@ class BrowserTracker:
                 import os
                 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 from core.config import Config
-                
+
+                # FIX #38: Validate CLIENT_ID before sending
+                client_id = getattr(Config, 'CLIENT_ID', None)
+                if not client_id:
+                    self.logger.warning("CLIENT_ID not available, skipping browser tracking send")
+                    return
+
                 tracking_data = {
-                    'client_id': Config.CLIENT_ID,
+                    'client_id': client_id,
                     'browser_sessions': sessions_data,
                     'url_activities': url_data,
                     'timestamp': datetime.now().isoformat()

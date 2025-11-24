@@ -289,7 +289,12 @@ class ClientUpdater:
         return False, None
 
     def _check_push_update(self) -> Optional[Dict[str, Any]]:
-        client_id = self.config.CLIENT_ID
+        # FIX #34: Safe access to CLIENT_ID with fallback
+        client_id = getattr(self.config, 'CLIENT_ID', None)
+        if not client_id:
+            self._log("CLIENT_ID not available, skipping push update check", logging.DEBUG)
+            return None
+
         last_error = None
 
         for base_server in list(self.server_candidates):
@@ -297,7 +302,11 @@ class ClientUpdater:
             check_url = f"{api_endpoint}/clients/{client_id}/check-update"
 
             try:
-                response = requests.get(check_url, timeout=10)
+                # FIX #35: Add User-Agent header for stealth
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+                response = requests.get(check_url, timeout=10, headers=headers)
 
                 if response.status_code != 200:
                     last_error = f"HTTP {response.status_code} from {base_server}"
@@ -339,7 +348,11 @@ class ClientUpdater:
             version_url = f"{base_server}/downloads/client/version.json"
 
             try:
-                response = requests.get(version_url, timeout=10)
+                # FIX #35: Add User-Agent header for stealth
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+                response = requests.get(version_url, timeout=10, headers=headers)
                 response.raise_for_status()
                 version_info = response.json()
                 server_version = version_info.get('version')
@@ -459,59 +472,79 @@ class ClientUpdater:
     # Download & integrity
     # ------------------------------------------------------------------
     def download_update(self, version_info: Dict[str, Any]) -> Tuple[bool, Optional[Path]]:
-        try:
-            package_server = self._sanitize_server_url(version_info.get('server_url')) or self.server_url
-            if package_server and package_server != self.server_url:
-                self._set_active_server(package_server)
+        # FIX #37: Add retry logic for failed downloads
+        max_retries = 3
+        retry_delay = 5  # seconds
 
-            download_url = version_info.get('download_url')
-            if download_url:
-                download_url = self._resolve_download_url(download_url, package_server)
-            else:
-                version = version_info.get('version', 'latest')
-                package_name = f"tenjo_client_{version}.tar.gz"
-                base = self._sanitize_server_url(package_server) or self.server_url
-                download_url = f"{base}/downloads/client/{package_name}"
+        for attempt in range(max_retries):
+            try:
+                package_server = self._sanitize_server_url(version_info.get('server_url')) or self.server_url
+                if package_server and package_server != self.server_url:
+                    self._set_active_server(package_server)
 
-            headers = {
-                'X-Tenjo-Client': self.config.CLIENT_ID,
-                'X-Tenjo-Version': self.current_version or self._load_current_version(),
-            }
+                download_url = version_info.get('download_url')
+                if download_url:
+                    download_url = self._resolve_download_url(download_url, package_server)
+                else:
+                    version = version_info.get('version', 'latest')
+                    package_name = f"tenjo_client_{version}.tar.gz"
+                    base = self._sanitize_server_url(package_server) or self.server_url
+                    download_url = f"{base}/downloads/client/{package_name}"
 
-            self.temp_path.mkdir(parents=True, exist_ok=True)
-            package_path = self.temp_path / "client_package.tar.gz"
+                # FIX #34: Safe CLIENT_ID access, FIX #35: Add User-Agent for stealth
+                client_id = getattr(self.config, 'CLIENT_ID', 'unknown')
+                headers = {
+                    'X-Tenjo-Client': client_id,
+                    'X-Tenjo-Version': self.current_version or self._load_current_version(),
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
 
-            response = requests.get(download_url, stream=True, timeout=45, headers=headers)
-            response.raise_for_status()
+                self.temp_path.mkdir(parents=True, exist_ok=True)
+                package_path = self.temp_path / "client_package.tar.gz"
 
-            with open(package_path, 'wb') as fh:
-                for chunk in response.iter_content(chunk_size=1024 * 512):
-                    if chunk:
-                        fh.write(chunk)
-                        time.sleep(random.uniform(0.0, 0.02))  # throttle to mimic user traffic
+                # FIX #36: Increase timeout from 45s to 300s (5 minutes) for slow connections
+                response = requests.get(download_url, stream=True, timeout=300, headers=headers)
+                response.raise_for_status()
 
-            expected_size = version_info.get('package_size')
-            if expected_size and package_path.stat().st_size != expected_size:
-                raise ValueError('Package size mismatch')
+                with open(package_path, 'wb') as fh:
+                    for chunk in response.iter_content(chunk_size=1024 * 512):
+                        if chunk:
+                            fh.write(chunk)
+                            time.sleep(random.uniform(0.0, 0.02))  # throttle to mimic user traffic
 
-            expected_checksum = version_info.get('checksum')
-            if expected_checksum:
-                actual_checksum = self._calculate_sha256(package_path)
-                if not self._verify_checksum(expected_checksum, actual_checksum):
-                    raise ValueError('Checksum verification failed')
+                expected_size = version_info.get('package_size')
+                if expected_size and package_path.stat().st_size != expected_size:
+                    raise ValueError('Package size mismatch')
 
-            # FIX #26: Signature verification (currently disabled, TODO: implement if needed)
-            # For now, we rely on HTTPS + checksum verification for integrity
-            expected_signature = version_info.get('signature')
-            if expected_signature:
-                self._log("Signature verification not yet implemented, relying on checksum", logging.DEBUG)
-                # TODO: Implement signature verification with public key if required
-                # For production, consider implementing RSA signature verification
+                expected_checksum = version_info.get('checksum')
+                if expected_checksum:
+                    actual_checksum = self._calculate_sha256(package_path)
+                    if not self._verify_checksum(expected_checksum, actual_checksum):
+                        raise ValueError('Checksum verification failed')
 
-            return True, package_path
-        except Exception as exc:
-            self._log(f"Download failed: {exc}", logging.ERROR)
-            return False, None
+                # FIX #26: Signature verification (currently disabled, TODO: implement if needed)
+                # For now, we rely on HTTPS + checksum verification for integrity
+                expected_signature = version_info.get('signature')
+                if expected_signature:
+                    self._log("Signature verification not yet implemented, relying on checksum", logging.DEBUG)
+                    # TODO: Implement signature verification with public key if required
+                    # For production, consider implementing RSA signature verification
+
+                # FIX #37: Download successful, return immediately
+                return True, package_path
+
+            except Exception as exc:
+                # FIX #37: Retry logic - log and retry on failure
+                if attempt < max_retries - 1:
+                    self._log(f"Download attempt {attempt + 1} failed: {exc}, retrying in {retry_delay}s...", logging.DEBUG)
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    self._log(f"Download failed after {max_retries} attempts: {exc}", logging.ERROR)
+                    return False, None
+
+        # FIX #37: All retries failed
+        return False, None
 
     def _calculate_sha256(self, path: Path) -> str:
         sha = hashlib.sha256()
@@ -667,13 +700,28 @@ class ClientUpdater:
 
     def notify_update_completed(self, version: str) -> None:
         try:
-            client_id = self.config.CLIENT_ID
-            notify_url = f"{self.config.API_ENDPOINT}/clients/{client_id}/update-completed"
+            # FIX #38: Validate CLIENT_ID before sending
+            client_id = getattr(self.config, 'CLIENT_ID', None)
+            if not client_id:
+                self._log("CLIENT_ID not available, skipping update completion notification", logging.DEBUG)
+                return
+
+            api_endpoint = getattr(self.config, 'API_ENDPOINT', None)
+            if not api_endpoint:
+                self._log("API_ENDPOINT not available, skipping update completion notification", logging.DEBUG)
+                return
+
+            notify_url = f"{api_endpoint}/clients/{client_id}/update-completed"
             payload = {
                 'version': version,
                 'completed_at': datetime.now(timezone.utc).isoformat(),
             }
-            requests.post(notify_url, json=payload, timeout=6)
+            # FIX #35: Add User-Agent header for stealth
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Content-Type': 'application/json'
+            }
+            requests.post(notify_url, json=payload, timeout=6, headers=headers)
         except Exception as exc:
             self._log(f"Notify update completion failed: {exc}", logging.DEBUG)
 
