@@ -1,0 +1,292 @@
+╔══════════════════════════════════════════════════════════════════╗
+║  TENJO CLIENT v1.0.1 - PRODUCTION DEPLOYMENT COMMANDS            ║
+║  Copy-Paste Commands for Termius                                ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📦 PACKAGE INFO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Version:   1.0.1
+Size:      111 MB
+Checksum:  33fc7375422459732fb699606a786947a07ea853d7fdd6117f05412babc421ce
+Location:  /Users/yapi/Adi/App-Dev/Tenjo/client/build/
+
+Changes:
+- Fixed 4 critical subprocess stealth bugs (BUG #53-58)
+- CREATE_NO_WINDOW compatibility with Python 3.6+
+- Service installation fully stealth (no terminal pop-ups)
+- Client startup timeout protection
+- Auto-update powershell fallback stealth
+- Watchdog auto-restart Python 3.6+ compatible
+- Fixed 7 previous critical bugs (BUG #44-52)
+- Total: 11 critical bugs fixed - Production ready
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+═══════════════════════════════════════════════════════════════════
+STEP 1: UPLOAD PACKAGE TO VPS
+═══════════════════════════════════════════════════════════════════
+
+Jalankan di MacBook Terminal (BUKAN Termius):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cd /Users/yapi/Adi/App-Dev/Tenjo/client/build
+
+# Upload package (111 MB - might take 1-2 minutes)
+scp tenjo_client_1.0.1.tar.gz root@tenjo.adilabs.id:/var/www/html/tenjo/public/downloads/client/
+
+# Upload version.json
+scp version.json root@tenjo.adilabs.id:/var/www/html/tenjo/public/downloads/client/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ WAIT untuk upload selesai (1-2 menit untuk 111 MB)
+Lalu lanjut ke STEP 2 di Termius
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+═══════════════════════════════════════════════════════════════════
+STEP 2: VERIFY UPLOAD (Copy-Paste di Termius)
+═══════════════════════════════════════════════════════════════════
+
+# SSH ke VPS
+ssh root@tenjo.adilabs.id
+
+# Check files uploaded
+ls -lh /var/www/html/tenjo/public/downloads/client/
+
+# Expected output:
+# -rw-r--r-- 1 root root 111M Nov 24 XX:XX tenjo_client_1.0.1.tar.gz
+# -rw-r--r-- 1 root root  902 Nov 24 XX:XX version.json
+
+# Verify checksum
+cd /var/www/html/tenjo/public/downloads/client/
+sha256sum tenjo_client_1.0.1.tar.gz
+
+# Should output:
+# 33fc7375422459732fb699606a786947a07ea853d7fdd6117f05412babc421ce
+
+# Set permissions
+chmod 644 tenjo_client_1.0.1.tar.gz version.json
+
+# Test download URL
+curl -I https://tenjo.adilabs.id/downloads/client/tenjo_client_1.0.1.tar.gz
+
+# Expected: HTTP/1.1 200 OK
+
+# View version.json
+curl https://tenjo.adilabs.id/downloads/client/version.json
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+═══════════════════════════════════════════════════════════════════
+STEP 3: CHECK SYSTEM STATUS
+═══════════════════════════════════════════════════════════════════
+
+cd /var/www/Tenjo/dashboard
+
+# Check registered clients
+php artisan tinker --execute="
+\$total = \App\Models\Client::count();
+\$active = \App\Models\Client::where('last_seen', '>', now()->subHours(24))->count();
+echo 'Total Clients: ' . \$total . PHP_EOL;
+echo 'Active (24h):  ' . \$active . PHP_EOL;
+"
+
+# Check database columns (should all be ✅)
+php artisan tinker --execute="
+use Illuminate\Support\Facades\Schema;
+\$fields = ['pending_update', 'update_version', 'update_url', 'update_changes', 'current_version'];
+echo 'Update columns:' . PHP_EOL;
+foreach (\$fields as \$field) {
+    \$exists = Schema::hasColumn('clients', \$field);
+    echo '  ' . \$field . ': ' . (\$exists ? '✅' : '❌') . PHP_EOL;
+}
+"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+═══════════════════════════════════════════════════════════════════
+STEP 4: TRIGGER UPDATE (CHOOSE ONE)
+═══════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OPTION A: TEST dengan 1 CLIENT DULU (RECOMMENDED!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Check first client info
+php artisan tinker --execute="
+\$c = \App\Models\Client::first();
+if (\$c) {
+    echo 'Test Client:' . PHP_EOL;
+    echo '  ID: ' . \$c->id . PHP_EOL;
+    echo '  Hostname: ' . \$c->hostname . PHP_EOL;
+    echo '  Current Ver: ' . (\$c->current_version ?? 'unknown') . PHP_EOL;
+    echo '  Last Seen: ' . \$c->last_seen . PHP_EOL;
+} else {
+    echo 'No clients found!' . PHP_EOL;
+}
+"
+
+# Trigger update for 1 client
+php artisan tinker --execute="
+\$c = \App\Models\Client::first();
+if (\$c) {
+    \$c->pending_update = true;
+    \$c->update_version = '1.0.1';
+    \$c->update_url = 'https://tenjo.adilabs.id/downloads/client/tenjo_client_1.0.1.tar.gz';
+    \$c->update_changes = json_encode([
+        'fix: Fixed 11 critical bugs',
+        'fix: Full stealth mode on Windows',
+        'fix: Python 3.6+ compatibility'
+    ]);
+    \$c->update_triggered_at = now();
+    \$c->save();
+    echo '✅ Update triggered for: ' . \$c->hostname . PHP_EOL;
+} else {
+    echo '❌ No clients found!' . PHP_EOL;
+}
+"
+
+# Monitor update (runs every 5 seconds until you press Ctrl+C)
+watch -n 5 'php artisan tinker --execute="
+\$c = \App\Models\Client::first();
+echo \"Client: \" . \$c->hostname . PHP_EOL;
+echo \"Pending: \" . (\$c->pending_update ? \"YES\" : \"NO\") . PHP_EOL;
+echo \"Current Ver: \" . (\$c->current_version ?? \"old\") . PHP_EOL;
+echo \"Update Ver: \" . (\$c->update_version ?? \"N/A\") . PHP_EOL;
+echo \"Triggered: \" . (\$c->update_triggered_at ?? \"N/A\") . PHP_EOL;
+echo \"Completed: \" . (\$c->update_completed_at ?? \"N/A\") . PHP_EOL;
+echo \"Last Seen: \" . \$c->last_seen . PHP_EOL;
+"'
+
+# Press Ctrl+C to stop monitoring
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OPTION B: TRIGGER ALL CLIENTS (⚠️ USE WITH CAUTION!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# TRIGGER SEMUA CLIENTS (HATI-HATI!)
+php artisan tinker --execute="
+\$clients = \App\Models\Client::all();
+\$count = 0;
+foreach (\$clients as \$c) {
+    \$c->pending_update = true;
+    \$c->update_version = '1.0.1';
+    \$c->update_url = 'https://tenjo.adilabs.id/downloads/client/tenjo_client_1.0.1.tar.gz';
+    \$c->update_changes = json_encode([
+        'fix: Fixed 11 critical bugs',
+        'fix: Full stealth mode on Windows',
+        'fix: Python 3.6+ compatibility'
+    ]);
+    \$c->update_triggered_at = now();
+    \$c->save();
+    \$count++;
+}
+echo '✅ Update triggered for ' . \$count . ' clients' . PHP_EOL;
+"
+
+# Monitor ALL clients update progress
+watch -n 10 'php artisan tinker --execute="
+\$total = \App\Models\Client::count();
+\$pending = \App\Models\Client::where(\"pending_update\", true)->count();
+\$completed = \App\Models\Client::where(\"current_version\", \"1.0.1\")->count();
+echo \"═══════════════════════════════\" . PHP_EOL;
+echo \"  UPDATE DEPLOYMENT STATUS      \" . PHP_EOL;
+echo \"═══════════════════════════════\" . PHP_EOL;
+echo \"Total Clients:    \" . \$total . PHP_EOL;
+echo \"Pending Update:   \" . \$pending . PHP_EOL;
+echo \"Updated to 1.0.1: \" . \$completed . PHP_EOL;
+echo \"Progress:         \" . round((\$completed / \$total) * 100, 1) . \"%\" . PHP_EOL;
+echo \"═══════════════════════════════\" . PHP_EOL;
+"'
+
+# Press Ctrl+C to stop monitoring
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+═══════════════════════════════════════════════════════════════════
+STEP 5: CHECK UPDATE SUCCESS
+═══════════════════════════════════════════════════════════════════
+
+# Check specific client status
+php artisan tinker --execute="
+\$c = \App\Models\Client::where('hostname', 'HOSTNAME_HERE')->first();
+if (\$c) {
+    echo 'Client: ' . \$c->hostname . PHP_EOL;
+    echo 'Pending: ' . (\$c->pending_update ? 'YES' : 'NO') . PHP_EOL;
+    echo 'Current Version: ' . (\$c->current_version ?? 'unknown') . PHP_EOL;
+    echo 'Last Seen: ' . \$c->last_seen . PHP_EOL;
+    echo 'Update Completed: ' . (\$c->update_completed_at ?? 'Not yet') . PHP_EOL;
+}
+"
+
+# List all clients with version 1.0.1
+php artisan tinker --execute="
+\$updated = \App\Models\Client::where('current_version', '1.0.1')->get();
+echo 'Clients on v1.0.1: ' . \$updated->count() . PHP_EOL;
+foreach (\$updated as \$c) {
+    echo '  - ' . \$c->hostname . ' (last seen: ' . \$c->last_seen . ')' . PHP_EOL;
+}
+"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+═══════════════════════════════════════════════════════════════════
+ROLLBACK (Jika ada masalah)
+═══════════════════════════════════════════════════════════════════
+
+# Clear pending updates
+php artisan tinker --execute="
+\App\Models\Client::where('pending_update', true)->update([
+    'pending_update' => false,
+    'update_version' => null,
+    'update_url' => null,
+    'update_triggered_at' => null
+]);
+echo '✅ All pending updates cleared' . PHP_EOL;
+"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+═══════════════════════════════════════════════════════════════════
+QUICK REFERENCE COMMANDS
+═══════════════════════════════════════════════════════════════════
+
+# Test download
+curl -I https://tenjo.adilabs.id/downloads/client/tenjo_client_1.0.1.tar.gz
+
+# Check version.json
+curl https://tenjo.adilabs.id/downloads/client/version.json
+
+# Client count
+php artisan tinker --execute="echo \App\Models\Client::count() . ' clients' . PHP_EOL;"
+
+# Active clients (24h)
+php artisan tinker --execute="echo \App\Models\Client::where('last_seen', '>', now()->subHours(24))->count() . ' active' . PHP_EOL;"
+
+# Clients on v1.0.1
+php artisan tinker --execute="echo \App\Models\Client::where('current_version', '1.0.1')->count() . ' updated' . PHP_EOL;"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+╔══════════════════════════════════════════════════════════════════╗
+║  ✅ DEPLOYMENT READY!                                            ║
+║                                                                  ║
+║  Package: tenjo_client_1.0.1.tar.gz (111 MB)                    ║
+║  Checksum: 33fc7375422459732fb699606a786947a07ea853...          ║
+║  Bugs Fixed: 11 critical bugs                                   ║
+║  Status: PRODUCTION READY                                       ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Last Updated: 2025-11-24
+Built by: Claude Code
