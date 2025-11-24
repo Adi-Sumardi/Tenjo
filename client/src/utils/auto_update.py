@@ -688,7 +688,7 @@ class ClientUpdater:
             return False
 
     def restore_from_backup(self) -> bool:
-        """FIX #43: Restore client from most recent backup"""
+        """FIX #43, #51: Restore client from most recent backup"""
         try:
             if not self.backup_path.exists():
                 self._log("No backup directory found", logging.ERROR)
@@ -703,6 +703,19 @@ class ClientUpdater:
             most_recent_backup = backups[0]
             self._log(f"Restoring from backup: {most_recent_backup}", logging.ERROR)
 
+            # FIX #51: Validate backup before restore
+            if not self._validate_backup(most_recent_backup):
+                self._log(f"Backup validation failed: {most_recent_backup}", logging.ERROR)
+                # Try next backup
+                if len(backups) > 1:
+                    most_recent_backup = backups[1]
+                    self._log(f"Trying previous backup: {most_recent_backup}", logging.ERROR)
+                    if not self._validate_backup(most_recent_backup):
+                        self._log("No valid backups found", logging.ERROR)
+                        return False
+                else:
+                    return False
+
             # Remove corrupted installation
             if self.install_path.exists():
                 shutil.rmtree(self.install_path)
@@ -713,6 +726,32 @@ class ClientUpdater:
             return True
         except Exception as exc:
             self._log(f"Restore failed: {exc}", logging.ERROR)
+            return False
+
+    def _validate_backup(self, backup_path: Path) -> bool:
+        """FIX #51: Validate backup integrity before restore"""
+        try:
+            # Check critical files exist in backup
+            required_files = [
+                'main.py',
+                'src/core/config.py',
+                'requirements.txt',
+            ]
+
+            for file in required_files:
+                file_path = backup_path / file
+                if not file_path.exists():
+                    self._log(f"Backup missing critical file: {file}", logging.ERROR)
+                    return False
+
+                # Check file not empty
+                if file_path.stat().st_size == 0:
+                    self._log(f"Backup file is empty: {file}", logging.ERROR)
+                    return False
+
+            return True
+        except Exception as exc:
+            self._log(f"Backup validation error: {exc}", logging.ERROR)
             return False
 
     # ------------------------------------------------------------------
