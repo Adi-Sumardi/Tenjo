@@ -747,7 +747,11 @@ class BrowserTracker:
                         'title': activity['title'],
                         'start_time': activity['start_time'].isoformat(),
                         'duration': activity['total_time'],
-                        'is_active': activity['is_active']
+                        'is_active': activity['is_active'],
+                        # FIX #18: Send activity engagement stats for KPI metrics
+                        'clicks': activity.get('clicks', 0),
+                        'keystrokes': activity.get('keystrokes', 0),
+                        'scroll_depth': activity.get('scroll_events', 0)  # Note: scroll_events→scroll_depth
                     }
 
                     if not activity['is_active'] and 'end_time' in activity:
@@ -771,9 +775,18 @@ class BrowserTracker:
                     'url_activities': url_data,
                     'timestamp': datetime.now().isoformat()
                 }
-                
-                self.api_client.send_browser_tracking(tracking_data)
-                
+
+                # FIX #19: Check API response and handle errors
+                response = self.api_client.send_browser_tracking(tracking_data)
+
+                if response and isinstance(response, dict):
+                    if response.get('success') is False:
+                        self.logger.warning(f"Browser tracking send failed: {response.get('message', 'Unknown error')}")
+                    elif response.get('status') == 'success':
+                        self.logger.debug(f"Browser tracking sent: {response.get('processed', {})}")
+                else:
+                    self.logger.warning("Browser tracking: No valid response from server")
+
         except Exception as e:
             self.logger.error(f"Error sending tracking data: {e}")
             
