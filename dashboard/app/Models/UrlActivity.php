@@ -24,6 +24,7 @@ class UrlActivity extends Model
         'is_active',
         'referrer_url',
         'metadata',
+        'activity_category',  // FIX: Add missing field for categorization (YouTube, games, etc.)
     ];
 
     protected $casts = [
