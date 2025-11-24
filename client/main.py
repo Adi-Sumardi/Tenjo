@@ -280,9 +280,9 @@ def main():
             # Update was performed, client will restart
             return
     except Exception as e:
-        # Update failed, continue with current version
-        if not Config.STEALTH_MODE:
-            print(f"Update check failed: {e}")
+        # FIX #30: Silently continue on update failure (fully stealth)
+        # Update failed, continue with current version without any output
+        pass
     
     # Set up signal handlers
     signal.signal(signal.SIGINT, signal_handler)
