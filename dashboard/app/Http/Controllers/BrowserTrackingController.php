@@ -234,12 +234,22 @@ class BrowserTrackingController extends Controller
             ]);
         } else {
             // Update existing session
-            $session->update([
+            $updateData = [
                 'window_count' => $data['window_count'] ?? $session->window_count,
                 'tab_count' => $data['tab_count'] ?? $session->tab_count,
                 'window_titles' => $data['window_titles'] ?? $session->window_titles,
                 'is_active' => $data['is_active'] ?? true
-            ]);
+            ];
+
+            // FIX #20: Handle session end time and total duration
+            if (isset($data['end_time'])) {
+                $updateData['session_end'] = Carbon::parse($data['end_time']);
+            }
+            if (isset($data['total_duration'])) {
+                $updateData['total_duration'] = $data['total_duration'];
+            }
+
+            $session->update($updateData);
         }
 
         return $session;

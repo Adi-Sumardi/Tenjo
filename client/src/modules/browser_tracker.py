@@ -728,6 +728,13 @@ class BrowserTracker:
                     'window_count': len(session.windows),
                     'is_active': True
                 }
+
+                # FIX #20: Send session end time and total duration when session ended
+                if session.end_time:
+                    session_data['end_time'] = session.end_time.isoformat()
+                    session_data['total_duration'] = session.total_time
+                    session_data['is_active'] = False
+
                 sessions_data.append(session_data)
                 
             # Prepare URL activities data
