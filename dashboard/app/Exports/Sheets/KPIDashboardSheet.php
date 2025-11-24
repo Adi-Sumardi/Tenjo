@@ -226,6 +226,10 @@ class KPIDashboardSheet implements FromCollection, WithHeadings, WithStyles, Wit
                 case ActivityCategorizerService::CATEGORY_SUSPICIOUS:
                     $suspiciousDuration += $duration;
                     break;
+                default:
+                    // FIX: Handle NULL or unknown categories as 'work' (benefit of doubt)
+                    $workDuration += $duration;
+                    break;
             }
         }
 

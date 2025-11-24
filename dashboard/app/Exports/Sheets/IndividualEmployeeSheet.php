@@ -111,6 +111,11 @@ class IndividualEmployeeSheet implements FromCollection, WithHeadings, WithStyle
                     $suspiciousDuration += $duration;
                     $suspiciousCount++;
                     break;
+                default:
+                    // FIX: Handle NULL or unknown categories as 'work' (benefit of doubt)
+                    $workDuration += $duration;
+                    $workCount++;
+                    break;
             }
         }
 
