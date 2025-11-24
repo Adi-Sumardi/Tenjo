@@ -563,13 +563,21 @@ class ClientController extends Controller
                 $withinWindow = $this->isWithinUpdateWindow($client, $now);
                 $secondsUntilWindow = $this->secondsUntilWindow($client, $now);
 
+                // Fix: Ensure update_changes is always an array
+                $updateChanges = $client->update_changes;
+                if (is_string($updateChanges)) {
+                    $decoded = json_decode($updateChanges, true);
+                    $updateChanges = is_array($decoded) ? $decoded : [$updateChanges];
+                }
+                $updateChanges = $updateChanges ?: [];
+
                 return response()->json([
                     'has_update' => true,
                     'current_version' => $client->current_version,
                     'execute_now' => $withinWindow || $client->update_priority === 'critical',
                     'version' => $client->update_version,
                     'update_url' => $client->update_url,
-                    'changes' => $client->update_changes ?? [],
+                    'changes' => $updateChanges,
                     'checksum' => $client->update_checksum,
                     'package_size' => $client->update_package_size,
                     'signature' => $client->update_signature,
