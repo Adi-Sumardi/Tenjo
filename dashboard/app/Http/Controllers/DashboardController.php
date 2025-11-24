@@ -337,10 +337,11 @@ class DashboardController extends Controller
                 'client' => $client,
                 'stats' => [
                     'screenshots' => $screenshotStats->get($client->client_id) ?? 0,
-                    'browser_sessions' => $sessionStats->get($client->client_id)->count ?? 0,
-                    'url_activities' => $urlStats->get($client->client_id)->activities_count ?? 0,
-                    'unique_urls' => $urlStats->get($client->client_id)->unique_urls_count ?? 0,
-                    'total_duration_minutes' => round(($urlStats->get($client->client_id)->total_duration_sum ?? 0) / 60, 1),
+                    // FIX: Use nullsafe operator (?->) to prevent "property of non-object" error
+                    'browser_sessions' => $sessionStats->get($client->client_id)?->count ?? 0,
+                    'url_activities' => $urlStats->get($client->client_id)?->activities_count ?? 0,
+                    'unique_urls' => $urlStats->get($client->client_id)?->unique_urls_count ?? 0,
+                    'total_duration_minutes' => round(($urlStats->get($client->client_id)?->total_duration_sum ?? 0) / 60, 1),
                     'top_domains' => $topDomainsString,
                     'last_activity' => $client->last_seen ? Carbon::parse($client->last_seen)->diffForHumans() : 'Never',
                     'status' => $client->isOnline() ? 'Online' : 'Offline'
