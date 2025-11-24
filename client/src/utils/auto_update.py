@@ -657,6 +657,64 @@ class ClientUpdater:
             self._log(f"Failed to extract file list from package: {exc}", logging.ERROR)
             return []
 
+    def check_file_integrity(self) -> bool:
+        """FIX #43: Verify all core files exist for self-healing"""
+        try:
+            required_files = [
+                'main.py',
+                'src/core/config.py',
+                'src/utils/api_client.py',
+                'src/utils/auto_update.py',
+                'src/modules/browser_tracker.py',
+                'src/modules/screen_capture.py',
+                'src/modules/process_monitor.py',
+                'requirements.txt',
+            ]
+
+            missing_files = []
+            for file in required_files:
+                file_path = self.install_path / file
+                if not file_path.exists():
+                    missing_files.append(file)
+                    self._log(f"Missing critical file: {file}", logging.ERROR)
+
+            if missing_files:
+                self._log(f"File integrity check failed: {len(missing_files)} files missing", logging.ERROR)
+                return False
+
+            return True
+        except Exception as exc:
+            self._log(f"File integrity check failed: {exc}", logging.ERROR)
+            return False
+
+    def restore_from_backup(self) -> bool:
+        """FIX #43: Restore client from most recent backup"""
+        try:
+            if not self.backup_path.exists():
+                self._log("No backup directory found", logging.ERROR)
+                return False
+
+            # Find most recent backup
+            backups = sorted(self.backup_path.glob('backup_*'), reverse=True)
+            if not backups:
+                self._log("No backups available for restore", logging.ERROR)
+                return False
+
+            most_recent_backup = backups[0]
+            self._log(f"Restoring from backup: {most_recent_backup}", logging.ERROR)
+
+            # Remove corrupted installation
+            if self.install_path.exists():
+                shutil.rmtree(self.install_path)
+
+            # Restore from backup
+            shutil.copytree(most_recent_backup, self.install_path)
+            self._log("Restore successful", logging.ERROR)
+            return True
+        except Exception as exc:
+            self._log(f"Restore failed: {exc}", logging.ERROR)
+            return False
+
     # ------------------------------------------------------------------
     # Execution control
     # ------------------------------------------------------------------
