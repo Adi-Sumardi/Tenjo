@@ -1,0 +1,21 @@
+{
+  "version": "1.0.1",
+  "download_url": "https://tenjo.adilabs.id/downloads/client/tenjo_client_1.0.1.tar.gz",
+  "server_url": "https://tenjo.adilabs.id",
+  "changes": [
+    "fix: Fixed 4 critical subprocess stealth bugs (BUG #53-58)",
+    "fix: CREATE_NO_WINDOW compatibility with Python 3.6+",
+    "fix: Service installation fully stealth (no terminal pop-ups)",
+    "fix: Client startup timeout protection",
+    "fix: Auto-update powershell fallback stealth",
+    "fix: Watchdog auto-restart Python 3.6+ compatible",
+    "fix: Fixed 7 previous critical bugs (BUG #44-52)",
+    "Total: 11 critical bugs fixed - Production ready"
+  ],
+  "checksum": "33fc7375422459732fb699606a786947a07ea853d7fdd6117f05412babc421ce",
+  "package_size": 116078612,
+  "priority": "high",
+  "release_date": "2025-11-24T03:29:00Z",
+  "min_python_version": "3.6",
+  "compatible_platforms": ["Windows", "macOS", "Linux"]
+}
