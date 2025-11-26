@@ -474,8 +474,13 @@ class BrowserTracker:
                 pass
 
         except ImportError as e:
-            # FIX #10: Log ImportError as warning (not debug) so we know about missing dependencies
-            self.logger.warning(f"Windows-specific libraries not available: {e}. Install with: pip install pywin32")
+            # FIX BUG #64: Log ImportError as ERROR (not warning) so it's visible even in stealth mode
+            self.logger.error(f"❌ Windows-specific libraries not available: {e}")
+            self.logger.error("   Browser tracking WILL NOT WORK without pywin32")
+            self.logger.error("   Install with: pip install pywin32 && python -m pywin32_postinstall -install")
+            # Only log this once, not every loop iteration
+            if not hasattr(self, '_import_error_logged'):
+                self._import_error_logged = True
         except Exception as e:
             self.logger.error(f"Error tracking Windows tabs: {e}")
 
