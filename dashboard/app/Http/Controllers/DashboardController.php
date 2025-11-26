@@ -382,7 +382,7 @@ class DashboardController extends Controller
             ];
         });
 
-        // Overall statistics
+        // Overall statistics with category totals
         $overallStats = [
             'total_clients' => $clients->count(),
             'online_clients' => $clients->where('stats.status', 'Online')->count(),
@@ -391,6 +391,13 @@ class DashboardController extends Controller
             'total_url_activities' => $urlStats->sum('activities_count'),
             'total_unique_urls' => $urlStats->sum('unique_urls_count'),
             'total_duration_hours' => round($urlStats->sum('total_duration_sum') / 3600, 1),
+            // ADD: Category totals for dashboard cards
+            'total_work_activities' => $urlStats->sum('work_count'),
+            'total_social_activities' => $urlStats->sum('social_count'),
+            'total_suspicious_activities' => $urlStats->sum('suspicious_count'),
+            'total_work_duration_hours' => round($urlStats->sum('work_duration') / 3600, 1),
+            'total_social_duration_hours' => round($urlStats->sum('social_duration') / 3600, 1),
+            'total_suspicious_duration_hours' => round($urlStats->sum('suspicious_duration') / 3600, 1),
         ];
 
         // Handle export requests
