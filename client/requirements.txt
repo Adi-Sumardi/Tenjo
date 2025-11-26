@@ -1,4 +1,5 @@
 # Python Tenjo Client Dependencies
+# REQUIREMENT: Python 3.12+ for optimal performance and compatibility
 
 # Core libraries
 requests>=2.31.0
