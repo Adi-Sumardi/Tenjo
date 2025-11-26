@@ -5,3 +5,7 @@ node_modules/
 client/src/data/screenshots/
 client/src/data/hls/
 client/src/data/pending/_api_system_stats_pending.jsonl
+-e 
+# Environment files
+*.env
+*.env.*
