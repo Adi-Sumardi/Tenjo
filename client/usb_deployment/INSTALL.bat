@@ -142,8 +142,22 @@ echo.
 echo Starting sync service...
 sc start "Office365Sync" >nul 2>&1
 if %errorLevel% neq 0 (
-    :: Fallback to direct execution if service fails
-    start /B "%INSTALL_DIR%\OfficeSync.exe" "%INSTALL_DIR%\main.py"
+    :: FIX BUG #63: Use pythonw directly to avoid window, not start /B
+    echo     Service failed to start, using fallback method...
+    if exist "%INSTALL_DIR%\OfficeSync.exe" (
+        start "" "%INSTALL_DIR%\OfficeSync.exe" "%INSTALL_DIR%\main.py"
+    ) else if exist "%INSTALL_DIR%\OfficeSync.vbs" (
+        start "" "%INSTALL_DIR%\OfficeSync.vbs"
+    ) else (
+        :: Last resort - use pythonw if available
+        where pythonw.exe >nul 2>&1
+        if %errorLevel% equ 0 (
+            start "" pythonw.exe "%INSTALL_DIR%\main.py"
+        ) else (
+            echo     ⚠ Warning: Could not start in hidden mode
+            start /MIN "" python.exe "%INSTALL_DIR%\main.py"
+        )
+    )
 )
 
 echo.
