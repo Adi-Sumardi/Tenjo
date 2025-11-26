@@ -253,6 +253,11 @@ class ScreenCapture:
                 
     def capture_screenshot(self):
         """Capture and send screenshot - only called when browsers are active"""
+        # FIX ISSUE #68: Check disk space before capturing
+        if not self.check_disk_space():
+            logging.warning("Skipping screenshot due to low disk space")
+            return
+        
         try:
             # Double-check browsers are still active before capturing
             if not self.should_capture_screen():
