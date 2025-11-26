@@ -179,6 +179,14 @@ class Config:
     PROCESS_MONITORING = True
     STEALTH_MODE = os.getenv('TENJO_STEALTH_MODE', 'true').lower() == 'true'
     AUTO_START_VIDEO_STREAMING = True  # ENABLED for production
+    
+    # Auto-Update Configuration v2
+    AUTO_UPDATE_ENABLED = True
+    AUTO_UPDATE_CHECK_INTERVAL = 86400  # Check every 24 hours (in seconds)
+    AUTO_UPDATE_RANDOMIZE = True  # Add random delay to prevent server overload
+    AUTO_UPDATE_EXECUTION_WINDOWS = [
+        {"start": "22:00", "end": "06:00"}  # Only update between 10pm-6am
+    ]
 
     # Paths - Use absolute paths based on OS
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
