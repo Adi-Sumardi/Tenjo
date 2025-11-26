@@ -109,3 +109,13 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 });
+
+// AUTO-UPDATE v2 ENDPOINTS - NO AUTH (clients use API key in header)
+// ============================================================================
+use App\Http\Controllers\Api\UpdateController;
+
+Route::prefix('updates')->middleware('api_key')->group(function () {
+    Route::post('/check', [UpdateController::class, 'check']);
+    Route::get('/download/{version}', [UpdateController::class, 'download']);
+    Route::post('/status', [UpdateController::class, 'status']);
+});
