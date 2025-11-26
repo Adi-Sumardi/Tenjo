@@ -57,13 +57,19 @@ class FolderProtection:
             Tuple of (success, output)
         """
         try:
-            result = subprocess.run(
-                command,
-                shell=shell,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
+            # FIX #60: Add CREATE_NO_WINDOW for Windows stealth mode
+            kwargs = {
+                'shell': shell,
+                'capture_output': True,
+                'text': True,
+                'timeout': 30
+            }
+            
+            # Add CREATE_NO_WINDOW on Windows to prevent terminal pop-ups
+            if sys.platform == 'win32':
+                kwargs['creationflags'] = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+            
+            result = subprocess.run(command, **kwargs)
             return result.returncode == 0, result.stdout + result.stderr
         except Exception as e:
             return False, str(e)
