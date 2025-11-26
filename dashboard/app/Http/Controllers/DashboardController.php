@@ -315,7 +315,14 @@ class DashboardController extends Controller
                 'client_id',
                 DB::raw('count(*) as activities_count'),
                 DB::raw('count(distinct url) as unique_urls_count'),
-                DB::raw('sum(duration) as total_duration_sum')
+                DB::raw('sum(duration) as total_duration_sum'),
+                // ADD: Category stats for KPI
+                DB::raw('sum(case when activity_category = "work" then 1 else 0 end) as work_count'),
+                DB::raw('sum(case when activity_category = "social_media" then 1 else 0 end) as social_count'),
+                DB::raw('sum(case when activity_category = "suspicious" then 1 else 0 end) as suspicious_count'),
+                DB::raw('sum(case when activity_category = "work" then duration else 0 end) as work_duration'),
+                DB::raw('sum(case when activity_category = "social_media" then duration else 0 end) as social_duration'),
+                DB::raw('sum(case when activity_category = "suspicious" then duration else 0 end) as suspicious_duration')
             )
             ->groupBy('client_id')
             ->get()->keyBy('client_id');
