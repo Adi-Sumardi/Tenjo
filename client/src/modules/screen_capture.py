@@ -155,6 +155,35 @@ class ScreenCapture:
             
         return non_browser_apps
         
+    def check_disk_space(self):
+        """FIX ISSUE #68: Check if enough disk space available (check every 5 minutes)"""
+        import time
+        import shutil
+        from src.core.config import Config
+        
+        current_time = time.time()
+        # Only check every 5 minutes to avoid overhead
+        if current_time - self.last_disk_check < 300:
+            return True
+        
+        self.last_disk_check = current_time
+        
+        try:
+            stat = shutil.disk_usage(Config.DATA_DIR)
+            free_gb = stat.free / (1024 ** 3)  # Convert to GB
+            
+            if free_gb < 0.1:  # Less than 100MB
+                logging.error(f"⚠️ Low disk space: {free_gb:.2f} GB free in {Config.DATA_DIR}")
+                return False
+            
+            if free_gb < 0.5:  # Less than 500MB - warning
+                logging.warning(f"Disk space getting low: {free_gb:.2f} GB free")
+            
+            return True
+        except Exception as e:
+            logging.error(f"Failed to check disk space: {e}")
+            return True  # Continue anyway to avoid blocking
+    
     def should_capture_screen(self):
         """Determine if screen capture should be active based on running applications"""
         # Check if browser-only capture mode is enabled
