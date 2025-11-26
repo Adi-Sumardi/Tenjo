@@ -29,7 +29,7 @@ class APIClient:
 
         # Connection settings
         self.timeout = 5  # Reduced from 30 to 5 seconds to prevent hanging
-        self.max_retries = 1  # Reduced retries for faster failure
+        self.max_retries = 3  # FIX ISSUE #67: Increased from 1 to 3 for better reliability
         self.retry_delay = 2
 
     def get_real_ip_address(self):
