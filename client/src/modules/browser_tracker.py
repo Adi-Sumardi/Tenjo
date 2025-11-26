@@ -118,6 +118,16 @@ class BrowserTracker:
     def start_tracking(self):
         """Start browser tracking with activity detection"""
         self.logger.info("Starting enhanced browser tracking with smart activity detection...")
+        
+        # FIX BUG #64: Diagnostic check for Windows dependencies BEFORE starting
+        if self.system == 'Windows':
+            dependency_check_passed = self._check_windows_dependencies()
+            if not dependency_check_passed:
+                self.logger.error("❌ CRITICAL: Windows browser tracking dependencies missing!")
+                self.logger.error("   Browser tracking will NOT work without pywin32")
+                self.logger.error("   Run: pip install pywin32")
+                # Continue anyway - auto-install will try to fix
+        
         self.running = True
         
         # Initialize and start activity detector
