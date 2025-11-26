@@ -23,6 +23,7 @@ class ScreenCapture:
         self.capture_interval = 120  # 2 minutes
         self.browser_check_interval = 30  # Check for browsers every 30 seconds
         self.is_capturing = False
+        self.last_disk_check = 0  # FIX ISSUE #68: Track last disk space check
         self.browser_tracker = None
         self.only_capture_with_browser = True  # Only capture when browser is active
         
