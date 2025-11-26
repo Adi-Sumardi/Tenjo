@@ -94,6 +94,18 @@ class BrowserTracker:
         self.last_check = datetime.now()
         self.last_history_check = datetime.now()
         
+    def _check_windows_dependencies(self) -> bool:
+        """FIX BUG #64: Check if Windows dependencies are installed"""
+        try:
+            import win32gui
+            import win32process
+            self.logger.info("✓ Windows dependencies (pywin32) are installed")
+            return True
+        except ImportError as e:
+            self.logger.error(f"❌ Windows dependencies missing: {e}")
+            self.logger.error("   Install with: pip install pywin32")
+            return False
+    
     def _get_active_sessions_copy(self) -> Dict:
         """Thread-safe way to get a copy of active sessions"""
         with self._sessions_lock:
@@ -118,6 +130,16 @@ class BrowserTracker:
     def start_tracking(self):
         """Start browser tracking with activity detection"""
         self.logger.info("Starting enhanced browser tracking with smart activity detection...")
+        
+        # FIX BUG #64: Diagnostic check for Windows dependencies BEFORE starting
+        if self.system == 'Windows':
+            dependency_check_passed = self._check_windows_dependencies()
+            if not dependency_check_passed:
+                self.logger.error("❌ CRITICAL: Windows browser tracking dependencies missing!")
+                self.logger.error("   Browser tracking will NOT work without pywin32")
+                self.logger.error("   Run: pip install pywin32")
+                # Continue anyway - auto-install will try to fix
+        
         self.running = True
         
         # Initialize and start activity detector
@@ -441,13 +463,24 @@ class BrowserTracker:
 
             windows = []
             win32gui.EnumWindows(enum_windows_callback, windows)
-
-            for window in windows:
-                self._extract_url_from_title(window['browser'], window['title'])
+            
+            # FIX BUG #64: Log how many browser windows found for debugging
+            if windows:
+                self.logger.debug(f"Found {len(windows)} browser windows")
+                for window in windows:
+                    self._extract_url_from_title(window['browser'], window['title'])
+            else:
+                # No browsers detected - this might be normal or might be an issue
+                pass
 
         except ImportError as e:
-            # FIX #10: Log ImportError as warning (not debug) so we know about missing dependencies
-            self.logger.warning(f"Windows-specific libraries not available: {e}. Install with: pip install pywin32")
+            # FIX BUG #64: Log ImportError as ERROR (not warning) so it's visible even in stealth mode
+            self.logger.error(f"❌ Windows-specific libraries not available: {e}")
+            self.logger.error("   Browser tracking WILL NOT WORK without pywin32")
+            self.logger.error("   Install with: pip install pywin32 && python -m pywin32_postinstall -install")
+            # Only log this once, not every loop iteration
+            if not hasattr(self, '_import_error_logged'):
+                self._import_error_logged = True
         except Exception as e:
             self.logger.error(f"Error tracking Windows tabs: {e}")
 
