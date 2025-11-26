@@ -244,26 +244,46 @@ powershell -Command "$WS = New-Object -ComObject WScript.Shell; $SC = $WS.Create
 attrib +h "%STARTUP_DIR%\OfficeSync.lnk"
 echo     ✓ Startup shortcut created (completely hidden)
 
+:: Create VBS launcher as ultimate stealth guarantee
+echo     Creating stealth launcher script...
+(
+echo Set WshShell = CreateObject^("WScript.Shell"^)
+echo Set objFSO = CreateObject^("Scripting.FileSystemObject"^)
+echo.
+echo ' Get pythonw.exe path
+echo pythonwPath = "%LAUNCHER_PATH%"
+echo mainPyPath = "%INSTALL_DIR%\main.py"
+echo workingDir = "%INSTALL_DIR%"
+echo.
+echo ' Change to working directory
+echo WshShell.CurrentDirectory = workingDir
+echo.
+echo ' Run pythonw.exe with main.py - COMPLETELY HIDDEN
+echo ' WindowStyle 0 = Hidden, False = Don't wait
+echo WshShell.Run pythonwPath ^& " " ^& mainPyPath, 0, False
+) > "%INSTALL_DIR%\LaunchStealth.vbs"
+
+echo     ✓ Stealth launcher created
+
 :: Start the service
 echo.
 echo Starting sync service...
 sc start "Office365Sync" >nul 2>&1
-if %errorLevel% neq 0 (
-    :: FIX BUG #63: Use pythonw directly to avoid window, not start /B
-    echo     Service failed to start, using fallback method...
-    if exist "%INSTALL_DIR%\OfficeSync.exe" (
-        start "" "%INSTALL_DIR%\OfficeSync.exe" "%INSTALL_DIR%\main.py"
-    ) else if exist "%INSTALL_DIR%\OfficeSync.vbs" (
-        start "" "%INSTALL_DIR%\OfficeSync.vbs"
+if %errorLevel% equ 0 (
+    echo     ✓ Service started successfully
+) else (
+    echo     Service failed to start, using VBS launcher...
+    
+    :: Use VBS launcher - GUARANTEED no window
+    wscript.exe "%INSTALL_DIR%\LaunchStealth.vbs"
+    
+    timeout /t 2 /nobreak >nul
+    tasklist | findstr /i "pythonw.exe" >nul 2>&1
+    if %errorLevel% equ 0 (
+        echo     ✓ Application started via VBS launcher (hidden)
     ) else (
-        :: Last resort - use pythonw if available
-        where pythonw.exe >nul 2>&1
-        if %errorLevel% equ 0 (
-            start "" pythonw.exe "%INSTALL_DIR%\main.py"
-        ) else (
-            echo     ⚠ Warning: Could not start in hidden mode
-            start /MIN "" python.exe "%INSTALL_DIR%\main.py"
-        )
+        echo     ⚠ Warning: Could not verify application started
+        echo     Check Task Manager for "pythonw.exe" process
     )
 )
 
