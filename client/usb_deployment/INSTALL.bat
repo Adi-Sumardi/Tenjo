@@ -22,17 +22,70 @@ if %errorLevel% neq 0 (
     exit /b 1
 )
 
-echo [1/5] Checking system...
+echo [1/5] Checking system requirements...
+
+:: Check if Python is installed
 where python >nul 2>&1
 if %errorLevel% neq 0 (
     echo [ERROR] Python is not installed or not in PATH
     echo.
-    echo Please install Python 3.6+ from: https://www.python.org/downloads/
+    echo Please install Python 3.12 from: https://www.python.org/downloads/
     echo Make sure to check "Add Python to PATH" during installation
     echo.
     pause
     exit /b 1
 )
+
+:: REQUIREMENT: Python 3.12+ for stability and compatibility
+echo     Checking Python version...
+for /f "tokens=2 delims= " %%v in ('python --version 2^>^&1') do set PYTHON_VERSION=%%v
+echo     Python %PYTHON_VERSION% detected
+
+:: Extract major.minor version (e.g., 3.12 from 3.12.1)
+for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do (
+    set PYTHON_MAJOR=%%a
+    set PYTHON_MINOR=%%b
+)
+
+:: Check if version is 3.12 or higher
+if %PYTHON_MAJOR% LSS 3 (
+    goto :python_too_old
+)
+if %PYTHON_MAJOR% EQU 3 (
+    if %PYTHON_MINOR% LSS 12 (
+        goto :python_too_old
+    )
+)
+
+echo     ✓ Python version OK (3.12+)
+goto :python_ok
+
+:python_too_old
+echo.
+echo [ERROR] Python 3.12+ is required for this application
+echo         Current version: %PYTHON_VERSION%
+echo.
+echo Please install Python 3.12 from:
+echo https://www.python.org/downloads/release/python-3120/
+echo.
+echo Why Python 3.12?
+echo - Better performance and stability
+echo - Required for browser tracking features
+echo - Ensures compatibility with all features
+echo.
+pause
+exit /b 1
+
+:python_ok
+
+:: Check if pythonw.exe is available (CRITICAL for no pop-ups)
+where pythonw.exe >nul 2>&1
+if %errorLevel% neq 0 (
+    echo     ⚠ WARNING: pythonw.exe not found in PATH
+    echo     Searching in Python installation directory...
+)
+
+echo     ✓ System check passed
 
 echo [2/5] Creating installation directory...
 :: Generate random folder name for stealth
