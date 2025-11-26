@@ -213,9 +213,16 @@ class APIClient:
                     logging.warning(f"API request failed with status {response.status_code}")
 
             except requests.exceptions.ConnectionError:
-                logging.warning(f"Connection error on attempt {attempt + 1}")
+                logging.warning(f"Connection error on attempt {attempt + 1}/{self.max_retries}")
+                if attempt < self.max_retries - 1:
+                    # FIX ISSUE #67: Exponential backoff
+                    delay = self.retry_delay * (2 ** attempt)
+                    time.sleep(delay)
             except requests.exceptions.Timeout:
-                logging.warning(f"Request timeout on attempt {attempt + 1}")
+                logging.warning(f"Request timeout on attempt {attempt + 1}/{self.max_retries}")
+                if attempt < self.max_retries - 1:
+                    delay = self.retry_delay * (2 ** attempt)
+                    time.sleep(delay)
             except Exception as e:
                 logging.error(f"Request error: {str(e)}")
 
