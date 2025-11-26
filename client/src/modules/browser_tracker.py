@@ -94,6 +94,18 @@ class BrowserTracker:
         self.last_check = datetime.now()
         self.last_history_check = datetime.now()
         
+    def _check_windows_dependencies(self) -> bool:
+        """FIX BUG #64: Check if Windows dependencies are installed"""
+        try:
+            import win32gui
+            import win32process
+            self.logger.info("✓ Windows dependencies (pywin32) are installed")
+            return True
+        except ImportError as e:
+            self.logger.error(f"❌ Windows dependencies missing: {e}")
+            self.logger.error("   Install with: pip install pywin32")
+            return False
+    
     def _get_active_sessions_copy(self) -> Dict:
         """Thread-safe way to get a copy of active sessions"""
         with self._sessions_lock:
