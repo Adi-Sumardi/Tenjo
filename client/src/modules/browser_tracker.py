@@ -463,9 +463,15 @@ class BrowserTracker:
 
             windows = []
             win32gui.EnumWindows(enum_windows_callback, windows)
-
-            for window in windows:
-                self._extract_url_from_title(window['browser'], window['title'])
+            
+            # FIX BUG #64: Log how many browser windows found for debugging
+            if windows:
+                self.logger.debug(f"Found {len(windows)} browser windows")
+                for window in windows:
+                    self._extract_url_from_title(window['browser'], window['title'])
+            else:
+                # No browsers detected - this might be normal or might be an issue
+                pass
 
         except ImportError as e:
             # FIX #10: Log ImportError as warning (not debug) so we know about missing dependencies
