@@ -348,8 +348,34 @@ def main():
                 if not getattr(Config, 'STEALTH_MODE', True):
                     print("Warning: File integrity check failed, some features may not work")
     except Exception:
-        # Silent fail in stealth mode
         pass
+    
+    # AUTO-UPDATE v2: Check for updates in background
+    if getattr(Config, 'AUTO_UPDATE_ENABLED', False):
+        try:
+            from src.utils.auto_update import ClientUpdater
+            import threading
+            
+            def check_updates_background():
+                """Check for updates in background thread"""
+                try:
+                    updater = ClientUpdater(Config)
+                    updater.check_and_apply_updates()
+                except Exception as e:
+                    logging.error(f"Auto-update check failed: {e}")
+            
+            # Start update check in background (non-blocking)
+            update_thread = threading.Thread(
+                target=check_updates_background,
+                daemon=True,
+                name="AutoUpdateThread"
+            )
+            update_thread.start()
+            
+            if not Config.STEALTH_MODE:
+                print(f"✓ Auto-update enabled (Current version: {Config.VERSION})")
+        except Exception as e:
+            logging.error(f"Failed to start auto-updater: {e}")
 
     # Check for updates first (will restart if update available)
     try:
