@@ -340,15 +340,41 @@ class DashboardController extends Controller
                 ? $clientTopDomains->pluck('domain')->take(3)->implode(', ')
                 : 'None';
 
+            $clientUrlStats = $urlStats->get($client->client_id);
+            $totalActivities = $clientUrlStats?->activities_count ?? 0;
+            
+            // Calculate category counts and durations
+            $workCount = $clientUrlStats?->work_count ?? 0;
+            $socialCount = $clientUrlStats?->social_count ?? 0;
+            $suspiciousCount = $clientUrlStats?->suspicious_count ?? 0;
+            
+            $workDuration = round(($clientUrlStats?->work_duration ?? 0) / 60, 1);
+            $socialDuration = round(($clientUrlStats?->social_duration ?? 0) / 60, 1);
+            $suspiciousDuration = round(($clientUrlStats?->suspicious_duration ?? 0) / 60, 1);
+            
+            // Calculate percentages
+            $workPct = $totalActivities > 0 ? round(($workCount / $totalActivities) * 100, 1) : 0;
+            $socialPct = $totalActivities > 0 ? round(($socialCount / $totalActivities) * 100, 1) : 0;
+            $suspiciousPct = $totalActivities > 0 ? round(($suspiciousCount / $totalActivities) * 100, 1) : 0;
+            
             return [
                 'client' => $client,
                 'stats' => [
                     'screenshots' => $screenshotStats->get($client->client_id) ?? 0,
-                    // FIX: Use nullsafe operator (?->) to prevent "property of non-object" error
                     'browser_sessions' => $sessionStats->get($client->client_id)?->count ?? 0,
-                    'url_activities' => $urlStats->get($client->client_id)?->activities_count ?? 0,
-                    'unique_urls' => $urlStats->get($client->client_id)?->unique_urls_count ?? 0,
-                    'total_duration_minutes' => round(($urlStats->get($client->client_id)?->total_duration_sum ?? 0) / 60, 1),
+                    'url_activities' => $totalActivities,
+                    'unique_urls' => $clientUrlStats?->unique_urls_count ?? 0,
+                    'total_duration_minutes' => round(($clientUrlStats?->total_duration_sum ?? 0) / 60, 1),
+                    // ADD: Category stats
+                    'work_count' => $workCount,
+                    'social_count' => $socialCount,
+                    'suspicious_count' => $suspiciousCount,
+                    'work_duration_minutes' => $workDuration,
+                    'social_duration_minutes' => $socialDuration,
+                    'suspicious_duration_minutes' => $suspiciousDuration,
+                    'work_percentage' => $workPct,
+                    'social_percentage' => $socialPct,
+                    'suspicious_percentage' => $suspiciousPct,
                     'top_domains' => $topDomainsString,
                     'last_activity' => $client->last_seen ? Carbon::parse($client->last_seen)->diffForHumans() : 'Never',
                     'status' => $client->isOnline() ? 'Online' : 'Offline'
