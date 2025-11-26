@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Client Application Version (Auto-Update v2)
+    |--------------------------------------------------------------------------
+    |
+    | This is the latest version of the client application. Clients will check
+    | this value and auto-update if they are running an older version.
+    |
+    */
+
+    'client_version' => env('CLIENT_VERSION', '2.0.0'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
