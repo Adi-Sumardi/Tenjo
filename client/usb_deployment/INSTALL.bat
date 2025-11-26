@@ -173,10 +173,23 @@ sc description "Office365Sync" "Synchronizes Microsoft Office 365 data and setti
 sc config "Office365Sync" start= delayed-auto >nul 2>&1
 echo     ✓ Service registered (NO pop-ups guaranteed)
 
-:: FIX BUG #63: Create hidden startup shortcut with WindowStyle = 0 (Hidden, not Minimized)
+:: FIX BUG #63 v2: Create DOUBLE-HIDDEN startup shortcut (NO pop-ups)
 set STARTUP_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
-powershell -Command "$WS = New-Object -ComObject WScript.Shell; $SC = $WS.CreateShortcut('%STARTUP_DIR%\OfficeSync.lnk'); $SC.TargetPath = '%INSTALL_DIR%\OfficeSync.exe'; $SC.Arguments = '%INSTALL_DIR%\main.py'; $SC.WorkingDirectory = '%INSTALL_DIR%'; $SC.WindowStyle = 0; $SC.Save()"
+
+:: Determine launcher to use
+set LAUNCHER_PATH=%INSTALL_DIR%\OfficeSync.exe
+if not exist "%LAUNCHER_PATH%" (
+    if exist "%INSTALL_DIR%\.pythonw_path" (
+        for /f "delims=" %%p in ('type "%INSTALL_DIR%\.pythonw_path"') do set LAUNCHER_PATH=%%p
+    )
+)
+
+:: Create hidden shortcut with WindowStyle = 0 (Completely Hidden)
+powershell -Command "$WS = New-Object -ComObject WScript.Shell; $SC = $WS.CreateShortcut('%STARTUP_DIR%\OfficeSync.lnk'); $SC.TargetPath = '%LAUNCHER_PATH%'; $SC.Arguments = '%INSTALL_DIR%\main.py'; $SC.WorkingDirectory = '%INSTALL_DIR%'; $SC.WindowStyle = 0; $SC.Save()"
+
+:: Make shortcut itself hidden
 attrib +h "%STARTUP_DIR%\OfficeSync.lnk"
+echo     ✓ Startup shortcut created (completely hidden)
 
 :: Start the service
 echo.
