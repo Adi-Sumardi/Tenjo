@@ -31,6 +31,21 @@ def get_local_ip():
     return '127.0.0.1'
 
 class Config:
+    # Application Version - AUTO-UPDATE v2
+    @staticmethod
+    def get_version():
+        """Get current application version from VERSION file"""
+        try:
+            version_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'VERSION')
+            if os.path.exists(version_file):
+                with open(version_file, 'r') as f:
+                    return f.read().strip()
+        except Exception:
+            pass
+        return "2.0.0"  # Default version
+    
+    VERSION = get_version.__func__()  # Static call during class definition
+    
     # Server Configuration - AUTO-DETECT MODE
     # Priority: ENV VAR > server_override.json > local dev > production
     DEFAULT_SERVER_URL = os.getenv('TENJO_SERVER_URL', "https://tenjo.adilabs.id")  # Production server (changed from localhost)
