@@ -88,3 +88,18 @@ Schedule::call(function () {
     // This is just a safety measure for edge cases
 })->hourly()
     ->description('Hourly cleanup of stream cache entries');
+
+// FIX BUG #79: Screenshot cleanup to prevent disk from filling up
+Schedule::command('cleanup:screenshots', ['--days=30'])
+    ->daily()
+    ->at('02:30')
+    ->description('Daily cleanup of screenshots older than 30 days')
+    ->emailOutputOnFailure(config('mail.admin_email', 'admin@tenjo.app'));
+
+// FIX BUG #80: URL activities cleanup to keep database size manageable
+Schedule::command('cleanup:url-activities', ['--days=90'])
+    ->weekly()
+    ->sundays()
+    ->at('03:30')
+    ->description('Weekly cleanup of URL activities older than 90 days')
+    ->emailOutputOnFailure(config('mail.admin_email', 'admin@tenjo.app'));
