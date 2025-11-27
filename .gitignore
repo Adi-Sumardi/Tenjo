@@ -33,3 +33,7 @@ client/src/data/pending/_api_system_stats_pending.jsonl
 # Environment files
 *.env
 *.env.*
+-e 
+# Environment files
+*.env
+*.env.*
