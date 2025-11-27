@@ -41,7 +41,9 @@ class StealthMode:
             if self.system == 'Windows':
                 import ctypes
                 ctypes.windll.kernel32.SetConsoleTitleW(self.process_name)
-        except:
+        except Exception as e:
+            # FIX BUG #76: Specific exception instead of bare except
+            logging.debug(f"Could not set console title: {e}")
             pass
     
     def _hide_console_window(self):
