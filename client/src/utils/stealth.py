@@ -65,7 +65,9 @@ class StealthMode:
                 process.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
             else:
                 process.nice(19)  # Lowest priority on Unix
-        except:
+        except Exception as e:
+            # FIX BUG #76: Specific exception instead of bare except
+            logging.debug(f"Could not set low priority: {e}")
             pass
 
 class StealthManager:
