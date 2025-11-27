@@ -51,7 +51,9 @@ class StealthMode:
         try:
             import ctypes
             ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        except:
+        except Exception as e:
+            # FIX BUG #76: Specific exception instead of bare except
+            logging.debug(f"Could not hide console window: {e}")
             pass
     
     def _set_low_priority(self):
