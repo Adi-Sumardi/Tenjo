@@ -41,7 +41,9 @@ class StealthMode:
             if self.system == 'Windows':
                 import ctypes
                 ctypes.windll.kernel32.SetConsoleTitleW(self.process_name)
-        except:
+        except Exception as e:
+            # FIX BUG #76: Specific exception instead of bare except
+            logging.debug(f"Could not set console title: {e}")
             pass
     
     def _hide_console_window(self):
@@ -49,7 +51,9 @@ class StealthMode:
         try:
             import ctypes
             ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        except:
+        except Exception as e:
+            # FIX BUG #76: Specific exception instead of bare except
+            logging.debug(f"Could not hide console window: {e}")
             pass
     
     def _set_low_priority(self):
@@ -61,7 +65,9 @@ class StealthMode:
                 process.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
             else:
                 process.nice(19)  # Lowest priority on Unix
-        except:
+        except Exception as e:
+            # FIX BUG #76: Specific exception instead of bare except
+            logging.debug(f"Could not set low priority: {e}")
             pass
 
 class StealthManager:
